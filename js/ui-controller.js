@@ -70,6 +70,17 @@ const UIController = (function() {
 
     // Initialize UI
     function init() {
+        // Add transaction button
+        const addTransactionBtn = document.getElementById('add-transaction-btn');
+        if (addTransactionBtn) {
+            addTransactionBtn.addEventListener('click', showAddTransactionModal);
+        }
+
+        // Initialize DOM elements directly
+        csvUploadInput = document.getElementById("csv-upload");
+        pdfUploadInput = document.getElementById("pdf-upload");
+
+
         // Set up tab navigation
         DOM.tabs.forEach(tab => {
             tab.addEventListener('click', function() {
@@ -84,7 +95,7 @@ const UIController = (function() {
         updateTransactionsList();
 
         // Set up transaction form events
-        DOM.addTransactionBtn.addEventListener('click', showAddTransactionModal);
+
         DOM.transactionForm.addEventListener('submit', handleTransactionFormSubmit);
         DOM.cancelTransactionBtn.addEventListener('click', hideTransactionModal);
         DOM.closeModal.addEventListener('click', hideTransactionModal);

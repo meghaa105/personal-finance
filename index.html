@@ -27,7 +27,7 @@
                 <button class="tab-btn" data-tab="settings">Settings</button>
             </div>
         </header>
-        
+
         <main>
             <!-- Dashboard Tab -->
             <section id="dashboard" class="tab-content active">
@@ -45,11 +45,11 @@
                         <p class="total-expenses">₹0.00</p>
                     </div>
                 </div>
-                
+
                 <div class="chart-container">
                     <canvas id="expense-chart"></canvas>
                 </div>
-                
+
                 <div class="recent-transactions">
                     <h3>Recent Transactions</h3>
                     <div id="recent-transactions-list" class="transactions-list">
@@ -58,7 +58,7 @@
                     </div>
                 </div>
             </section>
-            
+
             <!-- Transactions Tab -->
             <section id="transactions" class="tab-content">
                 <div class="filters">
@@ -70,23 +70,23 @@
                     </select>
                     <input type="month" id="filter-month">
                 </div>
-                
+
                 <div id="transactions-list" class="transactions-list">
                     <!-- Transactions will be populated here -->
                     <div class="empty-state">No transactions available</div>
                 </div>
-                
+
                 <button id="add-transaction-btn" class="floating-btn">
                     <span class="material-icons">add</span>
                 </button>
             </section>
-            
+
             <!-- Analytics Tab -->
             <section id="analytics" class="tab-content">
                 <div class="analytics-search-bar">
                     <input type="text" id="analytics-search" placeholder="Search transactions by description...">
                 </div>
-                
+
                 <div class="analytics-filters">
                     <div class="filters-wrapper">
                         <div class="time-filter">
@@ -134,7 +134,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="analytics-summary">
                     <h3>Analytics Summary</h3>
                     <div class="summary-metrics">
@@ -160,7 +160,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="analytics-charts">
                     <div class="chart-wrapper">
                         <h3>Spending by Category</h3>
@@ -204,7 +204,7 @@
                         <canvas id="expense-forecast-chart"></canvas>
                     </div>
                 </div>
-                
+
                 <div class="filtered-transactions">
                     <h3>Filtered Transactions</h3>
                     <div id="analytics-transactions" class="transactions-list">
@@ -213,7 +213,7 @@
                     </div>
                 </div>
             </section>
-            
+
             <!-- Import Tab -->
             <section id="import" class="tab-content">
                 <div id="import-modal" class="modal">
@@ -255,7 +255,7 @@
                         </div>
                         <div id="pdf-upload-status" class="upload-status"></div>
                     </div>
-                    
+
                     <div class="import-option">
                         <h3>Import CSV (Bank Statement)</h3>
                         <div class="file-upload">
@@ -292,7 +292,7 @@
                         <div id="smart-upload-status" class="upload-status"></div>
                     </div>
                 </div>
-                
+
                 <div class="import-preview">
                     <h3>Import Preview</h3>
                     <div id="import-preview-content">
@@ -302,14 +302,14 @@
                     <button id="confirm-import" class="btn" disabled>Import Transactions</button>
                 </div>
             </section>
-            
+
             <!-- Reminders Tab --> 
             <section id="reminders" class="tab-content"> 
                 <div class="reminders-header"> 
                     <h3>Credit Card Payment Reminders</h3> 
                     <button id="add-reminder-btn" class="btn"><span class="material-icons">add</span> Add Reminder</button> 
                 </div> 
-                
+
                 <div class="reminders-dashboard"> 
                     <!-- Upcoming Reminders --> 
                     <div class="reminders-section"> 
@@ -318,7 +318,7 @@
                             <div class="empty-state">No upcoming credit card payments</div> 
                         </div> 
                     </div> 
-                    
+
                     <!-- Overdue Reminders --> 
                     <div class="reminders-section"> 
                         <h4>Overdue Payments</h4> 
@@ -326,7 +326,7 @@
                             <div class="empty-state">No overdue credit card payments</div> 
                         </div> 
                     </div> 
-                    
+
                     <!-- Completed Payments --> 
                     <div class="reminders-section"> 
                         <h4>Completed Payments</h4> 
@@ -336,7 +336,7 @@
                     </div> 
                 </div> 
             </section>
-            
+
             <!-- Settings Tab -->
             <section id="settings" class="tab-content">
                 <div class="settings-group">
@@ -357,7 +357,7 @@
                         <button id="clear-data" class="btn danger">Clear All Data</button>
                     </div>
                 </div>
-                
+
                 <div class="settings-group">
                     <h3>Categories Management</h3>
                     <div class="setting-item">
@@ -522,7 +522,6 @@
     <!-- Application Scripts -->
     <script src="js/database.js"></script>
     <script src="js/transaction-utils.js"></script>
-    <script src="js/settings-controller.js"></script>
     <script src="js/transaction-controller.js"></script>
     <script src="js/analytics-controller.js"></script>
     <script src="js/advanced-analytics.js"></script>

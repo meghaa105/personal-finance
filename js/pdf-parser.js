@@ -881,11 +881,7 @@ const PDFParser = (function() {
     
     // Parse date from various formats
     function parseDate(dateStr) {
-        // Try parsing with built-in Date
-        const date = new Date(dateStr);
-        if (!isNaN(date.getTime())) {
-            return date;
-        }
+        // Make the function prioritize Indian date formats (DD-MM-YYYY, DD/MM/YYYY)
         
         // Try DD-MM-YYYY format (common in Indian bank statements like Axis Bank)
         let match = /(\d{2})-(\d{2})-(\d{4})/.exec(dateStr);
@@ -894,7 +890,10 @@ const PDFParser = (function() {
             const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
             const year = parseInt(match[3]);
             
-            return new Date(year, month, day);
+            // Validate the day and month (to ensure it's actually DD-MM-YYYY)
+            if (day > 0 && day <= 31 && month >= 0 && month < 12) {
+                return new Date(year, month, day);
+            }
         }
         
         // Try DD/MM/YYYY format (Indian format)
@@ -904,12 +903,15 @@ const PDFParser = (function() {
             const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
             let year = parseInt(match[3]);
             
-            // Adjust two-digit years
-            if (year < 100) {
-                year = year < 50 ? 2000 + year : 1900 + year;
+            // Validate the day and month (to ensure it's actually DD/MM/YYYY)
+            if (day > 0 && day <= 31 && month >= 0 && month < 12) {
+                // Adjust two-digit years
+                if (year < 100) {
+                    year = year < 50 ? 2000 + year : 1900 + year;
+                }
+                
+                return new Date(year, month, day);
             }
-            
-            return new Date(year, month, day);
         }
         
         // Try DD.MM.YYYY format
@@ -952,6 +954,12 @@ const PDFParser = (function() {
             return new Date(year, month, day);
         }
         
+        // As last resort, try the native Date parsing
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            return date;
+        }
+
         return null;
     }
     

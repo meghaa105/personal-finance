@@ -335,44 +335,26 @@ const CSVParser = (function() {
     function parseDate(dateStr) {
         if (!dateStr) return null;
         
-        // Try built-in Date parsing
-        const date = new Date(dateStr);
-        if (!isNaN(date.getTime())) {
-            return date;
-        }
-        
-        // Try MM/DD/YYYY format
-        let match = /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(dateStr);
-        if (match) {
-            const month = parseInt(match[1]) - 1; // Months are 0-indexed in JavaScript
-            const day = parseInt(match[2]);
-            let year = parseInt(match[3]);
-            
-            // Adjust two-digit years
-            if (year < 100) {
-                year = year < 50 ? 2000 + year : 1900 + year;
-            }
-            
-            return new Date(year, month, day);
-        }
-        
-        // Try DD/MM/YYYY format
-        match = /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(dateStr);
+        // Prioritize Indian format - DD/MM/YYYY
+        let match = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/.exec(dateStr);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
             let year = parseInt(match[3]);
             
-            // Adjust two-digit years
-            if (year < 100) {
-                year = year < 50 ? 2000 + year : 1900 + year;
+            // Validate the day and month (to ensure it's actually DD/MM/YYYY)
+            if (day > 0 && day <= 31 && month >= 0 && month < 12) {
+                // Adjust two-digit years
+                if (year < 100) {
+                    year = year < 50 ? 2000 + year : 1900 + year;
+                }
+                
+                return new Date(year, month, day);
             }
-            
-            return new Date(year, month, day);
         }
         
-        // Try YYYY-MM-DD format
-        match = /(\d{4})-(\d{1,2})-(\d{1,2})/.exec(dateStr);
+        // Try YYYY-MM-DD ISO format next (most reliable)
+        match = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/.exec(dateStr);
         if (match) {
             const year = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
@@ -380,6 +362,14 @@ const CSVParser = (function() {
             
             return new Date(year, month, day);
         }
+        
+        // Try to parse with built-in Date as fallback
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            return date;
+        }
+        
+        // We already tried this format above, so we'll skip it here
         
         // Try DD.MM.YYYY format
         match = /(\d{1,2})\.(\d{1,2})\.(\d{2,4})/.exec(dateStr);

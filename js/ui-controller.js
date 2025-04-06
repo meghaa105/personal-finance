@@ -43,7 +43,7 @@ const UIController = (function () {
 
         // Transaction modal
         transactionModal: document.getElementById("transaction-modal"),
-        modalTitle: document.querySelector(".modal-title"),
+        modalTitle: document.getElementById("modal-title"),
         transactionForm: document.getElementById("transaction-form"),
         transactionId: document.getElementById("transaction-id"),
         transactionDate: document.getElementById("transaction-date"),
@@ -74,6 +74,16 @@ const UIController = (function () {
 
     // Initialize UI
     function init() {
+        // Add transaction button
+        DOM.addTransactionBtn = document.getElementById("add-transaction-btn");
+        if (DOM.addTransactionBtn) {
+            console.log("MEGHAA Add button clicked!");
+            DOM.addTransactionBtn.addEventListener("click", function () {
+                showAddTransactionModal();
+                return false;
+            });
+        }
+
         // Initialize DOM elements directly
         csvUploadInput = document.getElementById("csv-upload");
         pdfUploadInput = document.getElementById("pdf-upload");
@@ -92,11 +102,7 @@ const UIController = (function () {
         updateTransactionsList();
 
         // Set up transaction form events
-        // Add transaction button
-        DOM.addTransactionBtn.addEventListener(
-            "click",
-            showAddTransactionModal,
-        );
+
         DOM.transactionForm.addEventListener(
             "submit",
             handleTransactionFormSubmit,

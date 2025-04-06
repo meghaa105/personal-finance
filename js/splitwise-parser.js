@@ -108,6 +108,10 @@ const SplitwiseParser = (function() {
                                     })
                                     .filter(t => t !== null);
 
+                                if (transactions.length === 0) {
+                                    reject(new Error('No valid transactions found in the file'));
+                                    return;
+                                }
                                 console.log(`Successfully parsed ${transactions.length} Splitwise transactions`);
                                 resolve({
                                     success: true,

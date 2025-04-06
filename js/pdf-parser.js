@@ -138,147 +138,221 @@ const PDFParser = (function() {
         const lines = text.split('\n');
         let transactionSection = false;
         
-        // Debug: Log first 15 lines to see if we can find transaction section markers
+        // Debug: Log more lines to see if we can find transaction section markers
         console.log('Looking for transaction section markers in PDF content:');
-        for (let i = 0; i < Math.min(lines.length, 15); i++) {
+        for (let i = 0; i < Math.min(lines.length, 50); i++) {
             if (lines[i].trim().length > 5) {
                 console.log(`Line ${i}: ${lines[i].trim().substring(0, 100)}`);
             }
         }
         
+        // More aggressive search for transaction section markers in Indian bank statements
+        // First pass: just look for any date patterns to identify transactions
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
+            const line = lines[i].trim();
             
             // Skip short or empty lines
-            if (line.trim().length < 5) continue;
+            if (line.length < 5) continue;
             
-            // Look for transaction section markers - more lenient now for Indian bank statements
-            if (line.match(/transaction detail|statement of account|transaction history|date.*description.*amount|date.*particulars|tran.?date|description|debit|credit|particulars|dr|cr|withdrawal|deposit/i)) {
-                transactionSection = true;
-                console.log(`Found transaction section marker at line ${i}: ${line.trim().substring(0, 100)}`);
-                continue;
-            }
+            // Look for ANY date pattern in Indian format (DD/MM/YYYY or DD-MM-YYYY)
+            const dateMatch = line.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/);
             
-            // If we're in the transaction section and line has date-like pattern
-            if (transactionSection && line.match(/\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}/)) {
-                console.log(`Potential transaction line ${i}: ${line.trim().substring(0, 100)}`);
+            // If line has a date and some amount-like numbers
+            if (dateMatch && line.match(/\d+,?\d*\.\d{2}/)) {
+                console.log(`Found potential transaction with date pattern at line ${i}: ${line}`);
                 
-                // Extract date
-                const dateMatch = extractDate(line);
-                
-                if (dateMatch) {
-                    console.log(`Date match found: ${dateMatch}`);
+                // Extract amount looking for any number with decimal point
+                const amountMatches = line.match(/\d+,?\d*\.\d{2}/g);
+                if (amountMatches && amountMatches.length > 0) {
+                    let amount = parseFloat(amountMatches[amountMatches.length - 1].replace(/,/g, ''));
                     
-                    // For multiline transaction descriptions, try to combine next lines
-                    let fullLine = line;
-                    const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
-                    
-                    // If next line doesn't have a date and isn't a header, it's part of this transaction
-                    if (nextLine && !nextLine.match(/\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}/) && !nextLine.match(/page|balance|total/i)) {
-                        fullLine += ' ' + nextLine;
-                        i++; // Skip next line as we've included it
+                    // Determine transaction type based on context
+                    let type = 'expense'; // Default
+                    if (line.match(/cr|credit|deposit|salary|interest earned|refund/i)) {
+                        type = 'income';
                     }
                     
-                    // Extract amount and type (DR/CR)
-                    const amountInfo = extractAmount(fullLine);
-                    console.log(`Amount extracted: ${amountInfo.amount}, Type: ${amountInfo.type}`);
+                    // Create description by removing date and amounts
+                    let description = line.replace(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/, '')
+                                         .replace(/\d+,?\d*\.\d{2}/g, '')
+                                         .replace(/(cr|dr|credit|debit)/gi, '')
+                                         .trim();
                     
-                    if (amountInfo.amount) {
-                        // Create transaction object
-                        const transaction = {
-                            id: Date.now() + Math.random().toString(36).substring(2, 10),
-                            date: parseDate(dateMatch),
-                            description: fullLine.replace(/\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}/, '')
-                                         .replace(/₹\s?\d+,?\d*\.\d{2}|Rs\.\s?\d+,?\d*\.\d{2}|INR\s?\d+,?\d*\.\d{2}|\d+,?\d*\.\d{2}\s?INR|\d+,?\d*\.\d{2}/g, '')
-                                         .replace(/(dr|cr)$/i, '')
-                                         .trim(),
-                            amount: Math.abs(amountInfo.amount),
-                            type: amountInfo.type,
-                            source: 'pdf'  // Add source information
-                        };
-                        
-                        // Guess category
-                        transaction.category = guessCategory(transaction.description);
-                        
-                        // Add to transactions array if valid
-                        if (transaction.date && transaction.amount > 0) {
-                            console.log(`Valid transaction found: ${transaction.date} - ${transaction.description} - ${transaction.amount}`);
-                            transactions.push(transaction);
-                        } else {
-                            console.log(`Invalid transaction: missing date or amount`);
-                        }
+                    // Sometimes the next line contains additional description information
+                    const nextLine = i < lines.length - 1 ? lines[i + 1].trim() : '';
+                    if (nextLine && !nextLine.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/) && 
+                        !nextLine.match(/page|balance|total/i) && 
+                        nextLine.length > 3 && 
+                        nextLine.length < 100) {
+                        description += ' ' + nextLine;
+                        i++; // Skip next line
+                    }
+                    
+                    // Create transaction
+                    const transaction = {
+                        id: Date.now() + Math.random().toString(36).substring(2, 10),
+                        date: parseDate(dateMatch[0]),
+                        description: description,
+                        amount: amount,
+                        type: type,
+                        source: 'pdf'
+                    };
+                    
+                    // Guess category
+                    transaction.category = guessCategory(transaction.description);
+                    
+                    console.log(`Created transaction: ${JSON.stringify(transaction)}`);
+                    
+                    // Add if valid
+                    if (transaction.date && transaction.amount > 0) {
+                        transactions.push(transaction);
                     }
                 }
             }
         }
         
-        // If no transactions found, try an alternative approach specifically for SBI format
-        if (transactions.length === 0 && bankFormat === 'SBI') {
-            console.log('Trying alternative SBI transaction parsing...');
-            
-            // SBI typically has transaction sections starting with patterns like
-            // "Date", "Description", "Debit", "Credit", "Balance"
-            let tableHeaders = false;
+        // If we still don't have transactions, try traditional section markers approach
+        if (transactions.length === 0) {
+            console.log('No transactions found with direct date matching, trying section markers...');
             
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 
-                // Look for table headers
-                if (line.match(/Date|Tran Date|Value Date|Description|Particulars|Debit|Credit|Balance|Amount/i) && 
-                    !tableHeaders && line.length > 10) {
-                    tableHeaders = true;
-                    console.log(`Found SBI table headers at line ${i}: ${line}`);
-                    continue;
-                }
+                // Skip short or empty lines
+                if (line.length < 5) continue;
                 
-                // If we found headers and this line has a date pattern
-                if (tableHeaders && line.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/)) {
-                    console.log(`SBI transaction line: ${line}`);
+                // Look for transaction section markers with broader patterns
+                if (line.match(/transaction|statement|history|date|particulars|tran.*date|description|debit|credit|particulars|dr|cr|withdrawal|deposit|balance|amount/i)) {
+                    transactionSection = true;
+                    console.log(`Found transaction section marker at line ${i}: ${line}`);
                     
-                    // For SBI, dates are usually DD-MM-YYYY or DD/MM/YYYY
-                    const dateMatch = line.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/);
+                    // Process next lines until end of section or file
+                    for (let j = i + 1; j < lines.length; j++) {
+                        const transLine = lines[j].trim();
+                        
+                        // Skip short lines
+                        if (transLine.length < 5) continue;
+                        
+                        // Check for end of transaction section
+                        if (transLine.match(/page|total|closing|opening|balance carried|balance brought|summary|grand total/i) && 
+                            transLine.length < 50) {
+                            console.log(`End of transaction section at line ${j}: ${transLine}`);
+                            break;
+                        }
+                        
+                        // Look for date pattern in this line
+                        const dateMatch = transLine.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/);
+                        
+                        if (dateMatch) {
+                            console.log(`Found date in transaction section: ${dateMatch[0]} in line: ${transLine}`);
+                            
+                            // Look for amount
+                            const amountMatches = transLine.match(/\d+,?\d*\.\d{2}/g);
+                            
+                            if (amountMatches && amountMatches.length > 0) {
+                                let amount = parseFloat(amountMatches[amountMatches.length - 1].replace(/,/g, ''));
+                                
+                                // Determine transaction type
+                                let type = 'expense'; // Default
+                                if (transLine.match(/cr|credit|deposit|salary|interest earned|refund/i)) {
+                                    type = 'income';
+                                }
+                                
+                                // Create description
+                                let description = transLine.replace(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/, '')
+                                                         .replace(/\d+,?\d*\.\d{2}/g, '')
+                                                         .replace(/(cr|dr|credit|debit)/gi, '')
+                                                         .trim();
+                                
+                                // Create transaction
+                                const transaction = {
+                                    id: Date.now() + Math.random().toString(36).substring(2, 10),
+                                    date: parseDate(dateMatch[0]),
+                                    description: description,
+                                    amount: amount,
+                                    type: type,
+                                    source: 'pdf'
+                                };
+                                
+                                // Guess category
+                                transaction.category = guessCategory(transaction.description);
+                                
+                                // Add if valid
+                                if (transaction.date && transaction.amount > 0) {
+                                    console.log(`Valid transaction in section: ${transaction.date} - ${transaction.description} - ${transaction.amount}`);
+                                    transactions.push(transaction);
+                                }
+                            }
+                        }
+                    }
                     
-                    if (dateMatch) {
-                        // Extract amount (SBI often separates debit and credit in different columns)
-                        let amount = 0;
+                    break; // We've processed the transaction section, no need to continue the main loop
+                }
+            }
+        }
+        
+        // Special handling for SBI statements as a last resort
+        if (transactions.length === 0 && bankFormat === 'SBI') {
+            console.log('Trying SBI-specific transaction parsing...');
+            
+            // For SBI statements, try a more aggressive approach
+            // Look for lines that match a date pattern followed by an amount
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Skip short lines or lines that are likely headers
+                if (line.length < 10 || line.match(/^(date|description|amount|balance|opening|closing)/i)) continue;
+                
+                // Look for SBI date formats (DD-MM-YYYY or DD/MM/YYYY)
+                const dateMatch = line.match(/\d{2}[\/-]\d{2}[\/-]\d{4}/);
+                if (dateMatch) {
+                    console.log(`SBI date pattern found: ${dateMatch[0]} in line: ${line}`);
+                    
+                    // Look for all amounts in the line
+                    const amounts = [];
+                    let m;
+                    const amountRegex = /\d{1,3}(?:,\d{3})*\.\d{2}/g;
+                    while ((m = amountRegex.exec(line)) !== null) {
+                        // This is necessary to avoid infinite loops with zero-width matches
+                        if (m.index === amountRegex.lastIndex) {
+                            amountRegex.lastIndex++;
+                        }
+                        amounts.push(parseFloat(m[0].replace(/,/g, '')));
+                    }
+                    
+                    if (amounts.length > 0) {
+                        // Use the highest amount as the transaction amount
+                        const amount = Math.max(...amounts);
+                        
+                        // Simple type detection
                         let type = 'expense';
+                        if (line.match(/credit|salary|interest|refund|cr/i)) {
+                            type = 'income';
+                        }
                         
-                        // Look for numbers that could be amounts (with decimal points)
-                        const amountMatches = line.match(/\d+,?\d*\.\d{2}/g);
+                        // Create a clean description
+                        let description = line.replace(/\d{2}[\/-]\d{2}[\/-]\d{4}/, '')
+                                             .replace(/\d{1,3}(?:,\d{3})*\.\d{2}/g, '')
+                                             .replace(/(dr|cr|debit|credit)/gi, '')
+                                             .trim();
                         
-                        if (amountMatches && amountMatches.length > 0) {
-                            // Take the last amount as it's often the transaction amount
-                            // (first might be balance)
-                            amount = parseFloat(amountMatches[amountMatches.length - 1].replace(/,/g, ''));
-                            
-                            // Determine if credit or debit - in SBI, usually indicated by position or CR/DR
-                            if (line.includes('CR') || line.includes('CREDIT') || line.toLowerCase().includes('credit')) {
-                                type = 'income';
-                            } else if (line.includes('DR') || line.includes('DEBIT') || line.toLowerCase().includes('debit')) {
-                                type = 'expense';
-                            }
-                            
-                            // Create transaction
-                            const transaction = {
-                                id: Date.now() + Math.random().toString(36).substring(2, 10),
-                                date: parseDate(dateMatch[0]),
-                                description: line.replace(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/, '')
-                                             .replace(/\d+,?\d*\.\d{2}/g, '')
-                                             .replace(/(CR|DR|CREDIT|DEBIT)/gi, '')
-                                             .trim(),
-                                amount: amount,
-                                type: type,
-                                source: 'pdf'
-                            };
-                            
-                            // Guess category
-                            transaction.category = guessCategory(transaction.description);
-                            
-                            // Add to transactions array if valid
-                            if (transaction.date && transaction.amount > 0) {
-                                console.log(`Valid SBI transaction found: ${transaction.date} - ${transaction.description} - ${transaction.amount}`);
-                                transactions.push(transaction);
-                            }
+                        // Create transaction
+                        const transaction = {
+                            id: Date.now() + Math.random().toString(36).substring(2, 10),
+                            date: parseDate(dateMatch[0]),
+                            description: description,
+                            amount: amount,
+                            type: type,
+                            source: 'pdf'
+                        };
+                        
+                        // Guess category
+                        transaction.category = guessCategory(transaction.description);
+                        
+                        console.log(`Created SBI transaction: ${JSON.stringify(transaction)}`);
+                        
+                        if (transaction.date && transaction.amount > 0) {
+                            transactions.push(transaction);
                         }
                     }
                 }
@@ -345,8 +419,10 @@ const PDFParser = (function() {
     function parseDate(dateStr) {
         if (!dateStr) return null;
         
-        // Handle Indian format - DD/MM/YYYY
-        let match = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/.exec(dateStr);
+        console.log(`Attempting to parse date: ${dateStr}`);
+        
+        // Handle Indian format - DD/MM/YYYY or DD-MM-YYYY (most common in Indian bank statements)
+        let match = /^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/.exec(dateStr);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
@@ -357,17 +433,50 @@ const PDFParser = (function() {
                 year = year < 50 ? 2000 + year : 1900 + year;
             }
             
-            return new Date(year, month, day);
+            const parsedDate = new Date(year, month, day);
+            console.log(`Parsed Indian format date: ${parsedDate.toISOString()}`);
+            return parsedDate;
         }
         
-        // Try other common formats
-        const date = new Date(dateStr);
-        if (!isNaN(date.getTime())) {
-            return date;
+        // Try to handle text month formats like "DD MMM YYYY" (e.g., "15 Jan 2023")
+        match = /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,]+(\d{2,4})/i.exec(dateStr);
+        if (match) {
+            const day = parseInt(match[1]);
+            const monthStr = match[2].toLowerCase();
+            let year = parseInt(match[3]);
+            
+            // Map month string to number
+            const monthMap = {
+                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+            };
+            
+            const month = monthMap[monthStr.substring(0, 3)];
+            
+            // Adjust two-digit years
+            if (year < 100) {
+                year = year < 50 ? 2000 + year : 1900 + year;
+            }
+            
+            const parsedDate = new Date(year, month, day);
+            console.log(`Parsed text month format date: ${parsedDate.toISOString()}`);
+            return parsedDate;
         }
         
-        // Fallback to null
-        return null;
+        // Try other common formats as a last resort
+        try {
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                console.log(`Parsed using standard Date constructor: ${date.toISOString()}`);
+                return date;
+            }
+        } catch (e) {
+            console.log(`Error parsing date with Date constructor: ${e.message}`);
+        }
+        
+        console.log(`Failed to parse date: ${dateStr}`);
+        // Fallback to current date if unable to parse (better than null for debugging)
+        return new Date();
     }
     
     // Guess category based on transaction description

@@ -1443,3 +1443,14 @@ main {
 .upload-status .progress-bar {
     margin-bottom: 8px;
 }
+
+.month-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0 1rem;
+    border-radius: var(--border-radius);
+    font-size: 1.2rem;
+    font-weight: 600;
+    box-shadow: var(--box-shadow);
+}

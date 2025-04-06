@@ -4,7 +4,7 @@
 const SplitwiseParser = (function() {
     // Required headers for a valid Splitwise CSV
     const REQUIRED_HEADERS = ['Date', 'Description', 'Category', 'Cost'];
-    
+
     // Splitwise CSV format headers
     const HEADER_MAPPINGS = {
         date: ['Date'],
@@ -52,38 +52,59 @@ const SplitwiseParser = (function() {
                                         return userAmount !== 0;
                                     })
                                     .map(row => {
-                                        // Extract date - Splitwise uses YYYY-MM-DD format
-                                        const date = row['Date'];
-                                        if (!date) return null;
+                                        try {
+                                            // Extract date - Splitwise uses YYYY-MM-DD format
+                                            const dateStr = row['Date'];
+                                            if (!dateStr) return null;
+                                            const date = new Date(dateStr);
+                                            if (isNaN(date.getTime())) return null;
 
-                                        // Extract description
-                                        const description = row['Description'] || row['Notes'] || 'Unknown';
+                                            // Extract description
+                                            const description = row['Description'] || row['Notes'] || 'Unknown';
+                                            if (!description || description.trim().length === 0) return null;
 
-                                        // Extract amount - Splitwise uses 'Cost' or 'Amount' field
-                                        const amount = parseFloat(row['Cost'] || row['Amount'] || '0');
-                                        if (isNaN(amount) || amount === 0) return null;
+                                            // Extract amount - Splitwise uses 'Cost' or 'Amount' field
+                                            let amount = parseFloat(row['Cost'] || row['Amount'] || '0');
+                                            if (isNaN(amount) || amount === 0) return null;
 
-                                        // Extract category
-                                        const category = row['Category'] || 'Other';
+                                            // If we have user-specific amount, use that instead
+                                            if (filterUser && row[filterUser]) {
+                                                amount = Math.abs(parseFloat(row[filterUser]));
+                                                if (isNaN(amount) || amount === 0) return null;
+                                            }
 
-                                        // Extract currency
-                                        const currency = row['Currency'] || 'INR';
+                                            // Extract currency
+                                            const currency = row['Currency'] || 'INR';
 
-                                        // Create transaction object
-                                        return {
-                                            date: new Date(date),
-                                            description,
-                                            amount: Math.abs(amount),
-                                            category,
-                                            type: 'expense', // Splitwise entries are typically expenses
-                                            source: 'splitwise',
-                                            currency
-                                        };
+                                            // Extract and map category
+                                            let category = row['Category'] || '';
+                                            category = mapSplitwiseCategory(category);
+
+                                            // Determine transaction type (expense by default)
+                                            const type = 'expense';
+
+                                            return {
+                                                date,
+                                                description,
+                                                amount,
+                                                category,
+                                                type,
+                                                source: 'splitwise',
+                                                currency
+                                            };
+                                        } catch (error) {
+                                            console.error('Error processing row:', error, row);
+                                            return null;
+                                        }
                                     })
-                                    .filter(t => t !== null && t.date instanceof Date && !isNaN(t.date));
+                                    .filter(t => t !== null);
 
                                 console.log(`Successfully parsed ${transactions.length} Splitwise transactions`);
-                                resolve(transactions);
+                                resolve({
+                                    success: true,
+                                    transactions: transactions,
+                                    rawData: results.data
+                                });
                             } catch (error) {
                                 console.error('Error parsing Splitwise data:', error);
                                 reject(new Error('Failed to parse Splitwise data: ' + error.message));
@@ -105,6 +126,25 @@ const SplitwiseParser = (function() {
             };
             reader.readAsText(file);
         });
+    }
+
+    // Map Splitwise categories to our standard categories
+    function mapSplitwiseCategory(splitwiseCategory) {
+        const categoryMap = {
+            'Food & Drink': 'Food & Dining',
+            'Groceries': 'Groceries',
+            'Shopping': 'Shopping',
+            'Entertainment': 'Entertainment',
+            'Home': 'Housing',
+            'Transportation': 'Transportation',
+            'Utilities': 'Utilities',
+            'Medical': 'Health',
+            'Education': 'Education',
+            'Travel': 'Travel'
+        };
+
+        const category = categoryMap[splitwiseCategory] || 'Other';
+        return category;
     }
 
     return {

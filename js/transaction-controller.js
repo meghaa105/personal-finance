@@ -114,18 +114,25 @@ const TransactionsController = (function() {
             return;
         }
 
+        // Check file extension
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            splitwiseUploadStatus.textContent = 'Error: Please select a CSV file from Splitwise';
+            splitwiseUploadStatus.className = 'upload-status error';
+            return;
+        }
+
         try {
             splitwiseUploadStatus.textContent = 'Processing Splitwise file...';
             splitwiseUploadStatus.className = 'upload-status';
             
             console.log('Starting Splitwise parse...');
-            const transactions = await SplitwiseParser.parseCSV(file);
-            console.log('Parsed transactions:', transactions);
+            const result = await SplitwiseParser.parseCSV(file);
+            console.log('Parse result:', result);
             
-            if (transactions && transactions.length > 0) {
-                pendingImportTransactions = transactions;
-                showImportPreview(transactions);
-                splitwiseUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
+            if (result.success && result.transactions && result.transactions.length > 0) {
+                pendingImportTransactions = result.transactions;
+                showImportPreview(result.transactions);
+                splitwiseUploadStatus.textContent = `Successfully processed ${result.transactions.length} transactions`;
                 splitwiseUploadStatus.className = 'upload-status success';
                 confirmImportBtn.disabled = false;
             } else {

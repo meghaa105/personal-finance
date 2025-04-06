@@ -642,71 +642,267 @@ const UIController = (function() {
             return;
         }
         
-        // Create preview table
-        const table = document.createElement('table');
-        table.className = 'preview-table';
+        // Store the transactions for later use
+        importData = transactions;
         
-        // Create table header
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
+        // Main preview container
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'preview-container';
         
-        const headers = ['Date', 'Description', 'Amount', 'Type', 'Category'];
-        headers.forEach(header => {
-            const th = document.createElement('th');
-            th.textContent = header;
-            headerRow.appendChild(th);
+        // Create transaction count and controls
+        const countInfo = document.createElement('div');
+        countInfo.className = 'transaction-count-info';
+        countInfo.innerHTML = `<strong>${transactions.length}</strong> transactions found`;
+        previewContainer.appendChild(countInfo);
+        
+        // Add view toggle buttons
+        const viewControls = document.createElement('div');
+        viewControls.className = 'view-controls';
+        
+        const compactViewBtn = document.createElement('button');
+        compactViewBtn.className = 'btn compact-view active';
+        compactViewBtn.textContent = 'Compact View';
+        compactViewBtn.addEventListener('click', () => {
+            compactViewBtn.classList.add('active');
+            fullViewBtn.classList.remove('active');
+            showCompactView();
         });
         
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-        
-        // Create table body
-        const tbody = document.createElement('tbody');
-        
-        // Show at most 10 transactions in preview
-        const previewTransactions = transactions.slice(0, 10);
-        
-        previewTransactions.forEach(transaction => {
-            const row = document.createElement('tr');
-            
-            const dateCell = document.createElement('td');
-            dateCell.textContent = TransactionUtils.formatDate(transaction.date);
-            row.appendChild(dateCell);
-            
-            const descriptionCell = document.createElement('td');
-            descriptionCell.textContent = transaction.description;
-            row.appendChild(descriptionCell);
-            
-            const amountCell = document.createElement('td');
-            amountCell.textContent = TransactionUtils.formatCurrency(transaction.amount);
-            row.appendChild(amountCell);
-            
-            const typeCell = document.createElement('td');
-            typeCell.textContent = transaction.type;
-            row.appendChild(typeCell);
-            
-            const categoryCell = document.createElement('td');
-            categoryCell.textContent = transaction.category || 'Other';
-            row.appendChild(categoryCell);
-            
-            tbody.appendChild(row);
+        const fullViewBtn = document.createElement('button');
+        fullViewBtn.className = 'btn full-view';
+        fullViewBtn.textContent = 'View All Transactions';
+        fullViewBtn.addEventListener('click', () => {
+            fullViewBtn.classList.add('active');
+            compactViewBtn.classList.remove('active');
+            showFullView();
         });
         
-        table.appendChild(tbody);
+        viewControls.appendChild(compactViewBtn);
+        viewControls.appendChild(fullViewBtn);
+        previewContainer.appendChild(viewControls);
         
-        // If there are more transactions than shown in preview, add a message
-        if (transactions.length > 10) {
-            const message = document.createElement('div');
-            message.className = 'preview-message';
-            message.textContent = `Showing 10 of ${transactions.length} transactions.`;
+        // Container for the actual transaction table
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'table-container';
+        tableContainer.id = 'import-table-container';
+        previewContainer.appendChild(tableContainer);
+        
+        // Clear existing content and add the preview container
+        DOM.importPreviewContent.innerHTML = '';
+        DOM.importPreviewContent.appendChild(previewContainer);
+        
+        // Show compact view by default
+        showCompactView();
+        
+        // Helper function to create compact view (limited preview)
+        function showCompactView() {
+            const container = document.getElementById('import-table-container');
+            container.innerHTML = '';
             
-            DOM.importPreviewContent.innerHTML = '';
-            DOM.importPreviewContent.appendChild(table);
-            DOM.importPreviewContent.appendChild(message);
-        } else {
-            DOM.importPreviewContent.innerHTML = '';
-            DOM.importPreviewContent.appendChild(table);
+            // Create preview table
+            const table = document.createElement('table');
+            table.className = 'preview-table compact-table';
+            
+            // Create table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            const headers = ['Date', 'Description', 'Amount', 'Type', 'Category'];
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create table body
+            const tbody = document.createElement('tbody');
+            
+            // Show only first 10 transactions in compact view
+            const previewTransactions = transactions.slice(0, 10);
+            
+            previewTransactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                
+                // Date cell
+                const dateCell = document.createElement('td');
+                dateCell.textContent = TransactionUtils.formatDate(transaction.date);
+                row.appendChild(dateCell);
+                
+                // Description cell (truncate if too long)
+                const descriptionCell = document.createElement('td');
+                descriptionCell.className = 'description-cell';
+                descriptionCell.textContent = transaction.description.length > 30 ? 
+                    transaction.description.substring(0, 30) + '...' : 
+                    transaction.description;
+                descriptionCell.title = transaction.description; // Full text on hover
+                row.appendChild(descriptionCell);
+                
+                // Amount cell
+                const amountCell = document.createElement('td');
+                amountCell.textContent = TransactionUtils.formatCurrency(transaction.amount);
+                row.appendChild(amountCell);
+                
+                // Type cell
+                const typeCell = document.createElement('td');
+                typeCell.textContent = transaction.type;
+                row.appendChild(typeCell);
+                
+                // Category cell
+                const categoryCell = document.createElement('td');
+                categoryCell.textContent = transaction.category || 'Other';
+                row.appendChild(categoryCell);
+                
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            container.appendChild(table);
+            
+            // If there are more transactions than preview limit, show a message
+            if (transactions.length > 10) {
+                const message = document.createElement('div');
+                message.className = 'preview-message';
+                message.textContent = `Showing 10 of ${transactions.length} transactions. Click "View All Transactions" to see and edit all.`;
+                container.appendChild(message);
+            }
         }
+        
+        // Helper function to create full editable view (all transactions)
+        function showFullView() {
+            const container = document.getElementById('import-table-container');
+            container.innerHTML = '';
+            
+            // Create full view table
+            const table = document.createElement('table');
+            table.className = 'preview-table full-table';
+            
+            // Create table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            const headers = ['Date', 'Description', 'Amount', 'Type', 'Category', 'Actions'];
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create table body
+            const tbody = document.createElement('tbody');
+            
+            // Generate category options for dropdowns
+            const categories = Database.getCategories();
+            const categoryOptions = categories.map(cat => 
+                `<option value="${cat}">${cat}</option>`
+            ).join('');
+            
+            // Show all transactions
+            transactions.forEach((transaction, index) => {
+                const row = document.createElement('tr');
+                row.dataset.index = index;
+                
+                // Date cell (editable)
+                const dateCell = document.createElement('td');
+                const dateInput = document.createElement('input');
+                dateInput.type = 'date';
+                dateInput.className = 'edit-date';
+                dateInput.value = new Date(transaction.date).toISOString().split('T')[0];
+                dateInput.addEventListener('change', (e) => {
+                    importData[index].date = new Date(e.target.value);
+                });
+                dateCell.appendChild(dateInput);
+                row.appendChild(dateCell);
+                
+                // Description cell (editable)
+                const descriptionCell = document.createElement('td');
+                const descInput = document.createElement('input');
+                descInput.type = 'text';
+                descInput.className = 'edit-description';
+                descInput.value = transaction.description;
+                descInput.addEventListener('change', (e) => {
+                    importData[index].description = e.target.value;
+                });
+                descriptionCell.appendChild(descInput);
+                row.appendChild(descriptionCell);
+                
+                // Amount cell (editable)
+                const amountCell = document.createElement('td');
+                const amountInput = document.createElement('input');
+                amountInput.type = 'number';
+                amountInput.className = 'edit-amount';
+                amountInput.step = '0.01';
+                amountInput.value = transaction.amount;
+                amountInput.addEventListener('change', (e) => {
+                    importData[index].amount = parseFloat(e.target.value);
+                });
+                amountCell.appendChild(amountInput);
+                row.appendChild(amountCell);
+                
+                // Type cell (editable)
+                const typeCell = document.createElement('td');
+                const typeSelect = document.createElement('select');
+                typeSelect.className = 'edit-type';
+                typeSelect.innerHTML = `
+                    <option value="expense" ${transaction.type === 'expense' ? 'selected' : ''}>Expense</option>
+                    <option value="income" ${transaction.type === 'income' ? 'selected' : ''}>Income</option>
+                `;
+                typeSelect.addEventListener('change', (e) => {
+                    importData[index].type = e.target.value;
+                    // Update category as well if switching to income
+                    if (e.target.value === 'income') {
+                        const categorySelect = row.querySelector('.edit-category');
+                        categorySelect.value = 'Income';
+                        importData[index].category = 'Income';
+                    }
+                });
+                typeCell.appendChild(typeSelect);
+                row.appendChild(typeCell);
+                
+                // Category cell (editable)
+                const categoryCell = document.createElement('td');
+                const categorySelect = document.createElement('select');
+                categorySelect.className = 'edit-category';
+                categorySelect.innerHTML = categoryOptions;
+                categorySelect.value = transaction.category || 'Other';
+                categorySelect.addEventListener('change', (e) => {
+                    importData[index].category = e.target.value;
+                });
+                categoryCell.appendChild(categorySelect);
+                row.appendChild(categoryCell);
+                
+                // Actions cell
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'actions-cell';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-icon delete-transaction';
+                deleteBtn.innerHTML = '<span class="material-icons">delete</span>';
+                deleteBtn.title = 'Delete transaction';
+                deleteBtn.addEventListener('click', () => {
+                    // Remove from our data array
+                    importData.splice(index, 1);
+                    // Refresh the view
+                    showFullView();
+                });
+                
+                actionsCell.appendChild(deleteBtn);
+                row.appendChild(actionsCell);
+                
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+        
+        // Enable the import button
+        DOM.confirmImportBtn.disabled = false;
     }
     
     // Confirm import

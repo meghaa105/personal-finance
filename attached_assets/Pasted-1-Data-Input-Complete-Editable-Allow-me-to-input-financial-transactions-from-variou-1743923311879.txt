@@ -1,0 +1,32 @@
+1.  **Data Input (Complete & Editable):**
+    * Allow me to input financial transactions from various sources, prioritizing data integrity and user control:
+        * Uploading PDF files (specifically credit card bills). The app should:
+            * **Fully parse and display all transaction details, ensuring no description truncation.**
+            * Provide a **"View All Transactions" button or similar mechanism** to display all extracted data in a scrollable list.
+            * Offer a **robust editing interface** within the import view, allowing me to modify date, description, amount, and category before importing.
+        * Importing CSV files (e.g., bank account statements). The app should:
+            * Guide me through visually intuitive column mapping.
+            * **Present a "View All Transactions" table** showing all mapped data.
+            * Enable **in-table editing** of date, description, amount, and category before importing.
+        * Manual entry of individual transactions with fields for date, description, amount, and a user-assignable category/tag, with a visually rich category selection.
+
+2.  **Automated Categorization (Intelligent & Clear):**
+    * When PDF or CSV bills are uploaded, the app should automatically attempt to categorize transactions based on keywords or labels present in the description or any dedicated category/tag column, with clear visual cues.
+    * Allow me to define and customize categorization rules (e.g., "Restaurant ABC" always goes under "Dining") through a visually intuitive interface.
+    * For manual entries, provide a user-friendly way to select a category from a predefined list or create new categories, with strong visual feedback.
+
+3.  **Consolidated Updates (Organized & Reliable):**
+    * Treat each imported bill (PDF or CSV) as a single update event, consolidating all the transactions within it, with visual indicators of bill association.
+
+4.  **Credit Card Payment Reminders (Supportive & Calming):**
+    * For each credit card bill I input, prompt me to set a payment due date.
+    * The app should send me local reminders (notifications) a few days before the due date, using subtle, calming sounds and visuals. Allow me to customize the timing of these reminders. Visually represent due dates clearly.
+
+5.  **Spending Analytics (Insightful & Beautiful):**
+    * Generate visually engaging visualizations and summaries of my spending habits, such as:
+        * Spending by category over different time periods (e.g., monthly, yearly) using interactive charts and smooth animations.
+        * Trends in spending over time, visually represented.
+        * Cash flow visual representation.
+        * Breakdown of spending by payment method (if this information can be extracted).
+    * Add a search bar to filter transactions.
+    * Allow me to filter analytics by date ranges and categories using a user friendly visual approach.

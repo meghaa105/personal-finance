@@ -16,7 +16,8 @@ const PDFParser = (function() {
             /(\d{1,2}-\d{1,2}-\d{2,4})/g,    // MM-DD-YYYY or M-D-YY
             /(\d{2}\.\d{2}\.\d{2,4})/g,      // DD.MM.YYYY or MM.DD.YYYY
             /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}/gi, // Month DD, YYYY
-            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2})/gi // DD MMM YY (Indian format)
+            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2})/gi, // DD MMM YY (Indian format)
+            /(\d{2}-\d{2}-\d{4})/g  // DD-MM-YYYY (common in Indian bank statements)
         ],
         
         // Amount patterns
@@ -26,7 +27,7 @@ const PDFParser = (function() {
             /INR\s?(\d+,?\d*\.\d{2})/g,       // INR 123.45 or INR 1,234.56
             /(\d+,?\d*\.\d{2})\s?INR/g,       // 123.45 INR or 1,234.56 INR
             /(\d+,?\d*\.\d{2})\s?[CD]$/g,     // 1,234.56 C or 1,234.56 D (Credit/Debit indicator)
-            /(\d+,?\d*\.\d{2})/g              // 123.45 or 1,234.56
+            /(\d+,?\d*\.\d{0,2})/g            // 123.45 or 1,234.56 or 123 (no decimal)
         ],
         
         // Transaction patterns (combinations of date, description, and amount)
@@ -48,7 +49,10 @@ const PDFParser = (function() {
         ],
         
         // SBI credit card statement specific pattern
-        SBI_STATEMENT: /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2})\s+(.+?)\s+(\d+,?\d*\.\d{2})\s+([CD])/gi
+        SBI_STATEMENT: /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2})\s+(.+?)\s+(\d+,?\d*\.\d{2})\s+([CD])/gi,
+        
+        // Axis Bank statement pattern
+        AXIS_BANK_STATEMENT: /(\d{2}-\d{2}-\d{4})\s+.+?\s+(.+?)\s+(\d+\.\d{2})\s+|(\d{2}-\d{2}-\d{4})\s+.+?\s+(.+?)\s+\s+(\d+\.\d{2})/g
     };
     
     // Common merchant keywords to help with category identification
@@ -275,8 +279,8 @@ const PDFParser = (function() {
         
         // First, try to extract using SBI statement specific format
         let match;
-        const pattern = PATTERNS.SBI_STATEMENT;
-        while ((match = pattern.exec(text)) !== null) {
+        const sbiPattern = PATTERNS.SBI_STATEMENT;
+        while ((match = sbiPattern.exec(text)) !== null) {
             const dateStr = match[1];
             const description = match[2].trim();
             // Clean amount string - remove commas
@@ -299,7 +303,75 @@ const PDFParser = (function() {
             }
         }
         
-        // If no SBI transactions found, try other transaction patterns
+        // Check for Axis Bank statement pattern
+        if (transactions.length === 0) {
+            // Check if it's an Axis Bank statement by looking for text markers
+            const isAxisStatement = text.includes("Statement of Axis Account") || 
+                                   text.includes("Axis Bank") || 
+                                   (text.includes("Tran Date") && text.includes("Particulars") && text.includes("Debit") && text.includes("Credit"));
+            
+            if (isAxisStatement) {
+                // Process the data row by row
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line === '') continue;
+                    
+                    // Look for date pattern DD-MM-YYYY (common in Axis statements)
+                    const dateMatch = /(\d{2}-\d{2}-\d{4})/.exec(line);
+                    if (!dateMatch) continue;
+                    
+                    const dateStr = dateMatch[1];
+                    const date = parseDate(dateStr);
+                    
+                    if (!date) continue;
+                    
+                    // Extract description (typically after the date)
+                    const dateIndex = line.indexOf(dateStr);
+                    let endIndex = line.length;
+                    
+                    // Look for amount columns - either Debit or Credit
+                    const debitMatch = /(\d+\.\d{2})\s+/.exec(line.substring(dateIndex + dateStr.length));
+                    const creditMatch = /\s+(\d+\.\d{2})/.exec(line.substring(dateIndex + dateStr.length));
+                    
+                    let amount = 0;
+                    let transactionType = 'expense'; // Default to expense
+                    
+                    if (debitMatch) {
+                        amount = parseFloat(debitMatch[1]);
+                        transactionType = 'expense';
+                        endIndex = line.indexOf(debitMatch[0], dateIndex);
+                    } else if (creditMatch) {
+                        amount = parseFloat(creditMatch[1]);
+                        transactionType = 'income';
+                        endIndex = line.indexOf(creditMatch[0], dateIndex);
+                    }
+                    
+                    if (amount > 0) {
+                        // Extract description between date and amount
+                        let description = line.substring(dateIndex + dateStr.length, endIndex).trim();
+                        
+                        // Clean up description by removing any extra spaces
+                        description = description.replace(/\s+/g, ' ').trim();
+                        
+                        // Sometimes description continues on next line, so check
+                        if (description === '' && i + 1 < lines.length && !lines[i + 1].match(/\d{2}-\d{2}-\d{4}/)) {
+                            description = lines[i + 1].trim();
+                            i++; // Skip the next line
+                        }
+                        
+                        transactions.push({
+                            date: date,
+                            description: description,
+                            amount: amount,
+                            type: transactionType,
+                            category: transactionType === 'income' ? 'Income' : guessCategory(description)
+                        });
+                    }
+                }
+            }
+        }
+        
+        // If no transactions found yet, try other transaction patterns
         if (transactions.length === 0) {
             for (const pattern of PATTERNS.TRANSACTION) {
                 let match;
@@ -420,8 +492,18 @@ const PDFParser = (function() {
             return date;
         }
         
+        // Try DD-MM-YYYY format (common in Indian bank statements like Axis Bank)
+        let match = /(\d{2})-(\d{2})-(\d{4})/.exec(dateStr);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
+            const year = parseInt(match[3]);
+            
+            return new Date(year, month, day);
+        }
+        
         // Try MM/DD/YYYY format
-        let match = /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(dateStr);
+        match = /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(dateStr);
         if (match) {
             const month = parseInt(match[1]) - 1; // Months are 0-indexed in JavaScript
             const day = parseInt(match[2]);

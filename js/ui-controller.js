@@ -576,18 +576,35 @@ const UIController = (function() {
             return;
         }
         
-        // Show loading status
-        DOM.pdfUploadStatus.textContent = 'Parsing PDF...';
-        DOM.pdfUploadStatus.className = 'upload-status';
+        // Create progress bar
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        const progress = document.createElement('div');
+        progress.className = 'progress';
+        progressBar.appendChild(progress);
+        DOM.pdfUploadStatus.innerHTML = '';
+        DOM.pdfUploadStatus.appendChild(progressBar);
+        
+        // Simulate progress while parsing
+        let progressValue = 0;
+        const progressInterval = setInterval(() => {
+            if (progressValue < 90) {
+                progressValue += 10;
+                progress.style.width = progressValue + '%';
+            }
+        }, 200);
         
         try {
             // Parse PDF
             const result = await PDFParser.parsePDF(file);
             
+            clearInterval(progressInterval);
             if (result.success && result.transactions.length > 0) {
-                // Update status
-                DOM.pdfUploadStatus.textContent = `Successfully parsed ${result.transactions.length} transactions.`;
-                DOM.pdfUploadStatus.className = 'upload-status success';
+                progress.style.width = '100%';
+                setTimeout(() => {
+                    DOM.pdfUploadStatus.textContent = `Successfully parsed ${result.transactions.length} transactions.`;
+                    DOM.pdfUploadStatus.className = 'upload-status success';
+                }, 500);
                 
                 // Store import data
                 importData = result.transactions;

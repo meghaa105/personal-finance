@@ -358,6 +358,16 @@ main {
     color: var(--danger-color);
 }
 
+/* Splitwise specific styles */
+.import-option:nth-child(3) .material-icons {
+    color: #00B2A9; /* Splitwise brand color */
+}
+
+.import-option:nth-child(3) label:hover {
+    border-color: #00B2A9;
+    background-color: rgba(0, 178, 169, 0.05);
+}
+
 .import-preview {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);

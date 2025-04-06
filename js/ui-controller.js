@@ -43,7 +43,7 @@ const UIController = (function () {
 
         // Transaction modal
         transactionModal: document.getElementById("transaction-modal"),
-        modalTitle: document.querySelector(".modal-title"),
+        modalTitle: document.querySelector("modal-title"),
         transactionForm: document.getElementById("transaction-form"),
         transactionId: document.getElementById("transaction-id"),
         transactionDate: document.getElementById("transaction-date"),

@@ -1,20 +1,24 @@
 /* Base Styles */
 :root {
-    --primary-color: #4c6ef5;
-    --primary-light: #5c7cfa;
-    --primary-dark: #3b5bdb;
-    --accent-color: #ff922b;
-    --text-color: #212529;
-    --text-secondary: #6c757d;
-    --background-color: #f8f9fa;
+    --primary-color: #6366f1;
+    --primary-light: #818cf8;
+    --primary-dark: #4f46e5;
+    --accent-color: #f59e0b;
+    --text-color: #1f2937;
+    --text-secondary: #6b7280;
+    --background-color: #f9fafb;
     --card-bg: #ffffff;
-    --border-color: #dee2e6;
-    --success-color: #40c057;
-    --warning-color: #fab005;
-    --danger-color: #fa5252;
-    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --border-radius: 8px;
-    --transition: all 0.3s ease;
+    --border-color: #e5e7eb;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.12);
 }
 
 * {
@@ -41,14 +45,16 @@ body {
 
 /* Header */
 header {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     color: white;
-    padding: 1rem;
+    padding: 1.25rem;
     text-align: center;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     position: sticky;
     top: 0;
     z-index: 100;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
 }
 
 header h1 {
@@ -102,17 +108,19 @@ main {
 
 /* Cards */
 .card {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius-lg);
+    padding: 1.75rem;
     margin-bottom: 1.5rem;
-    box-shadow: var(--box-shadow);
-    border: 1px solid var(--border-color);
-    transition: transform var(--transition);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--glass-border);
+    transition: var(--transition);
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 .summary-cards {
@@ -186,11 +194,20 @@ main {
 }
 
 .transaction-item {
-    padding: 1rem;
+    padding: 1.25rem;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: var(--transition);
+    background: var(--card-bg);
+}
+
+.transaction-item:hover {
+    background: var(--glass-bg);
+    transform: scale(1.01);
+    z-index: 1;
+    box-shadow: var(--box-shadow);
 }
 
 .transaction-item:last-child {
@@ -660,21 +677,40 @@ main {
 
 /* Buttons */
 .btn {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     color: white;
     border: none;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.75rem;
     border-radius: var(--border-radius);
     cursor: pointer;
     transition: var(--transition);
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.625rem;
     text-align: center;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.025em;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.btn:hover::before {
+    opacity: 1;
 }
 
 .btn:hover {

@@ -1189,3 +1189,64 @@ main {
         grid-template-columns: 1fr;
     }
 }
+/* Analytics Search Bar */
+.analytics-search-bar {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1rem;
+}
+
+.analytics-search-bar input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+}
+
+/* Source filter styles */
+.source-filter {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+}
+
+.source-filter h3 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.source-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.source-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Update the filters wrapper */
+.analytics-filters {
+    margin-bottom: 1.5rem;
+}
+
+.filters-wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .filters-wrapper {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}

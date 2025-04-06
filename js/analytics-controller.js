@@ -8,6 +8,8 @@ const AnalyticsController = (function() {
     const endDateInput = document.getElementById('end-date');
     const applyDateBtn = document.getElementById('apply-date-range');
     const categoryFiltersContainer = document.getElementById('category-filters');
+    const searchInput = document.getElementById('analytics-search');
+    const sourceFiltersContainer = document.getElementById('source-filters');
     
     // Chart references
     let categoryChart = null;
@@ -18,6 +20,8 @@ const AnalyticsController = (function() {
     // Current filter state
     let currentTimePeriod = 'month';
     let selectedCategories = [];
+    let selectedSources = ['manual', 'csv', 'pdf'];
+    let searchQuery = '';
     let customDateRange = {
         start: null,
         end: null
@@ -58,6 +62,27 @@ const AnalyticsController = (function() {
         
         // Apply custom date range
         applyDateBtn.addEventListener('click', applyCustomDateRange);
+        
+        // Setup search functionality
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                searchQuery = this.value.trim().toLowerCase();
+                refreshAnalytics();
+            });
+        }
+        
+        // Setup source filter checkboxes
+        if (sourceFiltersContainer) {
+            document.querySelectorAll('#source-filters input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    selectedSources = Array.from(
+                        document.querySelectorAll('#source-filters input[type="checkbox"]:checked')
+                    ).map(input => input.getAttribute('data-source'));
+                    
+                    refreshAnalytics();
+                });
+            });
+        }
         
         // Listen for database changes
         document.addEventListener('transactions-updated', refreshAnalytics);
@@ -206,7 +231,27 @@ const AnalyticsController = (function() {
             filters.categories = selectedCategories;
         }
         
-        return Database.getTransactions(filters);
+        // Get transactions based on filters
+        let transactions = Database.getTransactions(filters);
+        
+        // Apply search filter if there's a search query
+        if (searchQuery) {
+            transactions = transactions.filter(transaction => {
+                return transaction.description.toLowerCase().includes(searchQuery) ||
+                       (transaction.category && transaction.category.toLowerCase().includes(searchQuery));
+            });
+        }
+        
+        // Apply source filter
+        if (selectedSources && selectedSources.length > 0) {
+            transactions = transactions.filter(transaction => {
+                // Determine transaction source (default to 'manual' if not specified)
+                const source = transaction.source || 'manual';
+                return selectedSources.includes(source);
+            });
+        }
+        
+        return transactions;
     }
     
     /**

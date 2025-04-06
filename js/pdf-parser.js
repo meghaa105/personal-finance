@@ -15,16 +15,18 @@ const PDFParser = (function() {
             /(\d{1,2}\/\d{1,2}\/\d{2,4})/g,  // MM/DD/YYYY or M/D/YY
             /(\d{1,2}-\d{1,2}-\d{2,4})/g,    // MM-DD-YYYY or M-D-YY
             /(\d{2}\.\d{2}\.\d{2,4})/g,      // DD.MM.YYYY or MM.DD.YYYY
-            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}/gi // Month DD, YYYY
+            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}/gi, // Month DD, YYYY
+            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2})/gi // DD MMM YY (Indian format)
         ],
         
         // Amount patterns
         AMOUNT: [
-            /₹\s?(\d+,?\d*\.\d{2})/g,       // ₹123.45 or ₹ 1,234.56
-            /Rs\.\s?(\d+,?\d*\.\d{2})/g,     // Rs. 123.45 or Rs. 1,234.56
-            /INR\s?(\d+,?\d*\.\d{2})/g,      // INR 123.45 or INR 1,234.56
-            /(\d+,?\d*\.\d{2})\s?INR/g,      // 123.45 INR or 1,234.56 INR
-            /(\d+,?\d*\.\d{2})/g             // 123.45 or 1,234.56
+            /₹\s?(\d+,?\d*\.\d{2})/g,        // ₹123.45 or ₹ 1,234.56
+            /Rs\.\s?(\d+,?\d*\.\d{2})/g,      // Rs. 123.45 or Rs. 1,234.56
+            /INR\s?(\d+,?\d*\.\d{2})/g,       // INR 123.45 or INR 1,234.56
+            /(\d+,?\d*\.\d{2})\s?INR/g,       // 123.45 INR or 1,234.56 INR
+            /(\d+,?\d*\.\d{2})\s?[CD]$/g,     // 1,234.56 C or 1,234.56 D (Credit/Debit indicator)
+            /(\d+,?\d*\.\d{2})/g              // 123.45 or 1,234.56
         ],
         
         // Transaction patterns (combinations of date, description, and amount)
@@ -39,12 +41,66 @@ const PDFParser = (function() {
             /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}\s+(.+?)\s+(₹\s?\d+,?\d*\.\d{2})/gi,
             
             // Alternative pattern with different date format and Rs. notation
-            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}\s+(.+?)\s+(Rs\.\s?\d+,?\d*\.\d{2})/gi
-        ]
+            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}\s+(.+?)\s+(Rs\.\s?\d+,?\d*\.\d{2})/gi,
+            
+            // Indian credit card statement format (DD MMM YY, description, amount with C/D indicator)
+            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2})\s+(.+?)\s+(\d+,?\d*\.\d{2})\s+([CD])/gi
+        ],
+        
+        // SBI credit card statement specific pattern
+        SBI_STATEMENT: /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2})\s+(.+?)\s+(\d+,?\d*\.\d{2})\s+([CD])/gi
     };
     
     // Common merchant keywords to help with category identification
     const MERCHANT_CATEGORIES = {
+        // Indian specific merchants
+        'nykaa': 'Shopping',
+        'myntra': 'Shopping',
+        'reliance retail': 'Shopping',
+        'swiggy': 'Food & Dining',
+        'zomato': 'Food & Dining',
+        'bigbasket': 'Groceries',
+        'dmart': 'Groceries',
+        'air india': 'Travel',
+        'indigo': 'Travel',
+        'spicejet': 'Travel',
+        'bharti airtel': 'Utilities',
+        'jio': 'Utilities',
+        'bsnl': 'Utilities',
+        'tata power': 'Utilities',
+        'adani': 'Utilities',
+        'hdfc': 'Banking & Finance',
+        'icici': 'Banking & Finance',
+        'sbi': 'Banking & Finance',
+        'axis': 'Banking & Finance',
+        'kotak': 'Banking & Finance',
+        'ola': 'Transportation',
+        'uber': 'Transportation',
+        'rapido': 'Transportation',
+        'irctc': 'Transportation',
+        'mmt': 'Travel',
+        'makemytrip': 'Travel',
+        'goibibo': 'Travel',
+        'cleartrip': 'Travel',
+        'yatra': 'Travel',
+        'bookmyshow': 'Entertainment',
+        'paytm': 'Shopping',
+        'phonepe': 'Shopping',
+        'gpay': 'Shopping',
+        'amazon': 'Shopping',
+        'flipkart': 'Shopping',
+        'meesho': 'Shopping',
+        'ajio': 'Shopping',
+        'lenskart': 'Health',
+        'apollo': 'Health',
+        'medlife': 'Health',
+        'pharmeasy': 'Health',
+        'netmeds': 'Health',
+        'practo': 'Health',
+        'cult': 'Health',
+        'zomato': 'Food & Dining',
+        
+        // General categories
         'restaurant': 'Food & Dining',
         'café': 'Food & Dining',
         'cafe': 'Food & Dining',
@@ -68,7 +124,6 @@ const PDFParser = (function() {
         'trader joe': 'Groceries',
         'whole foods': 'Groceries',
         
-        'amazon': 'Shopping',
         'ebay': 'Shopping',
         'etsy': 'Shopping',
         'shop': 'Shopping',
@@ -76,8 +131,8 @@ const PDFParser = (function() {
         'retail': 'Shopping',
         'clothing': 'Shopping',
         'apparel': 'Shopping',
+        'designs': 'Shopping',
         
-        'uber': 'Transportation',
         'lyft': 'Transportation',
         'taxi': 'Transportation',
         'cab': 'Transportation',
@@ -115,6 +170,7 @@ const PDFParser = (function() {
         'cell': 'Utilities',
         'cable': 'Utilities',
         'utility': 'Utilities',
+        'limited': 'Utilities',
         
         'doctor': 'Health',
         'hospital': 'Health',
@@ -124,6 +180,7 @@ const PDFParser = (function() {
         'vision': 'Health',
         'healthcare': 'Health',
         'clinic': 'Health',
+        'health': 'Health',
         
         'tuition': 'Education',
         'school': 'Education',
@@ -133,19 +190,20 @@ const PDFParser = (function() {
         'book': 'Education',
         'course': 'Education',
         
-        'travel': 'Travel',
         'hotel': 'Travel',
         'airline': 'Travel',
         'flight': 'Travel',
         'airbnb': 'Travel',
         'vacation': 'Travel',
         'trip': 'Travel',
+        'resort': 'Travel',
         
         'payment': 'Income',
         'deposit': 'Income',
         'salary': 'Income',
         'payroll': 'Income',
-        'direct deposit': 'Income'
+        'direct deposit': 'Income',
+        'cashback': 'Income'
     };
     
     // Parse the PDF file
@@ -215,31 +273,64 @@ const PDFParser = (function() {
         const transactions = [];
         const lines = text.split('\n');
         
-        // First, try to extract using transaction patterns
-        for (const pattern of PATTERNS.TRANSACTION) {
-            let match;
-            while ((match = pattern.exec(text)) !== null) {
-                const dateStr = match[1];
-                const description = match[2].trim();
-                // Clean amount string - replace any currency symbols
-                const amountStr = match[3].replace(/[$₹Rs\.,]/g, '').trim();
-                
-                const date = parseDate(dateStr);
-                const amount = parseFloat(amountStr);
-                
-                if (date && !isNaN(amount)) {
-                    transactions.push({
-                        date: date,
-                        description: description,
-                        amount: amount,
-                        type: 'expense', // Default to expense
-                        category: guessCategory(description)
-                    });
+        // First, try to extract using SBI statement specific format
+        let match;
+        const pattern = PATTERNS.SBI_STATEMENT;
+        while ((match = pattern.exec(text)) !== null) {
+            const dateStr = match[1];
+            const description = match[2].trim();
+            // Clean amount string - remove commas
+            const amountStr = match[3].replace(/,/g, '').trim();
+            // Get the transaction type (C = Credit/Income, D = Debit/Expense)
+            const typeIndicator = match[4].trim();
+            
+            const date = parseDate(dateStr);
+            const amount = parseFloat(amountStr);
+            
+            if (date && !isNaN(amount)) {
+                const transactionType = typeIndicator === 'C' ? 'income' : 'expense';
+                transactions.push({
+                    date: date,
+                    description: description,
+                    amount: amount,
+                    type: transactionType,
+                    category: transactionType === 'income' ? 'Income' : guessCategory(description)
+                });
+            }
+        }
+        
+        // If no SBI transactions found, try other transaction patterns
+        if (transactions.length === 0) {
+            for (const pattern of PATTERNS.TRANSACTION) {
+                let match;
+                while ((match = pattern.exec(text)) !== null) {
+                    if (pattern.toString() === PATTERNS.SBI_STATEMENT.toString()) continue; // Skip if it's the SBI pattern
+                    
+                    const dateStr = match[1];
+                    const description = match[2].trim();
+                    // Clean amount string - replace any currency symbols
+                    const amountStr = match[3].replace(/[$₹Rs\.,]/g, '').trim();
+                    
+                    const date = parseDate(dateStr);
+                    const amount = parseFloat(amountStr);
+                    
+                    // Guess if this is income or expense based on description
+                    const isIncome = /payment|deposit|salary|credit|cashback|refund/i.test(description);
+                    
+                    if (date && !isNaN(amount)) {
+                        transactions.push({
+                            date: date,
+                            description: description,
+                            amount: amount,
+                            type: isIncome ? 'income' : 'expense',
+                            category: isIncome ? 'Income' : guessCategory(description)
+                        });
+                    }
                 }
             }
         }
         
-        // If no transactions found using patterns, try line-by-line analysis
+        // If still no transactions found using patterns, try line-by-line analysis
         if (transactions.length === 0) {
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -267,13 +358,16 @@ const PDFParser = (function() {
                         i++; // Skip the next line
                     }
                     
+                    // Guess if this is income or expense based on description
+                    const isIncome = /payment|deposit|salary|credit|cashback|refund/i.test(description);
+                    
                     if (description) {
                         transactions.push({
                             date: dateMatch.date,
                             description: description,
                             amount: amountMatch.amount,
-                            type: 'expense', // Default to expense
-                            category: guessCategory(description)
+                            type: isIncome ? 'income' : 'expense',
+                            category: isIncome ? 'Income' : guessCategory(description)
                         });
                     }
                 }
@@ -360,6 +454,25 @@ const PDFParser = (function() {
         match = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}/i.exec(dateStr);
         if (match) {
             return new Date(match[0]);
+        }
+        
+        // Try DD MMM YY format (common in Indian bank statements)
+        match = /(\d{2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{2})/i.exec(dateStr);
+        if (match) {
+            const day = parseInt(match[1]);
+            const monthStr = match[2];
+            let year = parseInt(match[3]);
+            
+            // Convert month string to number (0-11)
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const month = months.findIndex(m => m.toLowerCase() === monthStr.toLowerCase());
+            
+            // Adjust two-digit years (assuming 20xx for all years)
+            if (year < 100) {
+                year = 2000 + year;
+            }
+            
+            return new Date(year, month, day);
         }
         
         return null;

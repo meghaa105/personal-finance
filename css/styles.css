@@ -234,10 +234,7 @@ main {
     position: relative;
 }
 
-.transaction-amount::before {
-    content: "₹";
-    margin-right: 1px;
-}
+/* Removed rupee symbol from CSS since it's handled in JS */
 
 .transaction-amount.income {
     color: var(--success-color);

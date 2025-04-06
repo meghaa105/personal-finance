@@ -114,6 +114,10 @@ const TransactionsController = (function() {
             return;
         }
 
+        console.log('Splitwise file:', file);
+        splitwiseUploadStatus.textContent = 'Processing Splitwise file...';
+        splitwiseUploadStatus.className = 'upload-status';
+
         // Check file extension
         if (!file.name.toLowerCase().endsWith('.csv')) {
             splitwiseUploadStatus.textContent = 'Error: Please select a CSV file from Splitwise';

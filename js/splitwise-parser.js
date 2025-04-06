@@ -17,7 +17,10 @@ const SplitwiseParser = (function() {
     };
 
     async function parseCSV(file, filterUser = null) {
-        console.log('Starting Splitwise CSV parsing...');
+        console.log('Starting Splitwise CSV parsing...', file);
+        if (!file || !file.name.toLowerCase().endsWith('.csv')) {
+            throw new Error('Invalid file type. Please upload a Splitwise CSV file.');
+        }
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = function(event) {

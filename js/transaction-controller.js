@@ -114,7 +114,11 @@ const TransactionsController = (function() {
             return;
         }
 
+        splitwiseUploadStatus.textContent = 'Processing Splitwise file...';
+        splitwiseUploadStatus.className = 'upload-status';
+        
         try {
+            console.log('Processing file:', file.name);
             console.log('Splitwise file:', file);
             splitwiseUploadStatus.textContent = 'Processing Splitwise file...';
             splitwiseUploadStatus.className = 'upload-status';

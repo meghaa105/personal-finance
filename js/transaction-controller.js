@@ -128,17 +128,35 @@ const TransactionsController = (function () {
             console.log("No file selected");
             return;
         }
+
+        // Create and show progress bar
+        splitwiseUploadStatus.innerHTML = '<div class="progress-bar"><div class="progress" style="width: 0%"></div></div>';
+        const progressBar = splitwiseUploadStatus.querySelector('.progress');
+        
         try {
             splitwiseUploadStatus.textContent = "Processing Splitwise file...";
             console.log("Starting Splitwise parse...");
-            const transactions = await SplitwiseParser.parseCSV(file);
-            showImportPreview(result.transactions);
-            console.log("Parse result:", result);
-            splitwiseUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
+            
+            // Update progress to show activity
+            progressBar.style.width = "50%";
+            
+            const result = await SplitwiseParser.parseCSV(file);
+            
+            if (result && result.transactions && result.transactions.length > 0) {
+                progressBar.style.width = "100%";
+                setTimeout(() => {
+                    splitwiseUploadStatus.textContent = `Successfully processed ${result.transactions.length} transactions`;
+                    splitwiseUploadStatus.className = "upload-status success";
+                }, 500);
+                
+                showImportPreview(result.transactions);
+                confirmImportBtn.disabled = false;
+            } else {
+                throw new Error("No valid transactions found in file");
+            }
         } catch (error) {
             console.error("Splitwise Import Error:", error);
-            splitwiseUploadStatus.textContent =
-                "Error processing Splitwise file: " + error.message;
+            splitwiseUploadStatus.textContent = "Error processing Splitwise file: " + error.message;
             splitwiseUploadStatus.className = "upload-status error";
             confirmImportBtn.disabled = true;
         }

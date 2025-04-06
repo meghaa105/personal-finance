@@ -193,12 +193,12 @@ const CSVParser = (function() {
                 
                 if (headerLower.includes('debit') && row[header] && row[header].trim() !== '') {
                     // Debit is negative (expense)
-                    return -Math.abs(parseFloat(row[header].replace(/[$,]/g, '')));
+                    return -Math.abs(parseFloat(row[header].replace(/[$₹Rs\.,]/g, '')));
                 }
                 
                 if (headerLower.includes('credit') && row[header] && row[header].trim() !== '') {
                     // Credit is positive (income)
-                    return Math.abs(parseFloat(row[header].replace(/[$,]/g, '')));
+                    return Math.abs(parseFloat(row[header].replace(/[$₹Rs\.,]/g, '')));
                 }
             }
             
@@ -206,7 +206,7 @@ const CSVParser = (function() {
         }
         
         // Remove currency symbols and commas
-        const cleanStr = amountStr.replace(/[$£€,]/g, '');
+        const cleanStr = amountStr.replace(/[$£€₹Rs\.,]/g, '');
         
         // Parse as float
         return parseFloat(cleanStr);

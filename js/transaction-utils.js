@@ -5,9 +5,9 @@
 const TransactionUtils = (function() {
     // Format currency amount
     function formatCurrency(amount, showPositiveSign = false) {
-        const formatter = new Intl.NumberFormat('en-US', {
+        const formatter = new Intl.NumberFormat('en-IN', {
             style: 'currency',
-            currency: 'USD',
+            currency: 'INR',
             minimumFractionDigits: 2
         });
         
@@ -28,7 +28,7 @@ const TransactionUtils = (function() {
             return 'Invalid date';
         }
         
-        return date.toLocaleDateString('en-US', {
+        return date.toLocaleDateString('en-IN', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'

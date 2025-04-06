@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up window variables
     window.appConfig = {
         version: '1.0.0',
-        name: 'PersonalFinance',
+        name: 'PersonalFinance (₹)',
         storagePrefix: 'personalFinance_'
     };
     

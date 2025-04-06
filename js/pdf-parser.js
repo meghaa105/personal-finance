@@ -20,19 +20,26 @@ const PDFParser = (function() {
         
         // Amount patterns
         AMOUNT: [
-            /\$\s?(\d+,?\d*\.\d{2})/g,       // $123.45 or $ 1,234.56
-            /(\d+,?\d*\.\d{2})\s?USD/g,      // 123.45 USD or 1,234.56 USD
-            /USD\s?(\d+,?\d*\.\d{2})/g,      // USD 123.45 or USD 1,234.56
+            /₹\s?(\d+,?\d*\.\d{2})/g,       // ₹123.45 or ₹ 1,234.56
+            /Rs\.\s?(\d+,?\d*\.\d{2})/g,     // Rs. 123.45 or Rs. 1,234.56
+            /INR\s?(\d+,?\d*\.\d{2})/g,      // INR 123.45 or INR 1,234.56
+            /(\d+,?\d*\.\d{2})\s?INR/g,      // 123.45 INR or 1,234.56 INR
             /(\d+,?\d*\.\d{2})/g             // 123.45 or 1,234.56
         ],
         
         // Transaction patterns (combinations of date, description, and amount)
         TRANSACTION: [
-            // Common pattern for most credit card statements
-            /(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(.+?)\s+(\$\s?\d+,?\d*\.\d{2})/g,
+            // Common pattern for most credit card statements with rupee symbol
+            /(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(.+?)\s+(₹\s?\d+,?\d*\.\d{2})/g,
             
-            // Alternative pattern with different date format
-            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}\s+(.+?)\s+(\$\s?\d+,?\d*\.\d{2})/gi
+            // Pattern with Rs. notation
+            /(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(.+?)\s+(Rs\.\s?\d+,?\d*\.\d{2})/g,
+            
+            // Alternative pattern with different date format and rupee symbol
+            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}\s+(.+?)\s+(₹\s?\d+,?\d*\.\d{2})/gi,
+            
+            // Alternative pattern with different date format and Rs. notation
+            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}\s+(.+?)\s+(Rs\.\s?\d+,?\d*\.\d{2})/gi
         ]
     };
     
@@ -214,7 +221,8 @@ const PDFParser = (function() {
             while ((match = pattern.exec(text)) !== null) {
                 const dateStr = match[1];
                 const description = match[2].trim();
-                const amountStr = match[3].replace('$', '').replace(',', '').trim();
+                // Clean amount string - replace any currency symbols
+                const amountStr = match[3].replace(/[$₹Rs\.,]/g, '').trim();
                 
                 const date = parseDate(dateStr);
                 const amount = parseFloat(amountStr);
@@ -297,7 +305,8 @@ const PDFParser = (function() {
         for (const pattern of PATTERNS.AMOUNT) {
             const match = pattern.exec(text);
             if (match) {
-                const amountStr = match[1].replace(',', '');
+                // Clean the amount string - remove currency symbols and commas
+                const amountStr = match[1].replace(/[$₹Rs\.,]/g, '');
                 const amount = parseFloat(amountStr);
                 
                 if (!isNaN(amount)) {

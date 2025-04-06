@@ -105,14 +105,25 @@ const TransactionsController = (function() {
         const file = event.target.files[0];
         if (!file) return;
 
+        const statusElement = document.getElementById('splitwise-upload-status');
+        if (!statusElement) {
+            console.error('Splitwise status element not found');
+            return;
+        }
+
         try {
-            splitwiseUploadStatus.textContent = 'Processing Splitwise file...';
+            statusElement.textContent = 'Processing Splitwise file...';
+            statusElement.className = 'upload-status';
+            
             const transactions = await SplitwiseParser.parseCSV(file, 'Megha Agarwal');
             showImportPreview(transactions);
-            splitwiseUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
+            
+            statusElement.textContent = `Successfully processed ${transactions.length} transactions`;
+            statusElement.className = 'upload-status success';
         } catch (error) {
             console.error('Splitwise Import Error:', error);
-            splitwiseUploadStatus.textContent = 'Error processing Splitwise file: ' + error.message;
+            statusElement.textContent = 'Error processing Splitwise file: ' + error.message;
+            statusElement.className = 'upload-status error';
         }
     }
 

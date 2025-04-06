@@ -393,6 +393,16 @@ main {
     background-color: rgba(0, 178, 169, 0.05);
 }
 
+/* Smart Import specific styles */
+.import-option:nth-child(4) .material-icons {
+    color: #7C4DFF; /* Purple for smart features */
+}
+
+.import-option:nth-child(4) label:hover {
+    border-color: #7C4DFF;
+    background-color: rgba(124, 77, 255, 0.05);
+}
+
 .import-preview {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);

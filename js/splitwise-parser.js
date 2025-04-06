@@ -15,7 +15,7 @@ const SplitwiseParser = (function() {
         type: ['Type']
     };
 
-    async function parseCSV(file) {
+    async function parseCSV(file, filterUser = null) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -42,8 +42,13 @@ const SplitwiseParser = (function() {
                                 console.log('Splitwise CSV headers:', headers);
                                 console.log('Sample row:', results.data[0]);
 
-                                const transactions = results.data
+                                let transactions = results.data
                                     .filter(row => row && typeof row === 'object')
+                                    .filter(row => {
+                                        if (!filterUser) return true;
+                                        const userAmount = parseFloat(row[filterUser] || '0');
+                                        return userAmount !== 0;
+                                    })
                                     .map(row => {
                                         // Extract date - Splitwise uses YYYY-MM-DD format
                                         const date = row['Date'];

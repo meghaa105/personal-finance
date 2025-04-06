@@ -70,7 +70,7 @@ const TransactionsController = (function() {
 
         try {
             splitwiseUploadStatus.textContent = 'Processing Splitwise file...';
-            const transactions = await SplitwiseParser.parseCSV(file);
+            const transactions = await SplitwiseParser.parseCSV(file, 'Megha Agarwal');
             showImportPreview(transactions);
             splitwiseUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
         } catch (error) {

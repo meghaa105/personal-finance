@@ -102,28 +102,37 @@ const TransactionsController = (function() {
     }
 
     async function handleSplitwiseUpload(event) {
+        console.log('Handling Splitwise upload...');
         const file = event.target.files[0];
-        if (!file) return;
-
-        const statusElement = document.getElementById('splitwise-upload-status');
-        if (!statusElement) {
-            console.error('Splitwise status element not found');
+        if (!file) {
+            console.log('No file selected');
             return;
         }
 
         try {
-            statusElement.textContent = 'Processing Splitwise file...';
-            statusElement.className = 'upload-status';
+            splitwiseUploadStatus.textContent = 'Processing Splitwise file...';
+            splitwiseUploadStatus.className = 'upload-status';
             
-            const transactions = await SplitwiseParser.parseCSV(file, 'Megha Agarwal');
-            showImportPreview(transactions);
+            console.log('Starting Splitwise parse...');
+            const transactions = await SplitwiseParser.parseCSV(file);
+            console.log('Parsed transactions:', transactions);
             
-            statusElement.textContent = `Successfully processed ${transactions.length} transactions`;
-            statusElement.className = 'upload-status success';
+            if (transactions && transactions.length > 0) {
+                pendingImportTransactions = transactions;
+                showImportPreview(transactions);
+                splitwiseUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
+                splitwiseUploadStatus.className = 'upload-status success';
+                confirmImportBtn.disabled = false;
+            } else {
+                splitwiseUploadStatus.textContent = 'No valid transactions found in file';
+                splitwiseUploadStatus.className = 'upload-status error';
+                confirmImportBtn.disabled = true;
+            }
         } catch (error) {
             console.error('Splitwise Import Error:', error);
-            statusElement.textContent = 'Error processing Splitwise file: ' + error.message;
-            statusElement.className = 'upload-status error';
+            splitwiseUploadStatus.textContent = 'Error processing Splitwise file: ' + error.message;
+            splitwiseUploadStatus.className = 'upload-status error';
+            confirmImportBtn.disabled = true;
         }
     }
 

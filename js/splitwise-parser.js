@@ -16,9 +16,11 @@ const SplitwiseParser = (function() {
     };
 
     async function parseCSV(file, filterUser = null) {
+        console.log('Starting Splitwise CSV parsing...');
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = function(event) {
+                console.log('File loaded, beginning parse...');
                 try {
                     const csvData = event.target.result;
                     Papa.parse(csvData, {

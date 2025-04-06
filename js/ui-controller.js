@@ -534,7 +534,8 @@ const UIController = (function () {
         // Reset form
         DOM.transactionForm.reset();
         DOM.transactionId.value = "";
-        document.getElementById("transaction-modal-title").textContent = "Add Transaction";
+        document.getElementById("transaction-modal-title").textContent =
+            "Add Transaction";
 
         // Set current date as default
         const today = new Date().toISOString().split("T")[0];
@@ -564,7 +565,8 @@ const UIController = (function () {
         DOM.transactionDescription.value = transaction.description;
 
         // Update modal title
-        document.getElementById("transaction-modal-title").textContent = "Edit Transaction";
+        document.getElementById("transaction-modal-title").textContent =
+            "Edit Transaction";
 
         // Show modal
         DOM.transactionModal.style.display = "block";

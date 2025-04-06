@@ -94,14 +94,21 @@ const TransactionsController = (function () {
         if (!file) return;
 
         try {
-            csvUploadStatus.textContent = "Processing CSV file...";
+            // Show parsing status with spinner
+            csvUploadStatus.innerHTML = `
+                <div class="parsing-status">
+                    <div class="parsing-spinner"></div>
+                    <span>Processing CSV file: ${file.name}</span>
+                </div>`;
+            
             const transactions = await CSVParser.parseCSV(file);
             showImportPreview(transactions);
             csvUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
+            csvUploadStatus.className = "upload-status success";
         } catch (error) {
             console.error("CSV Import Error:", error);
-            csvUploadStatus.textContent =
-                "Error processing CSV file: " + error.message;
+            csvUploadStatus.textContent = "Error processing CSV file: " + error.message;
+            csvUploadStatus.className = "upload-status error";
         }
     }
 
@@ -110,14 +117,21 @@ const TransactionsController = (function () {
         if (!file) return;
 
         try {
-            pdfUploadStatus.textContent = "Processing PDF file...";
+            // Show parsing status with spinner
+            pdfUploadStatus.innerHTML = `
+                <div class="parsing-status">
+                    <div class="parsing-spinner"></div>
+                    <span>Processing PDF file: ${file.name}</span>
+                </div>`;
+            
             const transactions = await PDFParser.parsePDF(file);
             showImportPreview(transactions);
             pdfUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
+            pdfUploadStatus.className = "upload-status success";
         } catch (error) {
             console.error("PDF Import Error:", error);
-            pdfUploadStatus.textContent =
-                "Error processing PDF file: " + error.message;
+            pdfUploadStatus.textContent = "Error processing PDF file: " + error.message;
+            pdfUploadStatus.className = "upload-status error";
         }
     }
 

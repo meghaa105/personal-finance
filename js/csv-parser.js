@@ -56,10 +56,10 @@ const CSVParser = (function() {
             type: []
         },
         'sbi_bank': {
-            date: ['Tran Date', 'Value Date', 'Date'],
-            description: ['PARTICULARS', 'Description', 'Narration'],
-            amount: ['DR', 'CR', 'Debit Amount', 'Credit Amount'],
-            type: []
+            date: ['Tran Date', 'Value Date', 'Date', 'Txn Date', 'Transaction Date'],
+            description: ['PARTICULARS', 'Description', 'Narration', 'Transaction Details', 'Transaction Description', 'Remarks', 'Transaction Remarks'],
+            amount: ['DR', 'CR', 'Debit Amount', 'Credit Amount', 'Debit', 'Credit', 'Amount', 'Withdrawal Amt', 'Deposit Amt'],
+            type: ['Transaction Type', 'Txn Type', 'Mode', 'Transaction Mode', 'Chq/Ref No', 'Ref No./Cheque No', 'Ref No']
         },
         'hdfc_bank': {
             date: ['Date', 'Transaction Date', 'Value Date'],
@@ -127,13 +127,195 @@ const CSVParser = (function() {
         // Get the appropriate header mappings
         const mappings = bankFormat ? HEADER_MAPPINGS[bankFormat] : null;
         
-        // Map each row to standard transaction format
-        return data.map((row, index) => {
+        // For SBI bank statements, use a special direct approach
+        let cleanedData = [...data]; // Create a copy of the data array
+        
+        // Special handling for SBI bank format with its specific structure
+        if (bankFormat === 'sbi_bank') {
+            console.log("Processing SBI Bank statement format with sample row:", data[0]);
+            console.log("SBI statement headers:", headers);
+            
+            // Check if we have the exact SBI format we're expecting
+            const isSbiExactFormat = headers.includes('Tran Date') && 
+                                     headers.includes('PARTICULARS') && 
+                                     headers.includes('DR') && 
+                                     headers.includes('CR');
+            
+            if (isSbiExactFormat) {
+                console.log("Using direct SBI bank statement processing");
+                
+                // Direct processing approach for SBI bank format
+                const transactions = [];
+                
+                // Process each row directly, skipping header processing step
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
+                    
+                    // Skip rows without valid date in DD-MM-YYYY format
+                    if (!row['Tran Date'] || !/^\d{2}-\d{2}-\d{4}$/.test(row['Tran Date'])) {
+                        continue;
+                    }
+                    
+                    // Skip rows without description or with header values
+                    if (!row['PARTICULARS'] || 
+                        row['PARTICULARS'] === 'PARTICULARS' || 
+                        row['PARTICULARS'] === 'Legend :' ||
+                        row['PARTICULARS'].toLowerCase().includes('opening balance') ||
+                        row['PARTICULARS'].toLowerCase().includes('closing balance')) {
+                        continue;
+                    }
+                    
+                    try {
+                        // Create transaction object
+                        const transaction = {
+                            date: parseDate(row['Tran Date']),
+                            description: row['PARTICULARS'],
+                            source: 'csv'  // Add source information
+                        };
+                        
+                        // If date parsing failed, skip this row
+                        if (!transaction.date) {
+                            console.log(`Skipping row ${i} - invalid date: ${row['Tran Date']}`);
+                            continue;
+                        }
+                        
+                        // Determine amount and type
+                        let amount = 0;
+                        let type = 'expense';
+                        
+                        if (row['DR'] && row['DR'].trim() !== '' && row['DR'] !== '-') {
+                            // It's a debit (expense)
+                            amount = parseFloat(row['DR'].replace(/,/g, ''));
+                            type = 'expense';
+                        } else if (row['CR'] && row['CR'].trim() !== '' && row['CR'] !== '-') {
+                            // It's a credit (income)
+                            amount = parseFloat(row['CR'].replace(/,/g, ''));
+                            type = 'income';
+                        } else {
+                            // Skip rows with no amount
+                            continue;
+                        }
+                        
+                        // Skip rows with invalid amounts
+                        if (isNaN(amount) || amount === 0) {
+                            continue;
+                        }
+                        
+                        transaction.amount = amount;
+                        transaction.type = type;
+                        
+                        // Guess category based on description
+                        transaction.category = guessCategory(transaction.description);
+                        
+                        transactions.push(transaction);
+                    } catch (error) {
+                        console.error(`Error processing SBI row ${i}:`, error, row);
+                    }
+                }
+                
+                console.log(`Processed ${transactions.length} valid SBI bank transactions`);
+                return transactions;
+            }
+        }
+        
+        // For SBI bank statements, skip legend section (for non-direct approach)
+        if (bankFormat === 'sbi_bank') {
+            // Find where the legend section starts - trying different possible column names
+            let legendIndex = -1;
+            const possibleDateColumns = ['Tran Date', 'Value Date', 'Date', 'Txn Date', 'Transaction Date'];
+            
+            // First check for explicit "Legend:" marker
+            for (let i = 0; i < data.length; i++) {
+                for (const dateCol of possibleDateColumns) {
+                    if (data[i][dateCol] && typeof data[i][dateCol] === 'string' && 
+                        (data[i][dateCol].includes('Legend') || 
+                         data[i][dateCol].toLowerCase().includes('legend'))) {
+                        legendIndex = i;
+                        console.log(`Found legend marker at row ${i}`);
+                        break;
+                    }
+                }
+                if (legendIndex !== -1) break;
+                
+                // Also check description/particulars columns
+                const descCols = ['PARTICULARS', 'Description', 'Narration', 'Transaction Details'];
+                for (const descCol of descCols) {
+                    if (data[i][descCol] && typeof data[i][descCol] === 'string' && 
+                        (data[i][descCol].includes('Legend') || 
+                         data[i][descCol].toLowerCase().includes('legend'))) {
+                        legendIndex = i;
+                        console.log(`Found legend marker in description at row ${i}`);
+                        break;
+                    }
+                }
+                if (legendIndex !== -1) break;
+            }
+            
+            // If no explicit legend marker, look for consecutive empty rows which often indicate the end of transactions
+            if (legendIndex === -1) {
+                const dateCol = possibleDateColumns.find(col => data[0] && data[0][col] !== undefined);
+                if (dateCol) {
+                    for (let i = 0; i < data.length; i++) {
+                        // Check for 2 or more consecutive empty date rows (common pattern at end of SBI transactions)
+                        if (i > 0 && (!data[i][dateCol] || data[i][dateCol] === '') && 
+                            (!data[i-1][dateCol] || data[i-1][dateCol] === '')) {
+                            legendIndex = i - 1; // Start of empty section
+                            console.log(`Found consecutive empty rows at ${i-1}, likely end of transactions`);
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // If we found a legend marker or empty section, trim the data
+            if (legendIndex !== -1) {
+                cleanedData = data.slice(0, legendIndex);
+                console.log(`SBI statement detected. Removed legend/tail section (${data.length - legendIndex} rows)`);
+            }
+            
+            // Special pre-processing for SBI statements with empty dates
+            cleanedData = cleanedData.filter(row => {
+                // Check if the date column exists and has a value
+                const dateCol = possibleDateColumns.find(col => row[col] !== undefined);
+                if (!dateCol) return false;
+                
+                const dateValue = row[dateCol];
+                // Skip rows with empty dates or non-date values
+                if (!dateValue || dateValue.trim() === '' || dateValue === '-') {
+                    return false;
+                }
+                
+                // Verify it looks like a date (DD-MM-YYYY format common in SBI statements)
+                const isDateFormat = /^\d{2}-\d{2}-\d{4}$/.test(dateValue.trim());
+                if (!isDateFormat) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            console.log(`After SBI pre-processing, ${cleanedData.length} valid transaction rows remain`);
+        }
+        
+        // Generic approach for all other bank formats or SBI formats that don't match the exact structure
+        return cleanedData.map((row, index) => {
             try {
-                const transaction = {};
+                // Skip completely empty rows
+                if (Object.values(row).every(val => !val || val.trim() === '')) {
+                    return null;
+                }
+                
+                const transaction = {
+                    source: 'csv'  // Add source information
+                };
                 
                 // Extract date
                 transaction.date = extractField(row, headers, 'date', mappings);
+                
+                // Skip rows without dates
+                if (!transaction.date) {
+                    return null;
+                }
                 
                 // Extract description
                 transaction.description = extractField(row, headers, 'description', mappings);
@@ -174,7 +356,38 @@ const CSVParser = (function() {
         // Use bank-specific mappings if available
         const fieldMappings = mappings ? mappings[fieldType] : HEADER_MAPPINGS[fieldType];
         
-        // Try to find a matching header
+        // Check if we're dealing with SBI bank format
+        const isSBI = headers.includes('Tran Date') && headers.includes('PARTICULARS') && 
+                      headers.includes('DR') && headers.includes('CR');
+        
+        // Handle SBI bank format specifically
+        if (isSBI) {
+            // Special handling for SBI bank format
+            if (fieldType === 'date') {
+                return row['Tran Date']; // SBI always uses 'Tran Date'
+            }
+            
+            if (fieldType === 'description') {
+                return row['PARTICULARS']; // SBI always uses 'PARTICULARS'
+            }
+            
+            if (fieldType === 'amount') {
+                // SBI has separate DR and CR columns
+                if (row['DR'] && row['DR'].trim() !== '' && row['DR'].trim() !== '-') {
+                    return '-' + row['DR']; // Debit (negative)
+                }
+                
+                if (row['CR'] && row['CR'].trim() !== '' && row['CR'].trim() !== '-') {
+                    return row['CR']; // Credit (positive)
+                }
+                
+                return '0'; // Default value
+            }
+            
+            // For other field types, use the generic approach
+        }
+        
+        // Try to find a matching header (generic approach)
         for (const header of headers) {
             const headerLower = header.toLowerCase();
             
@@ -195,11 +408,13 @@ const CSVParser = (function() {
             for (const header of headers) {
                 const headerLower = header.toLowerCase();
                 
-                if (headerLower.includes('debit') && row[header] && row[header].trim() !== '') {
+                if ((headerLower.includes('debit') || headerLower === 'dr') && row[header] && 
+                    row[header].trim() !== '' && row[header].trim() !== '-') {
                     return '-' + row[header]; // Debit is negative (expense)
                 }
                 
-                if (headerLower.includes('credit') && row[header] && row[header].trim() !== '') {
+                if ((headerLower.includes('credit') || headerLower === 'cr') && row[header] && 
+                    row[header].trim() !== '' && row[header].trim() !== '-') {
                     return row[header]; // Credit is positive (income)
                 }
             }
@@ -217,7 +432,7 @@ const CSVParser = (function() {
             
             if (drColumn && crColumn) {
                 // If both DR and CR columns exist (Indian bank format)
-                if (row[drColumn] && row[drColumn].trim() !== '') {
+                if (row[drColumn] && row[drColumn].trim() !== '' && row[drColumn].trim() !== '-') {
                     // Debit/DR is negative (expense)
                     const amount = row[drColumn].replace(/[$₹Rs.,]/g, '').trim();
                     if (amount && !isNaN(parseFloat(amount))) {
@@ -225,7 +440,7 @@ const CSVParser = (function() {
                     }
                 }
                 
-                if (row[crColumn] && row[crColumn].trim() !== '') {
+                if (row[crColumn] && row[crColumn].trim() !== '' && row[crColumn].trim() !== '-') {
                     // Credit/CR is positive (income)
                     const amount = row[crColumn].replace(/[$₹Rs.,]/g, '').trim();
                     if (amount && !isNaN(parseFloat(amount))) {
@@ -234,12 +449,17 @@ const CSVParser = (function() {
                 }
             }
             
-            // Look for other debit/credit columns
+            // Look for other debit/credit columns - Indian bank specific formats
             for (const header of headers) {
                 const headerLower = header.toLowerCase();
                 
-                if ((headerLower.includes('debit') || headerLower === 'dr') && 
-                    row[header] && row[header].trim() !== '') {
+                // Handle multiple variations of debit columns
+                if ((headerLower.includes('debit') || 
+                     headerLower === 'dr' || 
+                     headerLower.includes('withdrawal') || 
+                     headerLower.includes('withdrawl')) && 
+                    row[header] && row[header].trim() !== '' && row[header].trim() !== '-') {
+                    
                     // Debit is negative (expense)
                     const amount = row[header].replace(/[$₹Rs.,]/g, '').trim();
                     if (amount && !isNaN(parseFloat(amount))) {
@@ -247,8 +467,12 @@ const CSVParser = (function() {
                     }
                 }
                 
-                if ((headerLower.includes('credit') || headerLower === 'cr') && 
-                    row[header] && row[header].trim() !== '') {
+                // Handle multiple variations of credit columns
+                if ((headerLower.includes('credit') || 
+                     headerLower === 'cr' || 
+                     headerLower.includes('deposit')) && 
+                    row[header] && row[header].trim() !== '' && row[header].trim() !== '-') {
+                    
                     // Credit is positive (income)
                     const amount = row[header].replace(/[$₹Rs.,]/g, '').trim();
                     if (amount && !isNaN(parseFloat(amount))) {
@@ -257,7 +481,52 @@ const CSVParser = (function() {
                 }
             }
             
+            // Special case for amount columns with prefixed Dr./Cr.
+            const amountColumns = headers.filter(h => 
+                h.toLowerCase().includes('amount') || 
+                h.toLowerCase().includes('transaction') ||
+                h.toLowerCase().includes('value')
+            );
+            
+            for (const amountCol of amountColumns) {
+                if (row[amountCol] && row[amountCol].trim() !== '') {
+                    const amountVal = row[amountCol].trim();
+                    
+                    // Check for Dr. or Cr. prefixes in the amount string
+                    if (amountVal.toLowerCase().includes('dr') || amountVal.toLowerCase().includes('debit')) {
+                        // It's a debit/expense
+                        const cleanAmount = amountVal.replace(/dr\.?|debit|[$₹Rs.,]/gi, '').trim();
+                        if (cleanAmount && !isNaN(parseFloat(cleanAmount))) {
+                            return -Math.abs(parseFloat(cleanAmount));
+                        }
+                    } else if (amountVal.toLowerCase().includes('cr') || amountVal.toLowerCase().includes('credit')) {
+                        // It's a credit/income
+                        const cleanAmount = amountVal.replace(/cr\.?|credit|[$₹Rs.,]/gi, '').trim();
+                        if (cleanAmount && !isNaN(parseFloat(cleanAmount))) {
+                            return Math.abs(parseFloat(cleanAmount));
+                        }
+                    }
+                }
+            }
+            
             return 0;
+        }
+        
+        // Handle string with "Dr." or "Cr." prefixes (common in Indian bank statements)
+        if (typeof amountStr === 'string') {
+            if (amountStr.toLowerCase().includes('dr') || amountStr.toLowerCase().includes('debit')) {
+                // It's a debit/expense
+                const cleanAmount = amountStr.replace(/dr\.?|debit|[$₹Rs.,]/gi, '').trim();
+                if (cleanAmount && !isNaN(parseFloat(cleanAmount))) {
+                    return -Math.abs(parseFloat(cleanAmount));
+                }
+            } else if (amountStr.toLowerCase().includes('cr') || amountStr.toLowerCase().includes('credit')) {
+                // It's a credit/income
+                const cleanAmount = amountStr.replace(/cr\.?|credit|[$₹Rs.,]/gi, '').trim();
+                if (cleanAmount && !isNaN(parseFloat(cleanAmount))) {
+                    return Math.abs(parseFloat(cleanAmount));
+                }
+            }
         }
         
         // Remove currency symbols and commas
@@ -318,6 +587,7 @@ const CSVParser = (function() {
     // Detect bank format based on headers
     function detectBankFormat(headers) {
         const headersLower = headers.map(h => h.toLowerCase());
+        console.log("All headers for detection:", headersLower);
         
         // Check for Chase format
         if (headersLower.includes('transaction date') && 
@@ -363,11 +633,52 @@ const CSVParser = (function() {
         }
         
         // Check for Indian bank formats - updated for better detection of various Indian banks
-        // SBI Bank format - specifically looking for the common SBI statement format
-        if ((headersLower.includes('tran date') || headersLower.includes('date')) && 
-            (headersLower.includes('particulars')) && 
-            (headersLower.includes('dr') && headersLower.includes('cr') && headersLower.includes('bal'))) {
-            console.log("Detected SBI bank format");
+        
+        // SBI Bank format - aggressive detection looking for common patterns in SBI statements
+        const sbiPatterns = [
+            // Check for the most common SBI statement pattern with exact headers
+            (headers.includes('Tran Date') && headers.includes('PARTICULARS') && 
+             headers.includes('DR') && headers.includes('CR') && headers.includes('BAL')),
+             
+            // Check the same with lowercase variations
+            (headersLower.includes('tran date') && headersLower.includes('particulars') && 
+             headersLower.includes('dr') && headersLower.includes('cr') && headersLower.includes('bal')),
+            
+            // Check for CHQNO column which is specific to SBI format
+            (headers.includes('Tran Date') && headers.includes('CHQNO') && 
+             headers.includes('PARTICULARS') && headers.includes('DR') && headers.includes('CR')),
+             
+            // Check for SOL column which is specific to SBI format
+            (headersLower.includes('tran date') && headersLower.includes('particulars') && 
+             headersLower.includes('dr') && headersLower.includes('cr') && headersLower.includes('sol')),
+            
+            // Alternate SBI pattern with Chq/Ref number
+            (headersLower.includes('tran date') && headersLower.includes('chq/ref no') && 
+             headersLower.includes('particulars') && (headersLower.includes('dr') || headersLower.includes('cr'))),
+            
+            // Another SBI pattern
+            (headersLower.includes('date') && headersLower.includes('description') && 
+             headersLower.includes('ref no./cheque no') && headersLower.includes('debit') && headersLower.includes('credit')),
+            
+            // SBI corporate or special account format
+            (headersLower.includes('txn date') && headersLower.includes('description') && 
+             headersLower.includes('ref no') && headersLower.includes('debit') && headersLower.includes('credit')),
+             
+            // SBI combined format
+            (headersLower.includes('date') && headersLower.includes('narration') && 
+             headersLower.includes('chq/ref no') && headersLower.includes('debit') && headersLower.includes('credit'))
+        ];
+        
+        if (sbiPatterns.some(pattern => pattern === true)) {
+            console.log("Detected SBI bank format - pattern match");
+            return 'sbi_bank';
+        }
+        
+        // Special detection for SBI with Value Date format
+        if ((headersLower.includes('value date') || headersLower.includes('tran date')) && 
+            headersLower.includes('description') &&
+            (headersLower.includes('debit') && headersLower.includes('credit'))) {
+            console.log("Detected SBI bank format - value date variant");
             return 'sbi_bank';
         }
         
@@ -390,12 +701,28 @@ const CSVParser = (function() {
         }
         
         // Generic Indian bank format
-        if ((headersLower.includes('tran date') || headersLower.includes('transaction date') || headersLower.includes('value date')) && 
-            (headersLower.includes('particulars') || headersLower.includes('description') || headersLower.includes('narration')) && 
+        if ((headersLower.includes('tran date') || headersLower.includes('transaction date') || 
+             headersLower.includes('value date') || headersLower.includes('date')) && 
+            (headersLower.includes('particulars') || headersLower.includes('description') || 
+             headersLower.includes('narration') || headersLower.includes('remarks')) && 
             (headersLower.includes('dr') || headersLower.includes('cr') || 
              headersLower.includes('debit') || headersLower.includes('credit') ||
              headersLower.includes('withdrawal') || headersLower.includes('deposit'))) {
             console.log("Detected generic Indian bank format");
+            return 'indian_bank';
+        }
+        
+        // If this looks like it should be an Indian bank format but wasn't caught above
+        const possibleIndianHeaders = ['credit', 'debit', 'cheque', 'chq', 'particulars', 'narration', 
+                                       'withdrawal', 'deposit', 'reference', 'balance', 'upi', 'neft', 
+                                       'rtgs', 'imps', 'ref', 'tran'];
+        
+        const matchCount = possibleIndianHeaders.filter(keyword => 
+            headersLower.some(header => header.includes(keyword))
+        ).length;
+        
+        if (matchCount >= 3) {
+            console.log(`Detected possible Indian bank format (matched ${matchCount} keywords)`);
             return 'indian_bank';
         }
         
@@ -418,8 +745,30 @@ const CSVParser = (function() {
             transaction.description.toLowerCase().includes('transaction trough') ||
             transaction.description === 'PARTICULARS' ||
             transaction.description === 'Narration' ||
-            transaction.description === 'Description') {
+            transaction.description === 'Description' ||
+            transaction.description === 'CHQNO' ||  // SBI bank header
+            transaction.description === '-' ||      // SBI bank dash placeholder
+            transaction.description === 'SOL') {    // SBI bank SOL column
             return false;
+        }
+        
+        // Skip rows with typical Legend section entries (common in SBI statements)
+        const legendKeywords = [
+            'iconn', 'vmt', 'autosweep', 'rev sweep', 'sweep trf', 
+            'cwdr', 'pur', 'tip', 'scg', 'rate.diff', 'clg', 'edc', 
+            'setu', 'int.pd', 'int.coll', 'visa money', 'transfer to', 
+            'interest on', 'transfer from', 'cash withdrawal', 'pos purchase'
+        ];
+        
+        for (const keyword of legendKeywords) {
+            if (transaction.description.toLowerCase().includes(keyword)) {
+                // Check if this is likely a legend entry (not a real transaction)
+                // Legend entries often have very generic descriptions
+                if (transaction.description.toLowerCase().startsWith(keyword) || 
+                    transaction.description.split(' ').length <= 3) {
+                    return false;
+                }
+            }
         }
         
         // Skip empty descriptions or very short ones that are likely not transactions
@@ -453,8 +802,18 @@ const CSVParser = (function() {
     function parseDate(dateStr) {
         if (!dateStr) return null;
         
-        // Prioritize Indian format - DD/MM/YYYY
-        let match = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/.exec(dateStr);
+        // Special case for Indian SBI format: DD-MM-YYYY
+        let match = /^(\d{2})-(\d{2})-(\d{4})$/.exec(dateStr);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
+            const year = parseInt(match[3]);
+            
+            return new Date(year, month, day);
+        }
+        
+        // Prioritize Indian format - DD/MM/YYYY or DD-MM-YYYY (general)
+        match = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/.exec(dateStr);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
@@ -487,9 +846,7 @@ const CSVParser = (function() {
             return date;
         }
         
-        // We already tried this format above, so we'll skip it here
-        
-        // Try DD.MM.YYYY format
+        // Try DD.MM.YYYY format (European)
         match = /(\d{1,2})\.(\d{1,2})\.(\d{2,4})/.exec(dateStr);
         if (match) {
             const day = parseInt(match[1]);

@@ -21,6 +21,7 @@
             <div class="tabs">
                 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
                 <button class="tab-btn" data-tab="transactions">Transactions</button>
+                <button class="tab-btn" id="tab-analytics" data-tab="analytics">Analytics</button>
                 <button class="tab-btn" data-tab="import">Import</button>
                 <button class="tab-btn" data-tab="reminders">Reminders</button>
                 <button class="tab-btn" data-tab="settings">Settings</button>
@@ -33,15 +34,15 @@
                 <div class="summary-cards">
                     <div class="card">
                         <h3>Total Balance</h3>
-                        <p class="total-balance">$0.00</p>
+                        <p class="total-balance">₹0.00</p>
                     </div>
                     <div class="card">
                         <h3>Income</h3>
-                        <p class="total-income">$0.00</p>
+                        <p class="total-income">₹0.00</p>
                     </div>
                     <div class="card">
                         <h3>Expenses</h3>
-                        <p class="total-expenses">$0.00</p>
+                        <p class="total-expenses">₹0.00</p>
                     </div>
                 </div>
                 
@@ -78,6 +79,108 @@
                 <button id="add-transaction-btn" class="floating-btn">
                     <span class="material-icons">add</span>
                 </button>
+            </section>
+            
+            <!-- Analytics Tab -->
+            <section id="analytics" class="tab-content">
+                <div class="analytics-search-bar">
+                    <input type="text" id="analytics-search" placeholder="Search transactions by description...">
+                </div>
+                
+                <div class="analytics-filters">
+                    <div class="filters-wrapper">
+                        <div class="time-filter">
+                            <h3>Time Period</h3>
+                            <div class="time-filter-buttons">
+                                <button class="filter-btn active" data-period="month">Month</button>
+                                <button class="filter-btn" data-period="quarter">Quarter</button>
+                                <button class="filter-btn" data-period="year">Year</button>
+                                <button class="filter-btn" data-period="custom">Custom</button>
+                            </div>
+                            <div class="custom-date-range" style="display: none;">
+                                <input type="date" id="start-date">
+                                <span>to</span>
+                                <input type="date" id="end-date">
+                                <button id="apply-date-range" class="btn">Apply</button>
+                            </div>
+                        </div>
+                        
+                        <div class="category-filter">
+                            <h3>Categories</h3>
+                            <div class="category-checkboxes" id="category-filters">
+                                <!-- Will be populated with categories -->
+                                <div class="empty-state">No categories available</div>
+                            </div>
+                        </div>
+                        
+                        <div class="source-filter">
+                            <h3>Transaction Source</h3>
+                            <div class="source-checkboxes" id="source-filters">
+                                <div class="source-checkbox">
+                                    <input type="checkbox" id="source-manual" data-source="manual" checked>
+                                    <label for="source-manual">Manual Entries</label>
+                                </div>
+                                <div class="source-checkbox">
+                                    <input type="checkbox" id="source-csv" data-source="csv" checked>
+                                    <label for="source-csv">CSV Import</label>
+                                </div>
+                                <div class="source-checkbox">
+                                    <input type="checkbox" id="source-pdf" data-source="pdf" checked>
+                                    <label for="source-pdf">PDF Import</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analytics-summary">
+                    <h3>Analytics Summary</h3>
+                    <div class="summary-metrics">
+                        <div class="metric">
+                            <h4>Total Spending</h4>
+                            <p id="total-spending">₹0.00</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Total Income</h4>
+                            <p id="total-income">₹0.00</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Average Daily Expense</h4>
+                            <p id="avg-daily-expense">₹0.00</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Most Expensive Day</h4>
+                            <p id="max-expense-day">None</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analytics-charts">
+                    <div class="chart-wrapper">
+                        <h3>Spending by Category</h3>
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Spending Trend</h3>
+                        <canvas id="trends-chart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Cash Flow</h3>
+                        <canvas id="cash-flow-chart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Payment Methods</h3>
+                        <canvas id="payment-method-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="filtered-transactions">
+                    <h3>Filtered Transactions</h3>
+                    <div id="analytics-transactions" class="transactions-list">
+                        <!-- Filtered transactions will be displayed here -->
+                        <div class="empty-state">No transactions match the current filters</div>
+                    </div>
+                </div>
             </section>
             
             <!-- Import Tab -->
@@ -118,7 +221,6 @@
                 </div>
             </section>
             
-            <!-- Settings Tab -->
             <!-- Reminders Tab --> 
             <section id="reminders" class="tab-content"> 
                 <div class="reminders-header"> 
@@ -151,8 +253,9 @@
                         </div> 
                     </div> 
                 </div> 
-            </section> 
+            </section>
             
+            <!-- Settings Tab -->
             <section id="settings" class="tab-content">
                 <div class="settings-group">
                     <h3>Data Management</h3>
@@ -174,120 +277,150 @@
                 </div>
                 
                 <div class="settings-group">
-                    <h3>Categories</h3>
-                    <div id="categories-list">
-                        <!-- Categories will be listed here -->
-                    </div>
-                    <div class="add-category">
-                        <input type="text" id="new-category" placeholder="New category name">
-                        <button id="add-category-btn" class="btn">Add</button>
+                    <h3>Categories Management</h3>
+                    <div class="setting-item">
+                        <div class="category-input">
+                            <input type="text" id="new-category" placeholder="Add new category...">
+                            <button id="add-category" class="btn">Add</button>
+                        </div>
+                        <div id="categories-list" class="categories-list">
+                            <!-- Categories will be populated here -->
+                            <div class="empty-state">No custom categories added</div>
+                        </div>
                     </div>
                 </div>
             </section>
         </main>
-    </div>
-    
-    <!-- Add Transaction Modal -->
-    <div id="transaction-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2 id="modal-title">Add Transaction</h2>
-            <form id="transaction-form">
-                <input type="hidden" id="transaction-id">
-                <div class="form-group">
-                    <label for="transaction-date">Date</label>
-                    <input type="date" id="transaction-date" required>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-amount">Amount</label>
-                    <input type="number" id="transaction-amount" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-type">Type</label>
-                    <select id="transaction-type" required>
-                        <option value="expense">Expense</option>
-                        <option value="income">Income</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-category">Category</label>
-                    <select id="transaction-category" required>
-                        <!-- Categories will be populated dynamically -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="transaction-description">Description</label>
-                    <input type="text" id="transaction-description" required>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn" id="save-transaction">Save</button>
-                    <button type="button" class="btn secondary" id="cancel-transaction">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Delete Confirmation Modal -->
-    <div id="confirmation-modal" class="modal">
-        <div class="modal-content">
-            <h2>Confirm Delete</h2>
-            <p>Are you sure you want to delete this transaction? This action cannot be undone.</p>
-            <div class="modal-actions">
-                <button id="confirm-delete" class="btn danger">Delete</button>
-                <button id="cancel-delete" class="btn secondary">Cancel</button>
+
+        <!-- Transaction Modal -->
+        <div id="transaction-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 id="transaction-modal-title">Add Transaction</h2>
+                <form id="transaction-form">
+                    <input type="hidden" id="transaction-id">
+                    <div class="form-group">
+                        <label for="transaction-date">Date:</label>
+                        <input type="date" id="transaction-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-type">Type:</label>
+                        <select id="transaction-type" required>
+                            <option value="expense">Expense</option>
+                            <option value="income">Income</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-amount">Amount (₹):</label>
+                        <input type="number" id="transaction-amount" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-category">Category:</label>
+                        <select id="transaction-category" required>
+                            <!-- Categories will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-description">Description:</label>
+                        <input type="text" id="transaction-description" required>
+                    </div>
+                    <div class="form-group payment-method-group">
+                        <label for="transaction-payment-method">Payment Method:</label>
+                        <select id="transaction-payment-method">
+                            <option value="cash">Cash</option>
+                            <option value="credit">Credit Card</option>
+                            <option value="debit">Debit Card</option>
+                            <option value="upi">UPI</option>
+                            <option value="net_banking">Net Banking</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="button" id="cancel-transaction" class="btn cancel">Cancel</button>
+                        <button type="submit" class="btn primary">Save</button>
+                    </div>
+                </form>
             </div>
         </div>
+
+        <!-- Reminder Modal -->
+        <div id="reminder-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 id="reminder-modal-title">Add Credit Card Payment Reminder</h2>
+                <form id="reminder-form">
+                    <input type="hidden" id="reminder-id">
+                    <div class="form-group">
+                        <label for="card-name">Card Name:</label>
+                        <input type="text" id="card-name" placeholder="e.g., HDFC Regalia" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bill-amount">Bill Amount (₹):</label>
+                        <input type="number" id="bill-amount" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bill-date">Bill Date:</label>
+                        <input type="date" id="bill-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="due-date">Due Date:</label>
+                        <input type="date" id="due-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="payment-status">Status:</label>
+                        <select id="payment-status">
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reminder-notes">Notes:</label>
+                        <textarea id="reminder-notes" rows="3"></textarea>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="button" id="cancel-reminder" class="btn cancel">Cancel</button>
+                        <button type="submit" class="btn primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-confirmation" class="modal">
+            <div class="modal-content">
+                <h3>Confirm Delete</h3>
+                <p>Are you sure you want to delete this transaction? This action cannot be undone.</p>
+                <div class="form-buttons">
+                    <button id="cancel-delete" class="btn cancel">Cancel</button>
+                    <button id="confirm-delete" class="btn danger">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clear Data Confirmation Modal -->
+        <div id="clear-data-confirmation" class="modal">
+            <div class="modal-content">
+                <h3>Confirm Clear All Data</h3>
+                <p>Are you sure you want to clear all data? This will delete all your transactions, categories and reminders. This action cannot be undone.</p>
+                <div class="form-buttons">
+                    <button id="cancel-clear-data" class="btn cancel">Cancel</button>
+                    <button id="confirm-clear-data" class="btn danger">Clear All Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
     </div>
-    
-    <!-- JavaScript Files -->
+
+    <!-- Application Scripts -->
     <script src="js/database.js"></script>
+    <script src="js/transaction-utils.js"></script>
+    <script src="js/ui-controller.js"></script>
     <script src="js/pdf-parser.js"></script>
     <script src="js/csv-parser.js"></script>
-    <script src="js/transaction-utils.js"></script>
     <script src="js/reminder-controller.js"></script>
-    <script src="js/ui-controller.js"></script>
+    <script src="js/analytics-controller.js"></script>
     <script src="js/app.js"></script>
-    <!-- Credit Card Reminder Modal --> 
-    <div id="reminder-modal" class="modal"> 
-        <div class="modal-content"> 
-            <span class="close-modal">&times;</span> 
-            <h2 id="reminder-modal-title">Add Credit Card Payment Reminder</h2> 
-            <form id="reminder-form"> 
-                <input type="hidden" id="reminder-id"> 
-                <div class="form-group"> 
-                    <label for="card-name">Card Name</label> 
-                    <input type="text" id="card-name" required placeholder="e.g., HDFC Credit Card"> 
-                </div> 
-                <div class="form-group"> 
-                    <label for="payment-amount">Payment Amount</label> 
-                    <input type="number" id="payment-amount" step="0.01" required placeholder="₹0.00"> 
-                </div> 
-                <div class="form-group"> 
-                    <label for="due-date">Due Date</label> 
-                    <input type="date" id="due-date" required> 
-                </div> 
-                <div class="form-group"> 
-                    <label for="reminder-days">Remind me</label> 
-                    <select id="reminder-days"> 
-                        <option value="1">1 day before</option> 
-                        <option value="2">2 days before</option> 
-                        <option value="3">3 days before</option> 
-                        <option value="5" selected>5 days before</option> 
-                        <option value="7">7 days before</option> 
-                        <option value="10">10 days before</option> 
-                    </select> 
-                </div> 
-                <div class="form-group"> 
-                    <label for="reminder-notes">Notes (Optional)</label> 
-                    <textarea id="reminder-notes" rows="2" placeholder="Any additional information"></textarea> 
-                </div> 
-                <div class="form-group"> 
-                    <button type="submit" class="btn" id="save-reminder">Save</button> 
-                    <button type="button" class="btn secondary" id="cancel-reminder">Cancel</button> 
-                </div> 
-            </form> 
-        </div> 
-    </div> 
-    
 </body>
 </html>

@@ -37,7 +37,7 @@ const UIController = (function() {
         clearDataBtn: document.getElementById('clear-data'),
         categoriesList: document.getElementById('categories-list'),
         newCategoryInput: document.getElementById('new-category'),
-        addCategoryBtn: document.getElementById('add-category-btn'),
+        addCategoryBtn: document.getElementById('add-category'),
         
         // Transaction modal
         transactionModal: document.getElementById('transaction-modal'),
@@ -158,6 +158,8 @@ const UIController = (function() {
                     updateDashboard();
                 } else if (tabId === 'transactions') {
                     updateTransactionsList();
+                } else if (tabId === 'analytics' && typeof AnalyticsController !== 'undefined') {
+                    AnalyticsController.refreshAnalytics();
                 } else if (tabId === 'reminders') {
                     if (typeof ReminderController !== 'undefined' && ReminderController.refreshReminders) {
                         ReminderController.refreshReminders();
@@ -376,6 +378,31 @@ const UIController = (function() {
         category.textContent = transaction.category || 'Other';
         details.appendChild(category);
         
+        // Add source info (if available)
+        if (transaction.source) {
+            const source = document.createElement('div');
+            source.className = 'transaction-source';
+            
+            // Format source label for display
+            let sourceText = '';
+            switch(transaction.source) {
+                case 'manual':
+                    sourceText = 'Manual Entry';
+                    break;
+                case 'csv':
+                    sourceText = 'CSV Import';
+                    break;
+                case 'pdf':
+                    sourceText = 'PDF Import';
+                    break;
+                default:
+                    sourceText = transaction.source;
+            }
+            
+            source.textContent = sourceText;
+            details.appendChild(source);
+        }
+        
         transactionEl.appendChild(details);
         
         // Transaction amount
@@ -511,7 +538,8 @@ const UIController = (function() {
             amount,
             type,
             category,
-            description
+            description,
+            source: 'manual'  // Add source information for manual entries
         };
         
         let result;

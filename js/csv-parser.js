@@ -127,11 +127,98 @@ const CSVParser = (function() {
         // Get the appropriate header mappings
         const mappings = bankFormat ? HEADER_MAPPINGS[bankFormat] : null;
         
-        // For SBI bank statements, skip legend section
+        // For SBI bank statements, use a special direct approach
         let cleanedData = [...data]; // Create a copy of the data array
+        
+        // Special handling for SBI bank format with its specific structure
         if (bankFormat === 'sbi_bank') {
             console.log("Processing SBI Bank statement format with sample row:", data[0]);
+            console.log("SBI statement headers:", headers);
             
+            // Check if we have the exact SBI format we're expecting
+            const isSbiExactFormat = headers.includes('Tran Date') && 
+                                     headers.includes('PARTICULARS') && 
+                                     headers.includes('DR') && 
+                                     headers.includes('CR');
+            
+            if (isSbiExactFormat) {
+                console.log("Using direct SBI bank statement processing");
+                
+                // Direct processing approach for SBI bank format
+                const transactions = [];
+                
+                // Process each row directly, skipping header processing step
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
+                    
+                    // Skip rows without valid date in DD-MM-YYYY format
+                    if (!row['Tran Date'] || !/^\d{2}-\d{2}-\d{4}$/.test(row['Tran Date'])) {
+                        continue;
+                    }
+                    
+                    // Skip rows without description or with header values
+                    if (!row['PARTICULARS'] || 
+                        row['PARTICULARS'] === 'PARTICULARS' || 
+                        row['PARTICULARS'] === 'Legend :' ||
+                        row['PARTICULARS'].toLowerCase().includes('opening balance') ||
+                        row['PARTICULARS'].toLowerCase().includes('closing balance')) {
+                        continue;
+                    }
+                    
+                    try {
+                        // Create transaction object
+                        const transaction = {
+                            date: parseDate(row['Tran Date']),
+                            description: row['PARTICULARS']
+                        };
+                        
+                        // If date parsing failed, skip this row
+                        if (!transaction.date) {
+                            console.log(`Skipping row ${i} - invalid date: ${row['Tran Date']}`);
+                            continue;
+                        }
+                        
+                        // Determine amount and type
+                        let amount = 0;
+                        let type = 'expense';
+                        
+                        if (row['DR'] && row['DR'].trim() !== '' && row['DR'] !== '-') {
+                            // It's a debit (expense)
+                            amount = parseFloat(row['DR'].replace(/,/g, ''));
+                            type = 'expense';
+                        } else if (row['CR'] && row['CR'].trim() !== '' && row['CR'] !== '-') {
+                            // It's a credit (income)
+                            amount = parseFloat(row['CR'].replace(/,/g, ''));
+                            type = 'income';
+                        } else {
+                            // Skip rows with no amount
+                            continue;
+                        }
+                        
+                        // Skip rows with invalid amounts
+                        if (isNaN(amount) || amount === 0) {
+                            continue;
+                        }
+                        
+                        transaction.amount = amount;
+                        transaction.type = type;
+                        
+                        // Guess category based on description
+                        transaction.category = guessCategory(transaction.description);
+                        
+                        transactions.push(transaction);
+                    } catch (error) {
+                        console.error(`Error processing SBI row ${i}:`, error, row);
+                    }
+                }
+                
+                console.log(`Processed ${transactions.length} valid SBI bank transactions`);
+                return transactions;
+            }
+        }
+        
+        // For SBI bank statements, skip legend section (for non-direct approach)
+        if (bankFormat === 'sbi_bank') {
             // Find where the legend section starts - trying different possible column names
             let legendIndex = -1;
             const possibleDateColumns = ['Tran Date', 'Value Date', 'Date', 'Txn Date', 'Transaction Date'];
@@ -209,7 +296,7 @@ const CSVParser = (function() {
             console.log(`After SBI pre-processing, ${cleanedData.length} valid transaction rows remain`);
         }
         
-        // Map each row to standard transaction format
+        // Generic approach for all other bank formats or SBI formats that don't match the exact structure
         return cleanedData.map((row, index) => {
             try {
                 // Skip completely empty rows

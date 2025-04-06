@@ -2,118 +2,480 @@
  * PDF Parser module for extracting transaction data from PDF files
  * Uses PDF.js for PDF parsing
  */
-const PDFParser = (function() {
+const PDFParser = (function () {
     // Set PDF.js worker path
-    if (typeof pdfjsLib !== 'undefined') {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    if (typeof pdfjsLib !== "undefined") {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
     }
 
     // Regular expression patterns for different types of bank statements
     const PATTERNS = {
         // Date patterns (various formats)
         DATE: [
-            /(\d{1,2}\/\d{1,2}\/\d{2,4})/g,                         // MM/DD/YYYY or M/D/YY
-            /(\d{1,2}-\d{1,2}-\d{2,4})/g,                           // MM-DD-YYYY or M-D-YY
-            /(\d{1,2}\.\d{1,2}\.\d{2,4})/g,                             // DD.MM.YYYY or MM.DD.YYYY
-            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}/gi,  // Month DD, YYYY
-            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})/gi,   // DD MMM YY/YYYY (Indian format)
-            /(\d{2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{2,4})/gi,  // DD Month YYYY
-            /(\d{2}-\d{2}-\d{4})/g,                                 // DD-MM-YYYY (common in Indian bank statements)
-            /(\d{2}\/\d{2}\/\d{4})/g                                // DD/MM/YYYY (another common Indian format)
+            /(\d{1,2}\/\d{1,2}\/\d{2,4})/g, // MM/DD/YYYY or M/D/YY
+            /(\d{1,2}-\d{1,2}-\d{2,4})/g, // MM-DD-YYYY or M-D-YY
+            /(\d{2}\.\d{2}\.\d{2,4})/g, // DD.MM.YYYY or MM.DD.YYYY
+            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}/gi, // Month DD, YYYY
+            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})/gi, // DD MMM YY/YYYY (Indian format)
+            /(\d{2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{2,4})/gi, // DD Month YYYY
+            /(\d{2}-\d{2}-\d{4})/g, // DD-MM-YYYY (common in Indian bank statements)
+            /(\d{2}\/\d{2}\/\d{4})/g, // DD/MM/YYYY (another common Indian format)
         ],
 
         // Amount patterns
         AMOUNT: [
-            /₹\s?(\d+,?\d*\.\d{2})/g,                              // ₹123.45 or ₹ 1,234.56
-            /Rs\.\s?(\d+,?\d*\.\d{2})/g,                            // Rs. 123.45 or Rs. 1,234.56
-            /INR\s?(\d+,?\d*\.\d{2})/g,                             // INR 123.45 or INR 1,234.56
-            /(\d+,?\d*\.\d{2})\s?INR/g,                             // 123.45 INR or 1,234.56 INR
-            /(\d+,?\d*\.\d{2})/g                                    // Simple amount pattern (123.45)
+            /₹\s?(\d+,?\d*\.\d{2})/g, // ₹123.45 or ₹ 1,234.56
+            /Rs\.\s?(\d+,?\d*\.\d{2})/g, // Rs. 123.45 or Rs. 1,234.56
+            /INR\s?(\d+,?\d*\.\d{2})/g, // INR 123.45 or INR 1,234.56
+            /(\d+,?\d*\.\d{2})\s?INR/g, // 123.45 INR or 1,234.56 INR
+            /(\d+,?\d*\.\d{2})\s?[CD]$/g, // 1,234.56 C or 1,234.56 D (Credit/Debit indicator)
+            /(\d+,?\d*\.\d{2})/g, // 123.45 or 1,234.56 (decimal amount)
+            /(\d+,\d+\.\d{2})/g, // 1,234.56 (with comma thousand separator)
+            /(\d{1,3}(?:,\d{3})+(?:\.\d{2})?)/g, // 1,234 or 1,234.56 (comma-separated thousands)
+            /([0-9.]+)/g, // Any number with or without decimal places
         ],
 
-        // Transaction patterns for specific banks
-        BANKS: {
-            // SBI Bank
-            SBI: {
-                header: /State Bank of India|SBI/i,
-                transaction: /(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d+\.\d{2})\s+(DR|CR)/i,
-                transactionLine: /(\d{2}\/\d{2}\/\d{4})|(\d{2}-\d{2}-\d{4}).*?((?:Rs\.|₹|INR)?\s*\d+,?\d*\.\d{2})/i
-            },
-            // HDFC Bank
-            HDFC: {
-                header: /HDFC Bank|HDFC/i,
-                transaction: /(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d+\.\d{2})\s+(DR|CR)/i,
-                transactionLine: /(\d{2}\/\d{2}\/\d{4})|(\d{2}-\d{2}-\d{4}).*?((?:Rs\.|₹|INR)?\s*\d+,?\d*\.\d{2})/i
-            },
-            // Axis Bank
-            AXIS: {
-                header: /Axis Bank|AXIS/i,
-                transaction: /(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d+\.\d{2})\s+(DR|CR)/i,
-                transactionLine: /(\d{2}\/\d{2}\/\d{4})|(\d{2}-\d{2}-\d{4}).*?((?:Rs\.|₹|INR)?\s*\d+,?\d*\.\d{2})/i
-            },
-            // Generic Indian bank
-            GENERIC: {
-                transaction: /(\d{2}\/\d{2}\/\d{4})|(\d{2}-\d{2}-\d{4}).*?((?:Rs\.|₹|INR)?\s*\d+,?\d*\.\d{2})/i,
-                withdrawalKeywords: /withdrawal|debit|purchase|payment|dr/i,
-                depositKeywords: /deposit|credit|refund|salary|cr/i
-            },
-            // SBI Card
-            SBI_CARD: {
-                header: /CARD CASHBACK SUMMARY|SBI Card/i,
-                transactionLine: /(\d{2}\s+[A-Za-z]{3}\s+\d{2})\s+.*?(\d+,?\d*\.\d{2})\s+([CD])/i
-            }
-        }
+        // Transaction patterns (combinations of date, description, and amount)
+        TRANSACTION: [
+            // Common pattern for most statements with rupee symbol
+            /(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(.+?)\s+(₹\s?\d+,?\d*\.\d{2})/g,
+
+            // Pattern with Rs. notation
+            /(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(.+?)\s+(Rs\.\s?\d+,?\d*\.\d{2})/g,
+
+            // DD MMM YYYY format with rupee symbol
+            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})\s+(.+?)\s+(₹\s?\d+,?\d*\.\d{2})/gi,
+
+            // DD MMM YYYY format with Rs. notation
+            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})\s+(.+?)\s+(Rs\.\s?\d+,?\d*\.\d{2})/gi,
+
+            // Indian bank statement format (DD-MM-YYYY, description, amount)
+            /(\d{2}-\d{2}-\d{4})\s+(.+?)\s+(\d+,?\d*\.\d{2})/g,
+
+            // Indian credit card format with credit/debit indicator
+            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})\s+(.+?)\s+(\d+,?\d*\.\d{2})\s+([CD])/gi,
+
+            // DD-MM-YYYY format with just numbers and description
+            /(\d{2}-\d{2}-\d{4})\s+(.+?)\s+(\d+\.\d{2})/g,
+        ],
+
+        // SBI credit card statement specific pattern
+        SBI_STATEMENT:
+            /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})\s+(.+?)\s+(\d+,?\d*\.\d{2})\s+([CD])/gi,
+
+        // Axis Bank statement pattern - more specific to capture column structure
+        AXIS_BANK_STATEMENT: /(\d{2}-\d{2}-\d{4})\s+(.*?)(?=\s+\d+\.\d{2})/g,
+
+        // HDFC Bank statement pattern (common in Indian banks)
+        HDFC_BANK_STATEMENT:
+            /(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d+(?:,\d{3})*\.\d{2})\s+(?:Cr\.?|Dr\.?)/gi,
+
+        // ICICI Bank statement pattern
+        ICICI_BANK_STATEMENT:
+            /(\d{2}-\d{2}-\d{4})\s+(.+?)\s+(?:(?:CR|DR)\s+)?(\d+(?:,\d{3})*\.\d{2})/gi,
     };
 
-    // Parse PDF file
+    // Common merchant keywords to help with category identification
+    const MERCHANT_CATEGORIES = {
+        // Indian specific merchants - Shopping
+        nykaa: "Shopping",
+        myntra: "Shopping",
+        "reliance retail": "Shopping",
+        "reliance digital": "Shopping",
+        "reliance trends": "Shopping",
+        "reliance fresh": "Groceries",
+        jiomart: "Groceries",
+        amazon: "Shopping",
+        "amazon pay": "Shopping",
+        flipkart: "Shopping",
+        meesho: "Shopping",
+        ajio: "Shopping",
+        snapdeal: "Shopping",
+        "tata cliq": "Shopping",
+        "shoppers stop": "Shopping",
+        lifestyle: "Shopping",
+        pantaloons: "Shopping",
+        westside: "Shopping",
+        max: "Shopping",
+        croma: "Shopping",
+        "vijay sales": "Shopping",
+
+        // Indian specific merchants - Food & Dining
+        swiggy: "Food & Dining",
+        zomato: "Food & Dining",
+        "food panda": "Food & Dining",
+        fasoos: "Food & Dining",
+        box8: "Food & Dining",
+        dominos: "Food & Dining",
+        "pizza hut": "Food & Dining",
+        mcdonald: "Food & Dining",
+        mcdonalds: "Food & Dining",
+        "burger king": "Food & Dining",
+        kfc: "Food & Dining",
+        subway: "Food & Dining",
+        "cafe coffee day": "Food & Dining",
+        ccd: "Food & Dining",
+        starbucks: "Food & Dining",
+        barista: "Food & Dining",
+        chaayos: "Food & Dining",
+        haldiram: "Food & Dining",
+
+        // Indian specific merchants - Groceries
+        bigbasket: "Groceries",
+        dmart: "Groceries",
+        blinkit: "Groceries",
+        grofers: "Groceries",
+        "nature basket": "Groceries",
+        spencers: "Groceries",
+        "more retail": "Groceries",
+        nilgiris: "Groceries",
+        "smart bazar": "Groceries",
+        "big bazar": "Groceries",
+        "metro cash": "Groceries",
+        easyday: "Groceries",
+
+        // Indian specific merchants - Travel
+        "air india": "Travel",
+        indigo: "Travel",
+        spicejet: "Travel",
+        vistara: "Travel",
+        "air asia": "Travel",
+        "go air": "Travel",
+        goair: "Travel",
+        "akasa air": "Travel",
+        "alliance air": "Travel",
+        mmt: "Travel",
+        makemytrip: "Travel",
+        goibibo: "Travel",
+        cleartrip: "Travel",
+        yatra: "Travel",
+        ixigo: "Travel",
+        easeMyTrip: "Travel",
+        redbus: "Travel",
+        abhibus: "Travel",
+        oyo: "Travel",
+        treebo: "Travel",
+        fabhotels: "Travel",
+
+        // Indian specific merchants - Utilities
+        "bharti airtel": "Utilities",
+        airtel: "Utilities",
+        jio: "Utilities",
+        vi: "Utilities",
+        "vodafone idea": "Utilities",
+        vodafone: "Utilities",
+        idea: "Utilities",
+        bsnl: "Utilities",
+        "tata power": "Utilities",
+        "adani electricity": "Utilities",
+        mahadiscom: "Utilities",
+        bescom: "Utilities",
+        msedcl: "Utilities",
+        "torrent power": "Utilities",
+        tneb: "Utilities",
+        kptcl: "Utilities",
+        "reliance energy": "Utilities",
+        "tata sky": "Entertainment",
+        "dish tv": "Entertainment",
+        "sun direct": "Entertainment",
+        d2h: "Entertainment",
+        "airtel dth": "Entertainment",
+
+        // Indian specific merchants - Banking & Finance
+        hdfc: "Banking & Finance",
+        icici: "Banking & Finance",
+        sbi: "Banking & Finance",
+        axis: "Banking & Finance",
+        kotak: "Banking & Finance",
+        pnb: "Banking & Finance",
+        "punjab national bank": "Banking & Finance",
+        "bank of baroda": "Banking & Finance",
+        bob: "Banking & Finance",
+        "canara bank": "Banking & Finance",
+        "union bank": "Banking & Finance",
+        idbi: "Banking & Finance",
+        "yes bank": "Banking & Finance",
+        idfc: "Banking & Finance",
+        indusind: "Banking & Finance",
+        "indian bank": "Banking & Finance",
+        "allahabad bank": "Banking & Finance",
+        "federal bank": "Banking & Finance",
+        "south indian bank": "Banking & Finance",
+        "karnataka bank": "Banking & Finance",
+        rbl: "Banking & Finance",
+        dcb: "Banking & Finance",
+        citi: "Banking & Finance",
+        hsbc: "Banking & Finance",
+        "standard chartered": "Banking & Finance",
+        "sc bank": "Banking & Finance",
+        "bajaj finserv": "Banking & Finance",
+        "sbi card": "Banking & Finance",
+        "hdfc card": "Banking & Finance",
+
+        // Indian specific merchants - Transportation
+        ola: "Transportation",
+        uber: "Transportation",
+        rapido: "Transportation",
+        meru: "Transportation",
+        irctc: "Transportation",
+        "indian railways": "Transportation",
+        "metro rail": "Transportation",
+        dmrc: "Transportation",
+        bmtc: "Transportation",
+        best: "Transportation",
+        msrtc: "Transportation",
+        ksrtc: "Transportation",
+        tsrtc: "Transportation",
+        apsrtc: "Transportation",
+        tnstc: "Transportation",
+        fastag: "Transportation",
+        "paytm fastag": "Transportation",
+
+        // Indian specific merchants - Payment Apps
+        paytm: "Banking & Finance",
+        phonepe: "Banking & Finance",
+        gpay: "Banking & Finance",
+        "google pay": "Banking & Finance",
+        "amazon pay": "Banking & Finance",
+        mobikwik: "Banking & Finance",
+        freecharge: "Banking & Finance",
+        upi: "Banking & Finance",
+        bhim: "Banking & Finance",
+
+        // Indian specific merchants - Entertainment
+        bookmyshow: "Entertainment",
+        pvr: "Entertainment",
+        inox: "Entertainment",
+        netflix: "Entertainment",
+        hotstar: "Entertainment",
+        disney: "Entertainment",
+        "amazon prime": "Entertainment",
+        "sony liv": "Entertainment",
+        zee5: "Entertainment",
+        voot: "Entertainment",
+        jiocinema: "Entertainment",
+        altbalaji: "Entertainment",
+        eros: "Entertainment",
+
+        // Indian specific merchants - Health
+        lenskart: "Health",
+        apollo: "Health",
+        "apollo pharmacy": "Health",
+        medlife: "Health",
+        pharmeasy: "Health",
+        netmeds: "Health",
+        practo: "Health",
+        "cult fit": "Health",
+        cult: "Health",
+        medplus: "Health",
+        "wellness forever": "Health",
+        thyrocare: "Health",
+        "dr lal": "Health",
+        "dr lal path labs": "Health",
+        metropolis: "Health",
+        "max healthcare": "Health",
+        fortis: "Health",
+        manipal: "Health",
+        "apollo hospitals": "Health",
+        aiims: "Health",
+
+        // General categories
+        restaurant: "Food & Dining",
+        café: "Food & Dining",
+        cafe: "Food & Dining",
+        coffee: "Food & Dining",
+        bar: "Food & Dining",
+        diner: "Food & Dining",
+        eatery: "Food & Dining",
+        food: "Food & Dining",
+        pizza: "Food & Dining",
+        burger: "Food & Dining",
+        taco: "Food & Dining",
+        sushi: "Food & Dining",
+
+        grocery: "Groceries",
+        market: "Groceries",
+        supermarket: "Groceries",
+        walmart: "Groceries",
+        target: "Groceries",
+        kroger: "Groceries",
+        safeway: "Groceries",
+        "trader joe": "Groceries",
+        "whole foods": "Groceries",
+
+        ebay: "Shopping",
+        etsy: "Shopping",
+        shop: "Shopping",
+        store: "Shopping",
+        retail: "Shopping",
+        clothing: "Shopping",
+        apparel: "Shopping",
+        designs: "Shopping",
+
+        lyft: "Transportation",
+        taxi: "Transportation",
+        cab: "Transportation",
+        transit: "Transportation",
+        train: "Transportation",
+        subway: "Transportation",
+        bus: "Transportation",
+        metro: "Transportation",
+        gas: "Transportation",
+        parking: "Transportation",
+
+        movie: "Entertainment",
+        cinema: "Entertainment",
+        theater: "Entertainment",
+        netflix: "Entertainment",
+        spotify: "Entertainment",
+        hulu: "Entertainment",
+        "disney+": "Entertainment",
+        hbo: "Entertainment",
+        "prime video": "Entertainment",
+        game: "Entertainment",
+
+        rent: "Housing",
+        mortgage: "Housing",
+        apartment: "Housing",
+        property: "Housing",
+        home: "Housing",
+        hoa: "Housing",
+
+        electric: "Utilities",
+        "gas bill": "Utilities",
+        water: "Utilities",
+        internet: "Utilities",
+        phone: "Utilities",
+        cell: "Utilities",
+        cable: "Utilities",
+        utility: "Utilities",
+        limited: "Utilities",
+
+        doctor: "Health",
+        hospital: "Health",
+        medical: "Health",
+        pharmacy: "Health",
+        dental: "Health",
+        vision: "Health",
+        healthcare: "Health",
+        clinic: "Health",
+        health: "Health",
+
+        tuition: "Education",
+        school: "Education",
+        college: "Education",
+        university: "Education",
+        education: "Education",
+        book: "Education",
+        course: "Education",
+
+        hotel: "Travel",
+        airline: "Travel",
+        flight: "Travel",
+        airbnb: "Travel",
+        vacation: "Travel",
+        trip: "Travel",
+        resort: "Travel",
+
+        payment: "Income",
+        deposit: "Income",
+        salary: "Income",
+        payroll: "Income",
+        "direct deposit": "Income",
+        cashback: "Income",
+    };
+
+    // Parse the PDF file
     async function parsePDF(file) {
         try {
-            // Read the file as ArrayBuffer
-            const data = await readFileAsArrayBuffer(file);
-
-            // Load the PDF document using PDF.js
-            const pdf = await pdfjsLib.getDocument({data}).promise;
-
-            console.log(`PDF loaded with ${pdf.numPages} pages`);
-
-            // Extract text from each page
-            let fullText = '';
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-
-                // Join all items with proper spacing
-                const pageText = content.items.map(item => item.str).join(' ');
-                fullText += pageText + '\n';
+            if (!pdfjsLib) {
+                throw new Error("PDF.js library not loaded");
             }
 
-            console.log('Extracted text from PDF');
+            // Read file as ArrayBuffer
+            const arrayBuffer = await readFileAsArrayBuffer(file);
 
-            // Extract transactions from text
-            const transactions = extractTransactions(fullText);
+            // Load the PDF document
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
+
+            console.log("PDF loaded. Number of pages:", pdf.numPages);
+
+            // Extract text from all pages with better preservation of table structure
+            let extractedText = "";
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+
+                // Process text items to better preserve tabular format
+                let lastY = null;
+                let lineText = "";
+
+                // Sort items by vertical position (y) to group by lines
+                const sortedItems = textContent.items.sort((a, b) => {
+                    return b.transform[5] - a.transform[5]; // Sort by Y position
+                });
+
+                // Group text by lines based on Y position
+                for (const item of sortedItems) {
+                    const currentY = Math.round(item.transform[5]);
+
+                    // If this is a new line
+                    if (lastY !== null && Math.abs(currentY - lastY) > 5) {
+                        extractedText += lineText.trim() + "\n";
+                        lineText = "";
+                    }
+
+                    // Add text to current line
+                    lineText += item.str + " ";
+                    lastY = currentY;
+                }
+
+                // Add the last line
+                if (lineText.trim()) {
+                    extractedText += lineText.trim() + "\n";
+                }
+
+                // Add page break
+                extractedText += "\n";
+            }
+
+            // Log a sample of the extracted text for debugging
+            console.log(
+                "Extracted text sample:",
+                extractedText.substring(0, 500) + "...",
+            );
+
+            // Extract transactions from the text
+            const transactions = extractTransactions(extractedText);
 
             return {
                 success: true,
-                transactions,
-                rawText: fullText
+                transactions: transactions,
+                rawText: extractedText,
             };
         } catch (error) {
-            console.error('Error parsing PDF:', error);
-            throw error;
+            console.error("Error parsing PDF:", error);
+            return {
+                success: false,
+                error: error.message,
+            };
         }
     }
 
-    // Read file as ArrayBuffer
+    // Helper function to read file as ArrayBuffer
     function readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
 
-            reader.onload = function(event) {
+            reader.onload = function (event) {
                 resolve(event.target.result);
             };
 
-            reader.onerror = function(event) {
-                reject(new Error('Failed to read file'));
+            reader.onerror = function (event) {
+                reject(new Error("Failed to read file: " + event.target.error));
             };
 
             reader.readAsArrayBuffer(file);
@@ -123,322 +485,506 @@ const PDFParser = (function() {
     // Extract transactions from text
     function extractTransactions(text) {
         const transactions = [];
+        const lines = text.split("\n");
 
-        // Try to detect bank format
-        let bankFormat = 'GENERIC';
-        if (text.includes('CARD CASHBACK SUMMARY') || text.includes('SBI Card')) {
-            bankFormat = 'SBI_CARD';
-            console.log('Detected SBI Card statement');
+        // First, try to extract using SBI statement specific format
+        let match;
+        const sbiPattern = PATTERNS.SBI_STATEMENT;
+        while ((match = sbiPattern.exec(text)) !== null) {
+            const dateStr = match[1];
+            const description = match[2].trim();
+            // Clean amount string - remove commas
+            const amountStr = match[3].replace(/,/g, "").trim();
+            // Get the transaction type (C = Credit/Income, D = Debit/Expense)
+            const typeIndicator = match[4].trim();
 
-            // Split into lines and process each line
-            const lines = text.split('\n');
-            let inTransactionSection = false;
+            const date = parseDate(dateStr);
+            const amount = parseFloat(amountStr);
 
-            for (let line of lines) {
-                line = line.trim();
-
-                // Skip empty lines
-                if (!line) continue;
-
-                // Check for transaction section start
-                if (line.includes('Transaction Details') || line.includes('TRANSACTIONS FOR')) {
-                    inTransactionSection = true;
-                    continue;
-                }
-
-                if (inTransactionSection) {
-                    // Match date pattern DD-MM-YYYY and transaction details
-                    const dateMatch = line.match(/(\d{2}-\d{2}-\d{4})/);
-                    if (dateMatch) {
-                        // Extract transaction components
-                        const parts = line.split(/\s{2,}/); // Split by 2 or more spaces
-                        
-                        if (parts.length >= 4) { // Valid transaction line should have date, description, amount, balance
-                            const date = parts[0].trim();
-                            const amount = parseFloat(parts[parts.length - 2].replace(/,/g, '')) || 0;
-                            
-                            // Get description by joining middle parts and cleaning
-                            const description = parts.slice(1, -2)
-                                .join(' ')
-                                .replace(/\s+/g, ' ')
-                                .trim();
-                            
-                            // Skip header or footer lines
-                            if (description.toLowerCase().includes('opening balance') || 
-                                description.toLowerCase().includes('closing balance') ||
-                                description === '') {
-                                continue;
-                            }
-                            
-                            // Determine transaction type based on keywords and patterns
-                            let type = 'expense';
-                            if (description.match(/cr|credit|deposit|salary|interest earned|refund|ACH-CR/i)) {
-                                type = 'income';
-                            }
-
-                            // Create transaction object
-                            const transaction = {
-                                id: Date.now() + Math.random().toString(36).substring(2, 10),
-                                date: parseDate(dateMatch[0]),
-                                description: description,
-                                amount: amount,
-                                type: type,
-                                source: 'pdf'
-                            };
-
-                            // Guess category
-                            transaction.category = guessCategory(transaction.description);
-
-                            transactions.push(transaction);
-                        }
-                    }
-                }
-            }
-        } else if (text.includes('State Bank of India') || text.includes('SBI')) {
-            bankFormat = 'SBI';
-            console.log('Detected SBI Bank statement');
-        } else if (text.includes('HDFC Bank') || text.includes('HDFC')) {
-            bankFormat = 'HDFC';
-            console.log('Detected HDFC Bank statement');
-        } else if (text.includes('Axis Bank') || text.includes('AXIS')) {
-            bankFormat = 'AXIS';
-            console.log('Detected Axis Bank statement');
-        } else {
-            console.log('Using generic transaction extraction');
-        }
-
-        // Split text into lines
-        const lines = text.split('\n');
-        let transactionSection = false;
-
-        // Debug: Log more lines to see if we can find transaction section markers
-        console.log('Looking for transaction section markers in PDF content:');
-        for (let i = 0; i < Math.min(lines.length, 50); i++) {
-            if (lines[i].trim().length > 5) {
-                console.log(`Line ${i}: ${lines[i].trim().substring(0, 100)}`);
+            if (date && !isNaN(amount)) {
+                const transactionType =
+                    typeIndicator === "C" ? "income" : "expense";
+                transactions.push({
+                    date: date,
+                    description: description,
+                    amount: amount,
+                    type: transactionType,
+                    category:
+                        transactionType === "income"
+                            ? "Income"
+                            : guessCategory(description),
+                });
             }
         }
 
-        // More aggressive search for transaction section markers in Indian bank statements
-        // First pass: just look for any date patterns to identify transactions
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-
-            // Skip short or empty lines
-            if (line.length < 5) continue;
-
-            // Look for ANY date pattern in Indian format (DD/MM/YYYY or DD-MM-YYYY)
-            const dateMatch = line.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/);
-
-            // If line has a date and some amount-like numbers
-            if (dateMatch && line.match(/\d+,?\d*\.\d{2}/)) {
-                console.log(`Found potential transaction with date pattern at line ${i}: ${line}`);
-
-                // Extract amount looking for any number with decimal point
-                const amountMatches = line.match(/\d+,?\d*\.\d{2}/g);
-                if (amountMatches && amountMatches.length > 0) {
-                    let amount = parseFloat(amountMatches[amountMatches.length - 1].replace(/,/g, ''));
-
-                    // Determine transaction type based on context
-                    let type = 'expense'; // Default
-                    if (line.match(/cr|credit|deposit|salary|interest earned|refund/i)) {
-                        type = 'income';
-                    }
-
-                    // Create description by removing date and amounts
-                    let description = line.replace(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/, '')
-                                         .replace(/\d+,?\d*\.\d{2}/g, '')
-                                         .replace(/(cr|dr|credit|debit)/gi, '')
-                                         .trim();
-
-                    // Sometimes the next line contains additional description information
-                    const nextLine = i < lines.length - 1 ? lines[i + 1].trim() : '';
-                    if (nextLine && !nextLine.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/) && 
-                        !nextLine.match(/page|balance|total/i) && 
-                        nextLine.length > 3 && 
-                        nextLine.length < 100) {
-                        description += ' ' + nextLine;
-                        i++; // Skip next line
-                    }
-
-                    // Create transaction
-                    const transaction = {
-                        id: Date.now() + Math.random().toString(36).substring(2, 10),
-                        date: parseDate(dateMatch[0]),
-                        description: description,
-                        amount: amount,
-                        type: type,
-                        source: 'pdf'
-                    };
-
-                    // Guess category
-                    transaction.category = guessCategory(transaction.description);
-
-                    console.log(`Created transaction: ${JSON.stringify(transaction)}`);
-
-                    // Add if valid
-                    if (transaction.date && transaction.amount > 0) {
-                        transactions.push(transaction);
-                    }
-                }
-            }
-        }
-
-        // If we still don't have transactions, try traditional section markers approach
+        // Check for HDFC Bank statement pattern
         if (transactions.length === 0) {
-            console.log('No transactions found with direct date matching, trying section markers...');
+            const isHDFCStatement =
+                text.includes("HDFC BANK") ||
+                text.includes("HDFC Bank") ||
+                text.includes("hdfc bank") ||
+                text.includes("HDFC CREDIT CARD") ||
+                (text.includes("Date") &&
+                    text.includes("Narration") &&
+                    (text.includes("Withdrawal Amt") ||
+                        text.includes("Deposit Amt")));
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
+            if (isHDFCStatement) {
+                console.log("Detected HDFC Bank statement format");
 
-                // Skip short or empty lines
-                if (line.length < 5) continue;
+                // Process HDFC statement - typically has Date, Narration, Withdrawal, Deposit format
+                const hdfcPattern = PATTERNS.HDFC_BANK_STATEMENT;
+                let match;
 
-                // Look for transaction section markers with broader patterns
-                if (line.match(/transaction|statement|history|date|particulars|tran.*date|description|debit|credit|particulars|dr|cr|withdrawal|deposit|balance|amount/i)) {
-                    transactionSection = true;
-                    console.log(`Found transaction section marker at line ${i}: ${line}`);
+                while ((match = hdfcPattern.exec(text)) !== null) {
+                    const dateStr = match[1];
+                    const description = match[2].trim();
+                    // Clean amount string - remove commas and currency symbols
+                    const amountStr = match[3].replace(/[,₹]/g, "").trim();
 
-                    // Process next lines until end of section or file
-                    for (let j = i + 1; j < lines.length; j++) {
-                        const transLine = lines[j].trim();
+                    const date = parseDate(dateStr);
+                    const amount = parseFloat(amountStr);
 
-                        // Skip short lines
-                        if (transLine.length < 5) continue;
+                    // Determine if it's a credit (Cr) or debit (Dr) transaction
+                    const hasCredit =
+                        match[0].includes("Cr") || match[0].includes("CR");
+                    const transactionType = hasCredit ? "income" : "expense";
 
-                        // Check for end of transaction section
-                        if (transLine.match(/page|total|closing|opening|balance carried|balance brought|summary|grand total/i) && 
-                            transLine.length < 50) {
-                            console.log(`End of transaction section at line ${j}: ${transLine}`);
-                            break;
-                        }
-
-                        // Look for date pattern in this line
-                        const dateMatch = transLine.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/);
-
-                        if (dateMatch) {
-                            console.log(`Found date in transaction section: ${dateMatch[0]} in line: ${transLine}`);
-
-                            // Look for amount with better pattern matching for Indian bank format
-                            const amountMatches = transLine.match(/(?:Rs\.?|₹)?\s*(\d+(?:,\d+)*(?:\.\d{2})?)/g);
-
-                            if (amountMatches && amountMatches.length > 0) {
-                                // Clean and parse amount
-                                const cleanAmount = amountMatches[amountMatches.length - 1]
-                                    .replace(/[₹Rs\.,]/g, '')
-                                    .trim();
-                                let amount = parseFloat(cleanAmount);
-
-                                // Extract description more accurately
-                                let description = transLine
-                                    .replace(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/, '') // Remove date
-                                    .replace(/(?:Rs\.?|₹)?\s*\d+(?:,\d+)*(?:\.\d{2})?/g, '') // Remove amounts
-                                    .replace(/\s+/g, ' ') // Normalize spaces
-                                    .trim();
-
-
-                                // Determine transaction type
-                                let type = 'expense'; // Default
-                                if (transLine.match(/cr|credit|deposit|salary|interest earned|refund/i)) {
-                                    type = 'income';
-                                }
-
-                                // Create transaction
-                                const transaction = {
-                                    id: Date.now() + Math.random().toString(36).substring(2, 10),
-                                    date: parseDate(dateMatch[0]),
-                                    description: description,
-                                    amount: amount,
-                                    type: type,
-                                    source: 'pdf'
-                                };
-
-                                // Guess category
-                                transaction.category = guessCategory(transaction.description);
-
-                                // Add if valid
-                                if (transaction.date && transaction.amount > 0) {
-                                    console.log(`Valid transaction in section: ${transaction.date} - ${transaction.description} - ${transaction.amount}`);
-                                    transactions.push(transaction);
-                                }
-                            }
-                        }
-                    }
-
-                    break; // We've processed the transaction section, no need to continue the main loop
-                }
-            }
-        }
-
-        // Special handling for SBI statements as a last resort
-        if (transactions.length === 0 && bankFormat === 'SBI') {
-            console.log('Trying SBI-specific transaction parsing...');
-
-            // For SBI statements, try a more aggressive approach
-            // Look for lines that match a date pattern followed by an amount
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-
-                // Skip short lines or lines that are likely headers
-                if (line.length < 10 || line.match(/^(date|description|amount|balance|opening|closing)/i)) continue;
-
-                // Look for SBI date formats (DD-MM-YYYY or DD/MM/YYYY)
-                const dateMatch = line.match(/\d{2}[\/-]\d{2}[\/-]\d{4}/);
-                if (dateMatch) {
-                    console.log(`SBI date pattern found: ${dateMatch[0]} in line: ${line}`);
-
-                    // Look for all amounts in the line
-                    const amounts = [];
-                    let m;
-                    const amountRegex = /\d{1,3}(?:,\d{3})*\.\d{2}/g;
-                    while ((m = amountRegex.exec(line)) !== null) {
-                        // This is necessary to avoid infinite loops with zero-width matches
-                        if (m.index === amountRegex.lastIndex) {
-                            amountRegex.lastIndex++;
-                        }
-                        amounts.push(parseFloat(m[0].replace(/,/g, '')));
-                    }
-
-                    if (amounts.length > 0) {
-                        // Use the highest amount as the transaction amount
-                        const amount = Math.max(...amounts);
-
-                        // Simple type detection
-                        let type = 'expense';
-                        if (line.match(/credit|salary|interest|refund|cr/i)) {
-                            type = 'income';
-                        }
-
-                        // Create a clean description
-                        let description = line.replace(/\d{2}[\/-]\d{2}[\/-]\d{4}/, '')
-                                             .replace(/\d{1,3}(?:,\d{3})*\.\d{2}/g, '')
-                                             .replace(/(dr|cr|debit|credit)/gi, '')
-                                             .trim();
-
-                        // Create transaction
-                        const transaction = {
-                            id: Date.now() + Math.random().toString(36).substring(2, 10),
-                            date: parseDate(dateMatch[0]),
+                    if (date && !isNaN(amount)) {
+                        transactions.push({
+                            date: date,
                             description: description,
                             amount: amount,
-                            type: type,
-                            source: 'pdf'
-                        };
+                            type: transactionType,
+                            category:
+                                transactionType === "income"
+                                    ? "Income"
+                                    : guessCategory(description),
+                        });
+                    }
+                }
 
-                        // Guess category
-                        transaction.category = guessCategory(transaction.description);
+                // If no transactions found, try line-by-line analysis
+                if (transactions.length === 0) {
+                    console.log("Trying alternative HDFC parsing method");
 
-                        console.log(`Created SBI transaction: ${JSON.stringify(transaction)}`);
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (line === "") continue;
 
-                        if (transaction.date && transaction.amount > 0) {
-                            transactions.push(transaction);
+                        // Look for date pattern DD/MM/YYYY (common in HDFC statements)
+                        const dateMatch = /(\d{2}\/\d{2}\/\d{4})/.exec(line);
+                        if (!dateMatch) continue;
+
+                        const dateStr = dateMatch[1];
+                        const date = parseDate(dateStr);
+
+                        if (!date) continue;
+
+                        // Extract description and amount
+                        const parts = line.split(/\s{2,}/); // Split by multiple spaces
+
+                        if (parts.length >= 3) {
+                            const description = parts[1].trim();
+                            let amount = 0;
+                            let transactionType = "expense";
+
+                            // Find the amount - usually the last part with a decimal
+                            for (let j = 2; j < parts.length; j++) {
+                                const amountMatch = /(\d+,?\d*\.\d{2})/.exec(
+                                    parts[j],
+                                );
+                                if (amountMatch) {
+                                    amount = parseFloat(
+                                        amountMatch[1].replace(/,/g, ""),
+                                    );
+
+                                    // Check if this is a credit (CR/Cr) or withdrawal amount
+                                    const isCreditPart =
+                                        parts[j].includes("Cr") ||
+                                        parts[j].includes("CR") ||
+                                        j === parts.length - 1; // Last column is typically balance
+
+                                    transactionType = isCreditPart
+                                        ? "income"
+                                        : "expense";
+                                    break;
+                                }
+                            }
+
+                            if (amount > 0) {
+                                transactions.push({
+                                    date: date,
+                                    description: description,
+                                    amount: amount,
+                                    type: transactionType,
+                                    category:
+                                        transactionType === "income"
+                                            ? "Income"
+                                            : guessCategory(description),
+                                });
+                            }
                         }
+                    }
+                }
+
+                console.log(
+                    "Found " +
+                        transactions.length +
+                        " transactions in HDFC Bank statement",
+                );
+            }
+        }
+
+        // Check for Axis Bank statement pattern
+        if (transactions.length === 0) {
+            // Check if it's an Axis Bank statement by looking for text markers
+            const isAxisStatement =
+                text.includes("Statement of Axis Account") ||
+                text.includes("Axis Bank") ||
+                (text.includes("Tran Date") &&
+                    text.includes("Particulars") &&
+                    text.includes("Debit") &&
+                    text.includes("Credit"));
+
+            if (isAxisStatement) {
+                console.log("Detected Axis Bank statement format");
+
+                // Use our improved pattern that preserves the full description
+                const axisPattern = PATTERNS.AXIS_BANK_STATEMENT;
+                let match;
+
+                while ((match = axisPattern.exec(text)) !== null) {
+                    const dateStr = match[1];
+                    const date = parseDate(dateStr);
+
+                    if (!date) continue;
+
+                    // Get the full line where this match was found
+                    const matchIndex = text.indexOf(match[0]);
+                    const lineStartIndex =
+                        text.lastIndexOf("\n", matchIndex) + 1;
+                    const lineEndIndex = text.indexOf("\n", matchIndex);
+                    const line = text.substring(
+                        lineStartIndex,
+                        lineEndIndex > 0 ? lineEndIndex : text.length,
+                    );
+
+                    // Extract the description between the date and amounts
+                    const dateEndIndex = line.indexOf(dateStr) + dateStr.length;
+                    let description = "";
+                    let amount = 0;
+                    let transactionType = "expense";
+
+                    // Get the description from the regex match - it should contain the full text
+                    // between the date and amount (our improved regex handles this)
+                    description = match[2].trim();
+
+                    // Look for debit amount (expense)
+                    const debitMatch = /(\d+\.\d{2})/.exec(
+                        line.substring(dateEndIndex),
+                    );
+
+                    if (debitMatch) {
+                        // Get the amount from the match
+                        amount = parseFloat(debitMatch[0]);
+                        transactionType = "expense";
+                    } else {
+                        // If no debit, look for credit amount (income)
+                        const creditMatch = /(\d+\.\d{2})/.exec(
+                            line.substring(dateEndIndex),
+                        );
+                        if (creditMatch) {
+                            amount = parseFloat(creditMatch[0]);
+                            transactionType = "income";
+                        }
+                    }
+
+                    // If description is still empty, try to extract it from the line
+                    if (!description) {
+                        const debitMatch = /(\d+\.\d{2})/.exec(
+                            line.substring(dateEndIndex),
+                        );
+                        if (debitMatch) {
+                            const debitStartIndex = line.indexOf(
+                                debitMatch[0],
+                                dateEndIndex,
+                            );
+                            description = line
+                                .substring(dateEndIndex, debitStartIndex)
+                                .trim();
+                        } else {
+                            const creditMatch = /(\d+\.\d{2})/.exec(
+                                line.substring(dateEndIndex),
+                            );
+                            if (creditMatch) {
+                                const creditStartIndex = line.indexOf(
+                                    creditMatch[0],
+                                    dateEndIndex,
+                                );
+                                description = line
+                                    .substring(dateEndIndex, creditStartIndex)
+                                    .trim();
+                            }
+                        }
+                    }
+
+                    // Clean up the description
+                    description = description.replace(/\s+/g, " ").trim();
+
+                    if (amount > 0 && description) {
+                        // Log the full description for debugging
+                        console.log("Axis Bank transaction:", description);
+
+                        transactions.push({
+                            date: date,
+                            description: description,
+                            amount: amount,
+                            type: transactionType,
+                            category:
+                                transactionType === "income"
+                                    ? "Income"
+                                    : guessCategory(description),
+                        });
+                    }
+                }
+
+                // If still no transactions found, try a more general approach
+                if (transactions.length === 0) {
+                    console.log("Trying alternative Axis Bank parsing method");
+
+                    // Process the data row by row
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (line === "") continue;
+
+                        // Look for date pattern DD-MM-YYYY (common in Axis statements)
+                        const dateMatch = /(\d{2}-\d{2}-\d{4})/.exec(line);
+                        if (!dateMatch) continue;
+
+                        const dateStr = dateMatch[1];
+                        const date = parseDate(dateStr);
+
+                        if (!date) continue;
+
+                        console.log("Found date in line:", dateStr, line);
+
+                        // Look for amount patterns in this line
+                        const amountMatches = line.match(/\d+\.\d{2}/g) || [];
+
+                        if (amountMatches.length > 0) {
+                            // Extract description (typically after the date)
+                            const dateIndex = line.indexOf(dateStr);
+                            const dateEndIndex = dateIndex + dateStr.length;
+                            let description = "";
+                            let amount = 0;
+                            let transactionType = "expense";
+
+                            // Check the position of the amount in the line to determine if it's debit or credit
+                            // In Axis statements, debit is typically before credit
+                            const firstAmountIndex = line.indexOf(
+                                amountMatches[0],
+                            );
+                            const secondAmountIndex =
+                                amountMatches.length > 1
+                                    ? line.indexOf(
+                                          amountMatches[1],
+                                          firstAmountIndex +
+                                              amountMatches[0].length,
+                                      )
+                                    : -1;
+
+                            // If there are two amounts, the first is debit and the second is credit
+                            if (secondAmountIndex > -1) {
+                                // Extract description
+                                description = line
+                                    .substring(dateEndIndex, firstAmountIndex)
+                                    .trim();
+
+                                // Check if the debit or credit amount is non-zero
+                                const debitAmount = parseFloat(
+                                    amountMatches[0],
+                                );
+                                const creditAmount = parseFloat(
+                                    amountMatches[1],
+                                );
+
+                                if (debitAmount > 0) {
+                                    amount = debitAmount;
+                                    transactionType = "expense";
+                                } else if (creditAmount > 0) {
+                                    amount = creditAmount;
+                                    transactionType = "income";
+                                }
+                            } else {
+                                // If there's only one amount, try to determine if it's debit or credit
+                                description = line
+                                    .substring(dateEndIndex, firstAmountIndex)
+                                    .trim();
+                                amount = parseFloat(amountMatches[0]);
+
+                                // Check if the line or next line has any credit/debit indicators
+                                const fullContext =
+                                    line +
+                                    (i + 1 < lines.length
+                                        ? " " + lines[i + 1]
+                                        : "");
+                                if (
+                                    fullContext.includes("credit") ||
+                                    fullContext.includes("Credit") ||
+                                    fullContext.includes("deposit") ||
+                                    fullContext.includes("Deposit")
+                                ) {
+                                    transactionType = "income";
+                                } else {
+                                    transactionType = "expense";
+                                }
+                            }
+
+                            // Clean up description by removing any extra spaces
+                            description = description
+                                .replace(/\s+/g, " ")
+                                .trim();
+
+                            // Sometimes description continues on next line, so check
+                            if (
+                                description === "" &&
+                                i + 1 < lines.length &&
+                                !lines[i + 1].match(/\d{2}-\d{2}-\d{4}/)
+                            ) {
+                                description = lines[i + 1].trim();
+                                i++; // Skip the next line
+                            }
+
+                            if (amount > 0) {
+                                transactions.push({
+                                    date: date,
+                                    description: description,
+                                    amount: amount,
+                                    type: transactionType,
+                                    category:
+                                        transactionType === "income"
+                                            ? "Income"
+                                            : guessCategory(description),
+                                });
+
+                                console.log(
+                                    "Added transaction:",
+                                    description,
+                                    amount,
+                                    transactionType,
+                                );
+                            }
+                        }
+                    }
+                }
+
+                console.log(
+                    "Found " +
+                        transactions.length +
+                        " transactions in Axis Bank statement",
+                );
+            }
+        }
+
+        // If no transactions found yet, try other transaction patterns
+        if (transactions.length === 0) {
+            for (const pattern of PATTERNS.TRANSACTION) {
+                let match;
+                while ((match = pattern.exec(text)) !== null) {
+                    if (
+                        pattern.toString() === PATTERNS.SBI_STATEMENT.toString()
+                    )
+                        continue; // Skip if it's the SBI pattern
+
+                    const dateStr = match[1];
+                    const description = match[2].trim();
+                    // Clean amount string - replace any currency symbols
+                    const amountStr = match[3].replace(/[$₹Rs\.,]/g, "").trim();
+
+                    const date = parseDate(dateStr);
+                    const amount = parseFloat(amountStr);
+
+                    // Guess if this is income or expense based on description
+                    const isIncome =
+                        /payment|deposit|salary|credit|cashback|refund/i.test(
+                            description,
+                        );
+
+                    if (date && !isNaN(amount)) {
+                        transactions.push({
+                            date: date,
+                            description: description,
+                            amount: amount,
+                            type: isIncome ? "income" : "expense",
+                            category: isIncome
+                                ? "Income"
+                                : guessCategory(description),
+                        });
                     }
                 }
             }
         }
 
-        console.log(`Extracted ${transactions.length} transactions from PDF`);
+        // If still no transactions found using patterns, try line-by-line analysis
+        if (transactions.length === 0) {
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line === "") continue;
+
+                // Try to extract date and amount from the line
+                const dateMatch = extractDate(line);
+                const amountMatch = extractAmount(line);
+
+                if (dateMatch && amountMatch) {
+                    // Assume the text between date and amount is the description
+                    const dateIndex = line.indexOf(dateMatch.match);
+                    const amountIndex = line.indexOf(amountMatch.match);
+
+                    let description;
+                    if (dateIndex < amountIndex) {
+                        description = line
+                            .substring(
+                                dateIndex + dateMatch.match.length,
+                                amountIndex,
+                            )
+                            .trim();
+                    } else {
+                        description = line
+                            .substring(
+                                amountIndex + amountMatch.match.length,
+                                dateIndex,
+                            )
+                            .trim();
+                    }
+
+                    // If description is empty, look at the next line
+                    if (description === "" && i + 1 < lines.length) {
+                        description = lines[i + 1].trim();
+                        i++; // Skip the next line
+                    }
+
+                    // Guess if this is income or expense based on description
+                    const isIncome =
+                        /payment|deposit|salary|credit|cashback|refund/i.test(
+                            description,
+                        );
+
+                    if (description) {
+                        transactions.push({
+                            date: dateMatch.date,
+                            description: description,
+                            amount: amountMatch.amount,
+                            type: isIncome ? "income" : "expense",
+                            category: isIncome
+                                ? "Income"
+                                : guessCategory(description),
+                        });
+                    }
+                }
+            }
+        }
+
         return transactions;
     }
 
@@ -447,61 +993,73 @@ const PDFParser = (function() {
         for (const pattern of PATTERNS.DATE) {
             const match = pattern.exec(text);
             if (match) {
-                return match[0];
+                const dateStr = match[1];
+                const date = parseDate(dateStr);
+
+                if (date) {
+                    return { match: match[0], date: date };
+                }
             }
-            // Reset lastIndex for global regex
-            pattern.lastIndex = 0;
         }
+
         return null;
     }
 
-    // Extract amount and determine if debit or credit
+    // Extract amount from text
     function extractAmount(text) {
-        let amount = 0;
-        let type = 'expense'; // Default to expense
-
-        // Look for DR/CR markers common in Indian banks
-        if (text.match(/\bdr\b|\bdebit\b/i)) {
-            type = 'expense';
-        } else if (text.match(/\bcr\b|\bcredit\b/i)) {
-            type = 'income';
-        }
-
-        // Extract numeric amount
         for (const pattern of PATTERNS.AMOUNT) {
             const match = pattern.exec(text);
             if (match) {
-                // Clean and parse the amount string
-                let amountStr = match[1] || match[0];
-                amountStr = amountStr.replace(/[₹Rs\.INR,]/g, '').trim();
-                amount = parseFloat(amountStr);
-                break;
+                // Clean the amount string - remove currency symbols and commas
+                const amountStr = match[1].replace(/[$₹Rs\.,]/g, "");
+                const amount = parseFloat(amountStr);
+
+                if (!isNaN(amount)) {
+                    return { match: match[0], amount: amount };
+                }
             }
-            // Reset lastIndex for global regex
-            pattern.lastIndex = 0;
         }
 
-        // Determine transaction type based on contextual clues if not already set
-        if (type === 'expense' && text.match(/deposit|credit|salary|interest earned|refund/i)) {
-            type = 'income';
-        } else if (type === 'income' && text.match(/withdrawal|debit|payment|purchase|fee|charge/i)) {
-            type = 'expense';
-        }
-
-        return {
-            amount,
-            type
-        };
+        return null;
     }
 
-    // Parse date string to Date object
+    // Parse date from various formats
     function parseDate(dateStr) {
-        if (!dateStr) return null;
+        // Make the function prioritize Indian date formats (DD-MM-YYYY, DD/MM/YYYY)
 
-        console.log(`Attempting to parse date: ${dateStr}`);
+        // Try DD-MM-YYYY format (common in Indian bank statements like Axis Bank)
+        let match = /(\d{2})-(\d{2})-(\d{4})/.exec(dateStr);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
+            const year = parseInt(match[3]);
 
-        // Handle Indian format - DD/MM/YYYY or DD-MM-YYYY (most common in Indian bank statements)
-        let match = /^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/.exec(dateStr);
+            // Validate the day and month (to ensure it's actually DD-MM-YYYY)
+            if (day > 0 && day <= 31 && month >= 0 && month < 12) {
+                return new Date(year, month, day);
+            }
+        }
+
+        // Try DD/MM/YYYY format (Indian format)
+        match = /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(dateStr);
+        if (match) {
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
+            let year = parseInt(match[3]);
+
+            // Validate the day and month (to ensure it's actually DD/MM/YYYY)
+            if (day > 0 && day <= 31 && month >= 0 && month < 12) {
+                // Adjust two-digit years
+                if (year < 100) {
+                    year = year < 50 ? 2000 + year : 1900 + year;
+                }
+
+                return new Date(year, month, day);
+            }
+        }
+
+        // Try DD.MM.YYYY format
+        match = /(\d{1,2})\.(\d{1,2})\.(\d{2,4})/.exec(dateStr);
         if (match) {
             const day = parseInt(match[1]);
             const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
@@ -512,96 +1070,174 @@ const PDFParser = (function() {
                 year = year < 50 ? 2000 + year : 1900 + year;
             }
 
-            const parsedDate = new Date(year, month, day);
-            console.log(`Parsed Indian format date: ${parsedDate.toISOString()}`);
-            return parsedDate;
+            return new Date(year, month, day);
         }
 
-        // Try to handle text month formats like "DD MMM YYYY" (e.g., "15 Jan 2023")
-        match = /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,]+(\d{2,4})/i.exec(dateStr);
+        // Try Month DD, YYYY format
+        match =
+            /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}/i.exec(
+                dateStr,
+            );
+        if (match) {
+            return new Date(match[0]);
+        }
+
+        // Try DD MMM YY format (common in Indian bank statements)
+        match =
+            /(\d{2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{2})/i.exec(
+                dateStr,
+            );
         if (match) {
             const day = parseInt(match[1]);
-            const monthStr = match[2].toLowerCase();
+            const monthStr = match[2];
             let year = parseInt(match[3]);
 
-            // Map month string to number
-            const monthMap = {
-                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
-                'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
-            };
+            // Convert month string to number (0-11)
+            const months = [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+            ];
+            const month = months.findIndex(
+                (m) => m.toLowerCase() === monthStr.toLowerCase(),
+            );
 
-            const month = monthMap[monthStr.substring(0, 3)];
-
-            // Adjust two-digit years
+            // Adjust two-digit years (assuming 20xx for all years)
             if (year < 100) {
-                year = year < 50 ? 2000 + year : 1900 + year;
+                year = 2000 + year;
             }
 
-            const parsedDate = new Date(year, month, day);
-            console.log(`Parsed text month format date: ${parsedDate.toISOString()}`);
-            return parsedDate;
+            return new Date(year, month, day);
         }
 
-        // Try other common formats as a last resort
-        try {
-            const date = new Date(dateStr);
-            if (!isNaN(date.getTime())) {
-                console.log(`Parsed using standard Date constructor: ${date.toISOString()}`);
-                return date;
-            }
-        } catch (e) {
-            console.log(`Error parsing date with Date constructor: ${e.message}`);
+        // As last resort, try the native Date parsing
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            return date;
         }
 
-        console.log(`Failed to parse date: ${dateStr}`);
-        // Fallback to current date if unable to parse (better than null for debugging)
-        return new Date();
+        return null;
     }
 
     // Guess category based on transaction description
     function guessCategory(description) {
-        if (!description) return 'Other';
+        if (!description) return "Other";
 
         const descriptionLower = description.toLowerCase();
 
-        // Check for income keywords - Enhanced for Indian banks
-        const incomeKeywords = ['salary', 'deposit', 'payment received', 'refund', 'transfer from', 'credit', 'cr', 'trf from', 'imps', 'neft', 'rtgs', 'upi', 'inward', 'by transfer'];
-        for (const keyword of incomeKeywords) {
-            if (descriptionLower.includes(keyword)) {
-                return 'Income';
+        // First check exact keywords for Indian merchants (which are more specific)
+        for (const [keyword, category] of Object.entries(MERCHANT_CATEGORIES)) {
+            // Use word boundary for more accurate matching (to avoid partial matches)
+            if (descriptionLower.includes(keyword.toLowerCase())) {
+                return category;
             }
         }
 
-        // Check for common expense categories - Optimized for Indian merchants and categories
-        const categoryKeywords = {
-            'Food & Dining': ['restaurant', 'cafe', 'coffee', 'diner', 'food', 'pizza', 'burger', 'mcdonalds', 'subway', 'swiggy', 'zomato', 'dominos', 'dosa', 'biryani', 'dhaba', 'thali', 'udupi', 'saravana', 'chaayos', 'barista', 'chai', 'eat', 'kitchen', 'sweet', 'mithai'],
-            'Groceries': ['grocery', 'supermarket', 'market', 'big basket', 'bigbasket', 'dmart', 'reliance fresh', 'more', 'grofers', 'jiomart', 'blinkit', 'kirana', 'nature basket', 'spencers', 'star bazaar', 'vegetables', 'fruits', 'milk', 'provision'],
-            'Shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'snapdeal', 'lenskart', 'croma', 'reliance digital', 'vijay sales', 'lifestyle', 'pantaloons', 'westside', 'mall', 'bazaar'],
-            'Transportation': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'transit', 'train', 'irctc', 'railway', 'metro', 'bus', 'red bus', 'redbus', 'petrol', 'diesel', 'fuel', 'indian oil', 'hp', 'bharat petroleum', 'bpcl', 'toll', 'fastag'],
-            'Entertainment': ['movie', 'cinema', 'pvr', 'inox', 'bookmyshow', 'theater', 'netflix', 'hotstar', 'disney+', 'amazon prime', 'sony liv', 'zee5', 'jio cinema', 'game', 'gaming', 'concert', 'event'],
-            'Housing': ['rent', 'lease', 'maintenance', 'society', 'apartment', 'flat', 'property', 'home', 'housing', 'accommodation', 'builder', 'construction', 'repair', 'renovation'],
-            'Utilities': ['electric', 'electricity', 'bill', 'water', 'internet', 'broadband', 'jio', 'airtel', 'bsnl', 'vi', 'vodafone', 'idea', 'tata sky', 'dth', 'gas', 'lpg', 'indane', 'utility', 'pipeline'],
-            'Health': ['doctor', 'hospital', 'medical', 'apollo', 'fortis', 'max', 'medanta', 'medplus', 'pharmacy', 'pharmeasy', 'netmeds', 'tata 1mg', 'dental', 'vision', 'healthcare', 'clinic', 'diagnostic', 'lab', 'test', 'medicine', 'ayurvedic'],
-            'Education': ['tuition', 'school', 'college', 'university', 'education', 'book', 'course', 'byjus', 'unacademy', 'vedantu', 'whitehat', 'cuemath', 'coaching', 'institute', 'academy', 'library', 'learning'],
-            'Travel': ['travel', 'hotel', 'oyo', 'makemytrip', 'goibibo', 'booking.com', 'cleartrip', 'ixigo', 'trivago', 'airline', 'indigo', 'spicejet', 'vistara', 'air india', 'flight', 'vacation', 'trip', 'tourism', 'resort', 'package', 'goa', 'manali', 'kerala'],
-            'Insurance': ['insurance', 'policy', 'premium', 'lic', 'health insurance', 'vehicle insurance', 'hdfc ergo', 'bajaj allianz', 'icici lombard', 'max bupa', 'star health', 'new india', 'mutual', 'term', 'life'],
-            'Investments': ['investment', 'mutual fund', 'stocks', 'shares', 'demat', 'zerodha', 'groww', 'upstox', 'kuvera', 'uti', 'sbi', 'hdfc', 'icici', 'axis', 'kotak', 'sip', 'nps', 'ppf', 'fixed deposit', 'fd', 'nifty', 'sensex']
-        };
+        // Indian transaction patterns
+        if (descriptionLower.includes("upi")) return "Banking & Finance";
+        if (descriptionLower.includes("imps")) return "Banking & Finance";
+        if (descriptionLower.includes("neft")) return "Banking & Finance";
+        if (descriptionLower.includes("rtgs")) return "Banking & Finance";
+        if (descriptionLower.includes("emi")) return "Banking & Finance";
+        if (descriptionLower.includes("loan")) return "Banking & Finance";
+        if (descriptionLower.includes("credit card"))
+            return "Banking & Finance";
+        if (descriptionLower.includes("atm")) return "Banking & Finance";
 
-        for (const [category, keywords] of Object.entries(categoryKeywords)) {
-            for (const keyword of keywords) {
-                if (descriptionLower.includes(keyword)) {
+        // More payment contexts
+        if (descriptionLower.includes("payment")) {
+            if (
+                descriptionLower.includes("electricity") ||
+                descriptionLower.includes("water") ||
+                descriptionLower.includes("gas") ||
+                descriptionLower.includes("bill")
+            ) {
+                return "Utilities";
+            }
+            if (descriptionLower.includes("rent")) return "Housing";
+            if (
+                descriptionLower.includes("school") ||
+                descriptionLower.includes("college") ||
+                descriptionLower.includes("university")
+            ) {
+                return "Education";
+            }
+        }
+
+        // Analyze transaction patterns for Indian banks (eg: "POS XYZ MERCHANT")
+        if (descriptionLower.includes("pos ")) {
+            // POS transactions - try to extract merchant name
+            const posWords = descriptionLower.split(" ");
+            const posIndex = posWords.indexOf("pos");
+            if (posIndex >= 0 && posIndex < posWords.length - 1) {
+                // Try to categorize based on the merchant after "POS"
+                const merchantName = posWords.slice(posIndex + 1).join(" ");
+                return categorizeMerchant(merchantName);
+            }
+        }
+
+        // Try UPI reference patterns (common in Indian transactions)
+        if (descriptionLower.includes("upi-")) {
+            // Extract UPI reference (after UPI-)
+            const upiParts = descriptionLower.split("upi-");
+            if (upiParts.length > 1) {
+                return categorizeMerchant(upiParts[1]);
+            }
+        }
+
+        // Common expense indicators
+        if (descriptionLower.includes("recharge")) return "Utilities";
+        if (descriptionLower.includes("dth")) return "Entertainment";
+        if (descriptionLower.includes("broadband")) return "Utilities";
+        if (descriptionLower.includes("mobile")) return "Utilities";
+        if (descriptionLower.includes("insurance")) return "Insurance";
+        if (descriptionLower.includes("mutual fund")) return "Investments";
+        if (descriptionLower.includes("investment")) return "Investments";
+
+        // Additional helper function for analyzing merchant names
+        function categorizeMerchant(merchant) {
+            if (!merchant) return "Other";
+            const merchantLower = merchant.toLowerCase();
+
+            // Re-check against our merchant database
+            for (const [keyword, category] of Object.entries(
+                MERCHANT_CATEGORIES,
+            )) {
+                if (merchantLower.includes(keyword.toLowerCase())) {
                     return category;
                 }
             }
+
+            // Common patterns
+            if (/rest|food|cafe|hotel/i.test(merchantLower))
+                return "Food & Dining";
+            if (/mart|super|grocer|fresh|kirana/i.test(merchantLower))
+                return "Groceries";
+            if (/med|pharm|hosp|clinic|doctor/i.test(merchantLower))
+                return "Health";
+            if (/cloth|wear|apparel|mart|shop/i.test(merchantLower))
+                return "Shopping";
+            if (/air|flight|train|bus|taxi|uber|ola/i.test(merchantLower))
+                return "Travel";
+
+            return "Other";
         }
 
         // Default category if no match found
-        return 'Other';
+        return "Other";
     }
 
     // Return public API
     return {
-        parsePDF
+        parsePDF,
     };
 })();

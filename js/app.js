@@ -30,6 +30,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Reminder Controller module not loaded');
     }
     
+    // Initialize Analytics controller
+    if (typeof AnalyticsController !== 'undefined') {
+        AnalyticsController.init();
+        console.log('Analytics Controller initialized');
+    } else {
+        console.error('Analytics Controller module not loaded');
+    }
+    
     // Check for PDF.js availability for PDF parsing
     if (typeof pdfjsLib === 'undefined') {
         console.warn('PDF.js library not loaded. PDF import may not work properly.');

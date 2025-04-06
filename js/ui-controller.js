@@ -158,6 +158,8 @@ const UIController = (function() {
                     updateDashboard();
                 } else if (tabId === 'transactions') {
                     updateTransactionsList();
+                } else if (tabId === 'analytics' && typeof AnalyticsController !== 'undefined') {
+                    AnalyticsController.refreshAnalytics();
                 } else if (tabId === 'reminders') {
                     if (typeof ReminderController !== 'undefined' && ReminderController.refreshReminders) {
                         ReminderController.refreshReminders();

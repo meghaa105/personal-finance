@@ -56,6 +56,11 @@ const PDFParser = (function() {
                 transaction: /(\d{2}\/\d{2}\/\d{4})|(\d{2}-\d{2}-\d{4}).*?((?:Rs\.|₹|INR)?\s*\d+,?\d*\.\d{2})/i,
                 withdrawalKeywords: /withdrawal|debit|purchase|payment|dr/i,
                 depositKeywords: /deposit|credit|refund|salary|cr/i
+            },
+            // SBI Card
+            SBI_CARD: {
+                header: /CARD CASHBACK SUMMARY|SBI Card/i,
+                transactionLine: /(\d{2}\s+[A-Za-z]{3}\s+\d{2})\s+.*?(\d+,?\d*\.\d{2})\s+([CD])/i
             }
         }
     };
@@ -121,7 +126,64 @@ const PDFParser = (function() {
 
         // Try to detect bank format
         let bankFormat = 'GENERIC';
-        if (text.includes('State Bank of India') || text.includes('SBI')) {
+        if (text.includes('CARD CASHBACK SUMMARY') || text.includes('SBI Card')) {
+            bankFormat = 'SBI_CARD';
+            console.log('Detected SBI Card statement');
+
+            // Split into lines and process each line
+            const lines = text.split('\n');
+            let inTransactionSection = false;
+
+            for (let line of lines) {
+                line = line.trim();
+
+                // Skip empty lines
+                if (!line) continue;
+
+                // Check for transaction section start
+                if (line.includes('Transaction Details') || line.includes('TRANSACTIONS FOR')) {
+                    inTransactionSection = true;
+                    continue;
+                }
+
+                if (inTransactionSection) {
+                    // Match date pattern DD MMM YY and transaction details
+                    const dateMatch = line.match(/(\d{2}\s+[A-Za-z]{3}\s+\d{2})/);
+                    if (dateMatch) {
+                        // Extract amount and type (C for Credit, D for Debit)
+                        const amountMatch = line.match(/(\d+,?\d*\.\d{2})\s+([CD])/);
+                        if (amountMatch) {
+                            let description = line
+                                .replace(dateMatch[0], '')
+                                .replace(amountMatch[0], '')
+                                .trim();
+
+                            // Clean up description
+                            description = description.replace(/\s+/g, ' ').trim();
+
+                            // Parse amount
+                            const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+                            const type = amountMatch[2] === 'C' ? 'income' : 'expense';
+
+                            // Create transaction object
+                            const transaction = {
+                                id: Date.now() + Math.random().toString(36).substring(2, 10),
+                                date: parseDate(dateMatch[0]),
+                                description: description,
+                                amount: amount,
+                                type: type,
+                                source: 'pdf'
+                            };
+
+                            // Guess category
+                            transaction.category = guessCategory(description);
+
+                            transactions.push(transaction);
+                        }
+                    }
+                }
+            }
+        } else if (text.includes('State Bank of India') || text.includes('SBI')) {
             bankFormat = 'SBI';
             console.log('Detected SBI Bank statement');
         } else if (text.includes('HDFC Bank') || text.includes('HDFC')) {

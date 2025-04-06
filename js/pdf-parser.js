@@ -63,7 +63,7 @@ const PDFParser = (function() {
         SBI_STATEMENT: /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})\s+(.+?)\s+(\d+,?\d*\.\d{2})\s+([CD])/gi,
         
         // Axis Bank statement pattern - more specific to capture column structure
-        AXIS_BANK_STATEMENT: /(\d{2}-\d{2}-\d{4})\s+(.+?)\s+(\d+\.\d{2})/g,
+        AXIS_BANK_STATEMENT: /(\d{2}-\d{2}-\d{4})\s+(.*?)(?=\s+\d+\.\d{2})/g,
         
         // HDFC Bank statement pattern (common in Indian banks)
         HDFC_BANK_STATEMENT: /(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d+(?:,\d{3})*\.\d{2})\s+(?:Cr\.?|Dr\.?)/gi,
@@ -614,8 +614,8 @@ const PDFParser = (function() {
             if (isAxisStatement) {
                 console.log("Detected Axis Bank statement format");
                 
-                // First approach: Look for date, debit and credit columns together
-                const axisPattern = /(\d{2}-\d{2}-\d{4})[^\n]+((?:\d+\.\d{2}))?[^\n]+((?:\d+\.\d{2}))?/g;
+                // Use our improved pattern that preserves the full description
+                const axisPattern = PATTERNS.AXIS_BANK_STATEMENT;
                 let match;
                 
                 while ((match = axisPattern.exec(text)) !== null) {
@@ -636,23 +636,38 @@ const PDFParser = (function() {
                     let amount = 0;
                     let transactionType = 'expense';
                     
+                    // Get the description from the regex match - it should contain the full text
+                    // between the date and amount (our improved regex handles this)
+                    description = match[2].trim();
+                    
                     // Look for debit amount (expense)
                     const debitMatch = /(\d+\.\d{2})/.exec(line.substring(dateEndIndex));
                     
                     if (debitMatch) {
-                        // If debit amount found, extract description before it
-                        const debitStartIndex = line.indexOf(debitMatch[0], dateEndIndex);
-                        description = line.substring(dateEndIndex, debitStartIndex).trim();
+                        // Get the amount from the match
                         amount = parseFloat(debitMatch[0]);
                         transactionType = 'expense';
                     } else {
                         // If no debit, look for credit amount (income)
                         const creditMatch = /(\d+\.\d{2})/.exec(line.substring(dateEndIndex));
                         if (creditMatch) {
-                            const creditStartIndex = line.indexOf(creditMatch[0], dateEndIndex);
-                            description = line.substring(dateEndIndex, creditStartIndex).trim();
                             amount = parseFloat(creditMatch[0]);
                             transactionType = 'income';
+                        }
+                    }
+                    
+                    // If description is still empty, try to extract it from the line
+                    if (!description) {
+                        const debitMatch = /(\d+\.\d{2})/.exec(line.substring(dateEndIndex));
+                        if (debitMatch) {
+                            const debitStartIndex = line.indexOf(debitMatch[0], dateEndIndex);
+                            description = line.substring(dateEndIndex, debitStartIndex).trim();
+                        } else {
+                            const creditMatch = /(\d+\.\d{2})/.exec(line.substring(dateEndIndex));
+                            if (creditMatch) {
+                                const creditStartIndex = line.indexOf(creditMatch[0], dateEndIndex);
+                                description = line.substring(dateEndIndex, creditStartIndex).trim();
+                            }
                         }
                     }
                     
@@ -660,6 +675,9 @@ const PDFParser = (function() {
                     description = description.replace(/\s+/g, ' ').trim();
                     
                     if (amount > 0 && description) {
+                        // Log the full description for debugging
+                        console.log("Axis Bank transaction:", description);
+                        
                         transactions.push({
                             date: date,
                             description: description,

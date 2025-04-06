@@ -6,9 +6,9 @@ const CSVParser = (function() {
     // Common CSV headers for different banks and financial institutions
     const HEADER_MAPPINGS = {
         // Generic mappings
-        date: ['date', 'transaction date', 'posted date', 'time', 'transaction time'],
-        description: ['description', 'transaction description', 'merchant', 'name', 'payee', 'memo', 'notes', 'transaction'],
-        amount: ['amount', 'transaction amount', 'sum', 'payment amount', 'withdrawal amount', 'deposit amount'],
+        date: ['date', 'transaction date', 'posted date', 'time', 'transaction time', 'tran date'],
+        description: ['description', 'transaction description', 'merchant', 'name', 'payee', 'memo', 'notes', 'transaction', 'particulars'],
+        amount: ['amount', 'transaction amount', 'sum', 'payment amount', 'withdrawal amount', 'deposit amount', 'dr', 'cr'],
         type: ['type', 'transaction type'],
         category: ['category', 'transaction category'],
         
@@ -48,6 +48,12 @@ const CSVParser = (function() {
             description: ['Description'],
             amount: ['Amount'],
             type: ['Type', 'Category']
+        },
+        'indian_bank': {
+            date: ['Tran Date'],
+            description: ['PARTICULARS'],
+            amount: ['DR', 'CR'],
+            type: []
         }
     };
     
@@ -303,6 +309,14 @@ const CSVParser = (function() {
             return 'amex';
         }
         
+        // Check for Indian bank format (with Tran Date, PARTICULARS, DR, CR columns)
+        if ((headersLower.includes('tran date') || headersLower.includes('transaction date')) && 
+            (headersLower.includes('particulars') || headersLower.includes('description')) && 
+            (headersLower.includes('dr') || headersLower.includes('cr'))) {
+            console.log("Detected Indian bank format");
+            return 'indian_bank';
+        }
+        
         // If no specific format is detected, return null for generic mapping
         return null;
     }
@@ -396,26 +410,28 @@ const CSVParser = (function() {
         
         const descriptionLower = description.toLowerCase();
         
-        // Check for income keywords
-        const incomeKeywords = ['salary', 'deposit', 'payment received', 'refund', 'transfer from'];
+        // Check for income keywords - Enhanced for Indian banks
+        const incomeKeywords = ['salary', 'deposit', 'payment received', 'refund', 'transfer from', 'credit', 'cr', 'trf from', 'imps', 'neft', 'rtgs', 'upi', 'inward', 'by transfer'];
         for (const keyword of incomeKeywords) {
             if (descriptionLower.includes(keyword)) {
                 return 'Income';
             }
         }
         
-        // Check for common expense categories
+        // Check for common expense categories - Optimized for Indian merchants and categories
         const categoryKeywords = {
-            'Food & Dining': ['restaurant', 'cafe', 'coffee', 'diner', 'food', 'pizza', 'burger', 'mcdonalds', 'subway', 'taco', 'chipotle'],
-            'Groceries': ['grocery', 'supermarket', 'market', 'walmart', 'target', 'kroger', 'safeway', 'trader joe', 'whole foods'],
-            'Shopping': ['amazon', 'ebay', 'etsy', 'shop', 'store', 'retail', 'clothing', 'apparel'],
-            'Transportation': ['uber', 'lyft', 'taxi', 'transit', 'train', 'subway', 'bus', 'metro', 'gas', 'parking'],
-            'Entertainment': ['movie', 'cinema', 'theater', 'netflix', 'spotify', 'hulu', 'disney+', 'hbo', 'prime video', 'game'],
-            'Housing': ['rent', 'mortgage', 'apartment', 'property', 'home', 'hoa'],
-            'Utilities': ['electric', 'gas bill', 'water', 'internet', 'phone', 'cell', 'cable', 'utility'],
-            'Health': ['doctor', 'hospital', 'medical', 'pharmacy', 'dental', 'vision', 'healthcare', 'clinic'],
-            'Education': ['tuition', 'school', 'college', 'university', 'education', 'book', 'course'],
-            'Travel': ['travel', 'hotel', 'airline', 'flight', 'airbnb', 'vacation', 'trip']
+            'Food & Dining': ['restaurant', 'cafe', 'coffee', 'diner', 'food', 'pizza', 'burger', 'mcdonalds', 'subway', 'swiggy', 'zomato', 'dominos', 'dosa', 'biryani', 'dhaba', 'thali', 'udupi', 'saravana', 'chaayos', 'barista', 'chai', 'eat', 'kitchen', 'sweet', 'mithai'],
+            'Groceries': ['grocery', 'supermarket', 'market', 'big basket', 'bigbasket', 'dmart', 'reliance fresh', 'more', 'grofers', 'jiomart', 'blinkit', 'kirana', 'nature basket', 'spencers', 'star bazaar', 'vegetables', 'fruits', 'milk', 'provision'],
+            'Shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'snapdeal', 'lenskart', 'croma', 'reliance digital', 'vijay sales', 'lifestyle', 'pantaloons', 'westside', 'mall', 'bazaar'],
+            'Transportation': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'transit', 'train', 'irctc', 'railway', 'metro', 'bus', 'red bus', 'redbus', 'petrol', 'diesel', 'fuel', 'indian oil', 'hp', 'bharat petroleum', 'bpcl', 'toll', 'fastag'],
+            'Entertainment': ['movie', 'cinema', 'pvr', 'inox', 'bookmyshow', 'theater', 'netflix', 'hotstar', 'disney+', 'amazon prime', 'sony liv', 'zee5', 'jio cinema', 'game', 'gaming', 'concert', 'event'],
+            'Housing': ['rent', 'lease', 'maintenance', 'society', 'apartment', 'flat', 'property', 'home', 'housing', 'accommodation', 'builder', 'construction', 'repair', 'renovation'],
+            'Utilities': ['electric', 'electricity', 'bill', 'water', 'internet', 'broadband', 'jio', 'airtel', 'bsnl', 'vi', 'vodafone', 'idea', 'tata sky', 'dth', 'gas', 'lpg', 'indane', 'utility', 'pipeline'],
+            'Health': ['doctor', 'hospital', 'medical', 'apollo', 'fortis', 'max', 'medanta', 'medplus', 'pharmacy', 'pharmeasy', 'netmeds', 'tata 1mg', 'dental', 'vision', 'healthcare', 'clinic', 'diagnostic', 'lab', 'test', 'medicine', 'ayurvedic'],
+            'Education': ['tuition', 'school', 'college', 'university', 'education', 'book', 'course', 'byjus', 'unacademy', 'vedantu', 'whitehat', 'cuemath', 'coaching', 'institute', 'academy', 'library', 'learning'],
+            'Travel': ['travel', 'hotel', 'oyo', 'makemytrip', 'goibibo', 'booking.com', 'cleartrip', 'ixigo', 'trivago', 'airline', 'indigo', 'spicejet', 'vistara', 'air india', 'flight', 'vacation', 'trip', 'tourism', 'resort', 'package', 'goa', 'manali', 'kerala'],
+            'Insurance': ['insurance', 'policy', 'premium', 'lic', 'health insurance', 'vehicle insurance', 'hdfc ergo', 'bajaj allianz', 'icici lombard', 'max bupa', 'star health', 'new india', 'mutual', 'term', 'life'],
+            'Investments': ['investment', 'mutual fund', 'stocks', 'shares', 'demat', 'zerodha', 'groww', 'upstox', 'kuvera', 'uti', 'sbi', 'hdfc', 'icici', 'axis', 'kotak', 'sip', 'nps', 'ppf', 'fixed deposit', 'fd', 'nifty', 'sensex']
         };
         
         for (const [category, keywords] of Object.entries(categoryKeywords)) {

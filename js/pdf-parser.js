@@ -623,9 +623,92 @@ const PDFParser = (function() {
             if (isAxisStatement) {
                 console.log("Detected Axis Bank statement format");
                 
-                // Use our improved pattern that preserves the full description
-                const axisPattern = PATTERNS.AXIS_BANK_STATEMENT;
-                let match;
+                // Instead of relying on regex patterns, let's process the document line by line
+                // to ensure we get complete transaction details
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line === '') continue;
+                    
+                    // Look for date pattern DD-MM-YYYY (common in Axis statements)
+                    const dateMatch = /(\d{2}-\d{2}-\d{4})/.exec(line);
+                    if (!dateMatch) continue;
+                    
+                    const dateStr = dateMatch[1];
+                    const date = parseDate(dateStr);
+                    
+                    if (!date) continue;
+                    
+                    // Log the entire line for debugging
+                    console.log("Found transaction line:", line);
+                    
+                    // Get the next line as well (sometimes descriptions continue on next line)
+                    let fullDescription = "";
+                    let amount = 0;
+                    let transactionType = 'expense';
+                    
+                    // Extract data from this line
+                    const dateEndIndex = line.indexOf(dateStr) + dateStr.length;
+                    let remainingText = line.substring(dateEndIndex).trim();
+                    
+                    // Look for amount pattern (typically at the end of the line)
+                    const amountMatch = /(\d+\.\d{2})/.exec(remainingText);
+                    if (amountMatch) {
+                        const amountStr = amountMatch[0];
+                        const amountIndex = remainingText.lastIndexOf(amountStr);
+                        
+                        // Get description - everything between date and amount
+                        if (amountIndex > 0) {
+                            fullDescription = remainingText.substring(0, amountIndex).trim();
+                            amount = parseFloat(amountStr);
+                            
+                            // Check context to determine if expense or income
+                            // For Axis Bank, we check if the amount appears after "Debit" or "Credit" column headers
+                            if (remainingText.includes("Credit") || remainingText.includes("CR") || 
+                                remainingText.includes(" Cr") || remainingText.toLowerCase().includes("credit")) {
+                                transactionType = 'income';
+                            } else {
+                                transactionType = 'expense';
+                            }
+                        }
+                    }
+                    
+                    // If we have a valid date and amount, add the transaction
+                    if (date && amount > 0) {
+                        // Clean up the description
+                        fullDescription = fullDescription.replace(/\s+/g, ' ').trim();
+                        
+                        // Check if description is empty, try to use any text from remaining part
+                        if (!fullDescription && remainingText) {
+                            fullDescription = remainingText.replace(/\s+/g, ' ').trim();
+                        }
+                        
+                        // Check if description is empty and next line doesn't have a date
+                        if ((!fullDescription || fullDescription.length < 3) && i + 1 < lines.length && !lines[i + 1].match(/\d{2}-\d{2}-\d{4}/)) {
+                            fullDescription = lines[i + 1].trim();
+                            i++; // Skip the next line
+                        }
+                        
+                        // If we have a description, create the transaction
+                        if (fullDescription) {
+                            // Log the full description for debugging
+                            console.log("Extracted full description:", fullDescription);
+                            
+                            transactions.push({
+                                date: date,
+                                description: fullDescription,
+                                amount: amount,
+                                type: transactionType,
+                                category: transactionType === 'income' ? 'Income' : guessCategory(fullDescription)
+                            });
+                        }
+                    }
+                }
+                
+                // If we still found no transactions, try with the legacy pattern as fallback
+                if (transactions.length === 0) {
+                    console.log("Fallback to pattern-based extraction for Axis Bank");
+                    const axisPattern = PATTERNS.AXIS_BANK_STATEMENT;
+                    let match;
                 
                 while ((match = axisPattern.exec(text)) !== null) {
                     const dateStr = match[1];

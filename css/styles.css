@@ -132,6 +132,21 @@ main {
     font-weight: 600;
 }
 
+.summary-cards p::before {
+    content: "₹";
+    margin-right: 2px;
+    font-weight: normal;
+}
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.summary-cards p::before {
+    content: '₹';
+    margin-right: 2px;
+    font-weight: normal;
+}
+
 .total-balance {
     color: var(--primary-color);
 }
@@ -198,6 +213,13 @@ main {
 }
 
 .transaction-amount {
+    position: relative;
+}
+
+.transaction-amount::before {
+    content: "₹";
+    margin-right: 1px;
+}
     font-weight: 600;
 }
 

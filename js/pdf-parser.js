@@ -438,8 +438,17 @@ const PDFParser = (function() {
                 extractedText += '\n';
             }
             
-            // Log a sample of the extracted text for debugging
+            // Log a more extensive sample of the extracted text for debugging
             console.log('Extracted text sample:', extractedText.substring(0, 500) + '...');
+            
+            // Log a few complete lines from the middle of the document to see transaction format
+            const lines = extractedText.split('\n');
+            if (lines.length > 20) {
+                console.log('Sample transaction lines:');
+                for (let i = 20; i < Math.min(25, lines.length); i++) {
+                    console.log(`Line ${i}: ${lines[i]}`);
+                }
+            }
             
             // Extract transactions from the text
             const transactions = extractTransactions(extractedText);

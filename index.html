@@ -22,6 +22,7 @@
                 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
                 <button class="tab-btn" data-tab="transactions">Transactions</button>
                 <button class="tab-btn" data-tab="import">Import</button>
+                <button class="tab-btn" data-tab="reminders">Reminders</button>
                 <button class="tab-btn" data-tab="settings">Settings</button>
             </div>
         </header>
@@ -118,6 +119,40 @@
             </section>
             
             <!-- Settings Tab -->
+            <!-- Reminders Tab --> 
+            <section id="reminders" class="tab-content"> 
+                <div class="reminders-header"> 
+                    <h3>Credit Card Payment Reminders</h3> 
+                    <button id="add-reminder-btn" class="btn"><span class="material-icons">add</span> Add Reminder</button> 
+                </div> 
+                
+                <div class="reminders-dashboard"> 
+                    <!-- Upcoming Reminders --> 
+                    <div class="reminders-section"> 
+                        <h4>Upcoming Payments</h4> 
+                        <div id="upcoming-reminders" class="reminders-list"> 
+                            <div class="empty-state">No upcoming credit card payments</div> 
+                        </div> 
+                    </div> 
+                    
+                    <!-- Overdue Reminders --> 
+                    <div class="reminders-section"> 
+                        <h4>Overdue Payments</h4> 
+                        <div id="overdue-reminders" class="reminders-list"> 
+                            <div class="empty-state">No overdue credit card payments</div> 
+                        </div> 
+                    </div> 
+                    
+                    <!-- Completed Payments --> 
+                    <div class="reminders-section"> 
+                        <h4>Completed Payments</h4> 
+                        <div id="completed-reminders" class="reminders-list"> 
+                            <div class="empty-state">No completed credit card payments</div> 
+                        </div> 
+                    </div> 
+                </div> 
+            </section> 
+            
             <section id="settings" class="tab-content">
                 <div class="settings-group">
                     <h3>Data Management</h3>
@@ -209,7 +244,51 @@
     <script src="js/pdf-parser.js"></script>
     <script src="js/csv-parser.js"></script>
     <script src="js/transaction-utils.js"></script>
+    <script src="js/reminder-controller.js"></script>
     <script src="js/ui-controller.js"></script>
+    <script src="js/reminder-controller.js"></script>
     <script src="js/app.js"></script>
+    <!-- Credit Card Reminder Modal --> 
+    <div id="reminder-modal" class="modal"> 
+        <div class="modal-content"> 
+            <span class="close-modal">&times;</span> 
+            <h2 id="reminder-modal-title">Add Credit Card Payment Reminder</h2> 
+            <form id="reminder-form"> 
+                <input type="hidden" id="reminder-id"> 
+                <div class="form-group"> 
+                    <label for="card-name">Card Name</label> 
+                    <input type="text" id="card-name" required placeholder="e.g., HDFC Credit Card"> 
+                </div> 
+                <div class="form-group"> 
+                    <label for="payment-amount">Payment Amount</label> 
+                    <input type="number" id="payment-amount" step="0.01" required placeholder="₹0.00"> 
+                </div> 
+                <div class="form-group"> 
+                    <label for="due-date">Due Date</label> 
+                    <input type="date" id="due-date" required> 
+                </div> 
+                <div class="form-group"> 
+                    <label for="reminder-days">Remind me</label> 
+                    <select id="reminder-days"> 
+                        <option value="1">1 day before</option> 
+                        <option value="2">2 days before</option> 
+                        <option value="3">3 days before</option> 
+                        <option value="5" selected>5 days before</option> 
+                        <option value="7">7 days before</option> 
+                        <option value="10">10 days before</option> 
+                    </select> 
+                </div> 
+                <div class="form-group"> 
+                    <label for="reminder-notes">Notes (Optional)</label> 
+                    <textarea id="reminder-notes" rows="2" placeholder="Any additional information"></textarea> 
+                </div> 
+                <div class="form-group"> 
+                    <button type="submit" class="btn" id="save-reminder">Save</button> 
+                    <button type="button" class="btn secondary" id="cancel-reminder">Cancel</button> 
+                </div> 
+            </form> 
+        </div> 
+    </div> 
+    
 </body>
 </html>

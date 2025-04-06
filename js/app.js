@@ -22,6 +22,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('UI Controller module not loaded');
     }
     
+    // Initialize Reminder controller
+    if (typeof ReminderController !== 'undefined') {
+        ReminderController.init();
+        console.log('Reminder Controller initialized');
+    } else {
+        console.error('Reminder Controller module not loaded');
+    }
+    
     // Check for PDF.js availability for PDF parsing
     if (typeof pdfjsLib === 'undefined') {
         console.warn('PDF.js library not loaded. PDF import may not work properly.');

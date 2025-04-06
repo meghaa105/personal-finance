@@ -158,6 +158,10 @@ const UIController = (function() {
                     updateDashboard();
                 } else if (tabId === 'transactions') {
                     updateTransactionsList();
+                } else if (tabId === 'reminders') {
+                    if (typeof ReminderController !== 'undefined' && ReminderController.refreshReminders) {
+                        ReminderController.refreshReminders();
+                    }
                 } else if (tabId === 'settings') {
                     updateCategoriesList();
                 }
@@ -1107,8 +1111,38 @@ const UIController = (function() {
         });
     }
     
+    // Create and show toast notification
+    function showToast(message, duration = 3000) {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        
+        // Remove toast after duration
+        setTimeout(() => {
+            toast.remove();
+            
+            // Remove container if empty
+            if (toastContainer.childNodes.length === 0) {
+                toastContainer.remove();
+            }
+        }, duration);
+    }
+    
     // Return public API
     return {
-        init
+        init,
+        showToast,
+        switchTab,
+        updateDashboard
     };
 })();

@@ -897,11 +897,11 @@ const PDFParser = (function() {
             return new Date(year, month, day);
         }
         
-        // Try MM/DD/YYYY format
+        // Try DD/MM/YYYY format (Indian format)
         match = /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(dateStr);
         if (match) {
-            const month = parseInt(match[1]) - 1; // Months are 0-indexed in JavaScript
-            const day = parseInt(match[2]);
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]) - 1; // Months are 0-indexed in JavaScript
             let year = parseInt(match[3]);
             
             // Adjust two-digit years

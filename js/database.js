@@ -18,13 +18,18 @@ const Database = (function() {
         'Personal',
         'Travel',
         'Income',
+        'Banking & Finance',
         'Other'
     ];
+    
+    // Credit card reminders storage
+    let creditCardReminders = [];
     
     // Constants
     const STORAGE_KEYS = {
         TRANSACTIONS: 'personalFinance_transactions',
-        CATEGORIES: 'personalFinance_categories'
+        CATEGORIES: 'personalFinance_categories',
+        CREDIT_CARD_REMINDERS: 'personalFinance_creditCardReminders'
     };
     
     // Initialize database from localStorage
@@ -46,6 +51,19 @@ const Database = (function() {
             } else {
                 // First time initialization - save default categories
                 saveCategories();
+            }
+            
+            // Load credit card reminders
+            const savedReminders = localStorage.getItem(STORAGE_KEYS.CREDIT_CARD_REMINDERS);
+            if (savedReminders) {
+                creditCardReminders = JSON.parse(savedReminders);
+                
+                // Ensure dates are properly formatted
+                creditCardReminders.forEach(reminder => {
+                    reminder.dueDate = new Date(reminder.dueDate);
+                    if (reminder.createdAt) reminder.createdAt = new Date(reminder.createdAt);
+                    if (reminder.updatedAt) reminder.updatedAt = new Date(reminder.updatedAt);
+                });
             }
             
             console.log('Database initialized with', transactions.length, 'transactions and', categories.length, 'categories');
@@ -392,6 +410,142 @@ const Database = (function() {
         }
     }
     
+    // Save credit card reminders to localStorage
+    function saveCreditCardReminders() {
+        try {
+            localStorage.setItem(STORAGE_KEYS.CREDIT_CARD_REMINDERS, JSON.stringify(creditCardReminders));
+        } catch (error) {
+            console.error('Error saving credit card reminders:', error);
+            return { error: 'Failed to save credit card reminders.' };
+        }
+        
+        return { success: true };
+    }
+    
+    // Add a new credit card payment reminder
+    function addCreditCardReminder(reminderData) {
+        // Validate reminder data
+        if (!reminderData.cardName || !reminderData.dueDate || !reminderData.amount) {
+            return { error: 'Invalid reminder data. Card name, due date, and amount are required.' };
+        }
+        
+        // Create a new reminder object with generated ID
+        const newReminder = {
+            id: generateUniqueId(),
+            cardName: reminderData.cardName,
+            dueDate: new Date(reminderData.dueDate),
+            amount: parseFloat(reminderData.amount),
+            reminderDays: reminderData.reminderDays || 5, // Default to 5 days before due date
+            notes: reminderData.notes || '',
+            isPaid: false,
+            createdAt: new Date()
+        };
+        
+        // Add to reminders array
+        creditCardReminders.push(newReminder);
+        
+        // Save to localStorage
+        const saveResult = saveCreditCardReminders();
+        if (saveResult.error) {
+            return saveResult;
+        }
+        
+        return { success: true, reminder: newReminder };
+    }
+    
+    // Update an existing credit card reminder
+    function updateCreditCardReminder(reminderId, updatedData) {
+        const index = creditCardReminders.findIndex(r => r.id === reminderId);
+        
+        if (index === -1) {
+            return { error: 'Reminder not found.' };
+        }
+        
+        // Update the reminder
+        creditCardReminders[index] = {
+            ...creditCardReminders[index],
+            cardName: updatedData.cardName || creditCardReminders[index].cardName,
+            dueDate: updatedData.dueDate ? new Date(updatedData.dueDate) : creditCardReminders[index].dueDate,
+            amount: updatedData.amount !== undefined ? parseFloat(updatedData.amount) : creditCardReminders[index].amount,
+            reminderDays: updatedData.reminderDays !== undefined ? updatedData.reminderDays : creditCardReminders[index].reminderDays,
+            notes: updatedData.notes !== undefined ? updatedData.notes : creditCardReminders[index].notes,
+            isPaid: updatedData.isPaid !== undefined ? updatedData.isPaid : creditCardReminders[index].isPaid,
+            updatedAt: new Date()
+        };
+        
+        // Save to localStorage
+        const saveResult = saveCreditCardReminders();
+        if (saveResult.error) {
+            return saveResult;
+        }
+        
+        return { success: true, reminder: creditCardReminders[index] };
+    }
+    
+    // Delete a credit card reminder
+    function deleteCreditCardReminder(reminderId) {
+        const initialLength = creditCardReminders.length;
+        creditCardReminders = creditCardReminders.filter(r => r.id !== reminderId);
+        
+        if (creditCardReminders.length === initialLength) {
+            return { error: 'Reminder not found.' };
+        }
+        
+        // Save to localStorage
+        const saveResult = saveCreditCardReminders();
+        if (saveResult.error) {
+            return saveResult;
+        }
+        
+        return { success: true };
+    }
+    
+    // Mark a credit card payment as paid
+    function markCreditCardReminderAsPaid(reminderId) {
+        return updateCreditCardReminder(reminderId, { isPaid: true });
+    }
+    
+    // Get all credit card reminders
+    function getAllCreditCardReminders() {
+        return [...creditCardReminders].sort((a, b) => a.dueDate - b.dueDate);
+    }
+    
+    // Get upcoming credit card reminders (unpaid with due dates approaching)
+    function getUpcomingCreditCardReminders() {
+        const today = new Date();
+        return creditCardReminders
+            .filter(reminder => !reminder.isPaid && reminder.dueDate >= today)
+            .sort((a, b) => a.dueDate - b.dueDate);
+    }
+    
+    // Get overdue credit card reminders (unpaid with due dates in the past)
+    function getOverdueCreditCardReminders() {
+        const today = new Date();
+        return creditCardReminders
+            .filter(reminder => !reminder.isPaid && reminder.dueDate < today)
+            .sort((a, b) => b.dueDate - a.dueDate); // Sort by most recently overdue first
+    }
+    
+    // Get reminders with notification dates coming up (for displaying notifications)
+    function getRemindersDueForNotification() {
+        const today = new Date();
+        
+        return creditCardReminders.filter(reminder => {
+            if (reminder.isPaid) return false;
+            
+            // Calculate reminder date (dueDate - reminderDays)
+            const reminderDate = new Date(reminder.dueDate);
+            reminderDate.setDate(reminderDate.getDate() - reminder.reminderDays);
+            
+            // Check if today is the reminder date or the due date
+            const todayStr = today.toDateString();
+            const reminderDateStr = reminderDate.toDateString();
+            const dueDateStr = reminder.dueDate.toDateString();
+            
+            return todayStr === reminderDateStr || todayStr === dueDateStr;
+        });
+    }
+    
     // Clear all data
     function clearData() {
         transactions = [];
@@ -408,11 +562,14 @@ const Database = (function() {
             'Personal',
             'Travel',
             'Income',
+            'Banking & Finance',
             'Other'
         ];
+        creditCardReminders = [];
         
         // Remove from localStorage
         localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
+        localStorage.removeItem(STORAGE_KEYS.CREDIT_CARD_REMINDERS);
         
         // Save default categories
         saveCategories();
@@ -441,7 +598,16 @@ const Database = (function() {
         deleteCategory,
         exportData,
         importData,
-        clearData
+        clearData,
+        // Credit card reminder methods
+        addCreditCardReminder,
+        updateCreditCardReminder,
+        deleteCreditCardReminder,
+        markCreditCardReminderAsPaid,
+        getAllCreditCardReminders,
+        getUpcomingCreditCardReminders,
+        getOverdueCreditCardReminders,
+        getRemindersDueForNotification
     };
 })();
 

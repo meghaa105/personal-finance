@@ -363,10 +363,10 @@ const CSVParser = (function() {
         }
         
         // Check for Indian bank formats - updated for better detection of various Indian banks
-        // SBI Bank format
+        // SBI Bank format - specifically looking for the common SBI statement format
         if ((headersLower.includes('tran date') || headersLower.includes('date')) && 
-            (headersLower.includes('particulars') || headersLower.includes('description') || headersLower.includes('narration')) && 
-            (headersLower.includes('dr') && headersLower.includes('cr'))) {
+            (headersLower.includes('particulars')) && 
+            (headersLower.includes('dr') && headersLower.includes('cr') && headersLower.includes('bal'))) {
             console.log("Detected SBI bank format");
             return 'sbi_bank';
         }

@@ -138,24 +138,37 @@ const PDFParser = (function() {
         const lines = text.split('\n');
         let transactionSection = false;
         
+        // Debug: Log first 15 lines to see if we can find transaction section markers
+        console.log('Looking for transaction section markers in PDF content:');
+        for (let i = 0; i < Math.min(lines.length, 15); i++) {
+            if (lines[i].trim().length > 5) {
+                console.log(`Line ${i}: ${lines[i].trim().substring(0, 100)}`);
+            }
+        }
+        
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             
             // Skip short or empty lines
             if (line.trim().length < 5) continue;
             
-            // Look for transaction section markers
-            if (line.match(/transaction detail|statement of account|transaction history|date.*description.*amount/i)) {
+            // Look for transaction section markers - more lenient now for Indian bank statements
+            if (line.match(/transaction detail|statement of account|transaction history|date.*description.*amount|date.*particulars|tran.?date|description|debit|credit|particulars|dr|cr|withdrawal|deposit/i)) {
                 transactionSection = true;
+                console.log(`Found transaction section marker at line ${i}: ${line.trim().substring(0, 100)}`);
                 continue;
             }
             
-            // If transaction section and line looks like a transaction
+            // If we're in the transaction section and line has date-like pattern
             if (transactionSection && line.match(/\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}/)) {
+                console.log(`Potential transaction line ${i}: ${line.trim().substring(0, 100)}`);
+                
                 // Extract date
                 const dateMatch = extractDate(line);
                 
                 if (dateMatch) {
+                    console.log(`Date match found: ${dateMatch}`);
+                    
                     // For multiline transaction descriptions, try to combine next lines
                     let fullLine = line;
                     const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
@@ -168,6 +181,7 @@ const PDFParser = (function() {
                     
                     // Extract amount and type (DR/CR)
                     const amountInfo = extractAmount(fullLine);
+                    console.log(`Amount extracted: ${amountInfo.amount}, Type: ${amountInfo.type}`);
                     
                     if (amountInfo.amount) {
                         // Create transaction object
@@ -179,7 +193,8 @@ const PDFParser = (function() {
                                          .replace(/(dr|cr)$/i, '')
                                          .trim(),
                             amount: Math.abs(amountInfo.amount),
-                            type: amountInfo.type
+                            type: amountInfo.type,
+                            source: 'pdf'  // Add source information
                         };
                         
                         // Guess category
@@ -187,7 +202,83 @@ const PDFParser = (function() {
                         
                         // Add to transactions array if valid
                         if (transaction.date && transaction.amount > 0) {
+                            console.log(`Valid transaction found: ${transaction.date} - ${transaction.description} - ${transaction.amount}`);
                             transactions.push(transaction);
+                        } else {
+                            console.log(`Invalid transaction: missing date or amount`);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // If no transactions found, try an alternative approach specifically for SBI format
+        if (transactions.length === 0 && bankFormat === 'SBI') {
+            console.log('Trying alternative SBI transaction parsing...');
+            
+            // SBI typically has transaction sections starting with patterns like
+            // "Date", "Description", "Debit", "Credit", "Balance"
+            let tableHeaders = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Look for table headers
+                if (line.match(/Date|Tran Date|Value Date|Description|Particulars|Debit|Credit|Balance|Amount/i) && 
+                    !tableHeaders && line.length > 10) {
+                    tableHeaders = true;
+                    console.log(`Found SBI table headers at line ${i}: ${line}`);
+                    continue;
+                }
+                
+                // If we found headers and this line has a date pattern
+                if (tableHeaders && line.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/)) {
+                    console.log(`SBI transaction line: ${line}`);
+                    
+                    // For SBI, dates are usually DD-MM-YYYY or DD/MM/YYYY
+                    const dateMatch = line.match(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/);
+                    
+                    if (dateMatch) {
+                        // Extract amount (SBI often separates debit and credit in different columns)
+                        let amount = 0;
+                        let type = 'expense';
+                        
+                        // Look for numbers that could be amounts (with decimal points)
+                        const amountMatches = line.match(/\d+,?\d*\.\d{2}/g);
+                        
+                        if (amountMatches && amountMatches.length > 0) {
+                            // Take the last amount as it's often the transaction amount
+                            // (first might be balance)
+                            amount = parseFloat(amountMatches[amountMatches.length - 1].replace(/,/g, ''));
+                            
+                            // Determine if credit or debit - in SBI, usually indicated by position or CR/DR
+                            if (line.includes('CR') || line.includes('CREDIT') || line.toLowerCase().includes('credit')) {
+                                type = 'income';
+                            } else if (line.includes('DR') || line.includes('DEBIT') || line.toLowerCase().includes('debit')) {
+                                type = 'expense';
+                            }
+                            
+                            // Create transaction
+                            const transaction = {
+                                id: Date.now() + Math.random().toString(36).substring(2, 10),
+                                date: parseDate(dateMatch[0]),
+                                description: line.replace(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/, '')
+                                             .replace(/\d+,?\d*\.\d{2}/g, '')
+                                             .replace(/(CR|DR|CREDIT|DEBIT)/gi, '')
+                                             .trim(),
+                                amount: amount,
+                                type: type,
+                                source: 'pdf'
+                            };
+                            
+                            // Guess category
+                            transaction.category = guessCategory(transaction.description);
+                            
+                            // Add to transactions array if valid
+                            if (transaction.date && transaction.amount > 0) {
+                                console.log(`Valid SBI transaction found: ${transaction.date} - ${transaction.description} - ${transaction.amount}`);
+                                transactions.push(transaction);
+                            }
                         }
                     }
                 }

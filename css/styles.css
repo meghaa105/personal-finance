@@ -210,6 +210,20 @@ main {
     padding: 0.25rem 0.5rem;
     border-radius: 100px;
     display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.transaction-source {
+    font-size: 0.75rem;
+    background-color: rgba(128, 128, 128, 0.1);
+    color: #666;
+    padding: 0.15rem 0.4rem;
+    border-radius: 100px;
+    display: inline-block;
+}
+
+    border-radius: 100px;
+    display: inline-block;
 }
 
 .transaction-amount {
@@ -1249,4 +1263,39 @@ main {
     .filters-wrapper {
         grid-template-columns: 1fr 1fr 1fr;
     }
+}
+
+    font-size: 0.75rem;
+    background-color: rgba(128, 128, 128, 0.1);
+    color: #666;
+    padding: 0.15rem 0.4rem;
+    border-radius: 100px;
+    display: inline-block;
+}
+
+    font-size: 0.75rem;
+    background-color: rgba(128, 128, 128, 0.1);
+    color: #666;
+    padding: 0.15rem 0.4rem;
+    border-radius: 100px;
+    display: inline-block;
+}
+
+.transaction-category {
+    font-size: 0.75rem;
+    background-color: rgba(76, 110, 245, 0.1);
+    color: var(--primary-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 100px;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.transaction-source {
+    font-size: 0.75rem;
+    background-color: rgba(128, 128, 128, 0.1);
+    color: #666;
+    padding: 0.15rem 0.4rem;
+    border-radius: 100px;
+    display: inline-block;
 }

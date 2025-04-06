@@ -169,7 +169,8 @@ const CSVParser = (function() {
                         // Create transaction object
                         const transaction = {
                             date: parseDate(row['Tran Date']),
-                            description: row['PARTICULARS']
+                            description: row['PARTICULARS'],
+                            source: 'csv'  // Add source information
                         };
                         
                         // If date parsing failed, skip this row
@@ -304,7 +305,9 @@ const CSVParser = (function() {
                     return null;
                 }
                 
-                const transaction = {};
+                const transaction = {
+                    source: 'csv'  // Add source information
+                };
                 
                 // Extract date
                 transaction.date = extractField(row, headers, 'date', mappings);

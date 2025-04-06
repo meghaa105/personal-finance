@@ -1,0 +1,8 @@
+.transaction-category {
+    font-size: 0.75rem;
+    background-color: rgba(76, 110, 245, 0.1);
+    color: var(--primary-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 100px;
+    display: inline-block;
+    margin-right: 0.5rem;

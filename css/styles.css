@@ -132,8 +132,7 @@ main {
     font-weight: 600;
 }
 
-.summary-cards p::before {
-    content: "₹";
+.summary-cards p {
     margin-right: 2px;
     font-weight: normal;
 }

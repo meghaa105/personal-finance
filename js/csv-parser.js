@@ -50,9 +50,27 @@ const CSVParser = (function() {
             type: ['Type', 'Category']
         },
         'indian_bank': {
-            date: ['Tran Date'],
-            description: ['PARTICULARS'],
-            amount: ['DR', 'CR'],
+            date: ['Tran Date', 'Transaction Date', 'Value Date', 'Date'],
+            description: ['PARTICULARS', 'Description', 'Narration', 'Transaction Remarks'],
+            amount: ['DR', 'CR', 'Debit', 'Credit', 'Withdrawal Amt', 'Deposit Amt'],
+            type: []
+        },
+        'sbi_bank': {
+            date: ['Tran Date', 'Value Date', 'Date'],
+            description: ['PARTICULARS', 'Description', 'Narration'],
+            amount: ['DR', 'CR', 'Debit Amount', 'Credit Amount'],
+            type: []
+        },
+        'hdfc_bank': {
+            date: ['Date', 'Transaction Date', 'Value Date'],
+            description: ['Narration', 'Particulars', 'Description'],
+            amount: ['Withdrawal Amt(INR)', 'Deposit Amt(INR)', 'Debit', 'Credit'],
+            type: []
+        },
+        'axis_bank': {
+            date: ['Tran Date', 'Date', 'Transaction Date'],
+            description: ['PARTICULARS', 'Transaction Remarks', 'Description'],
+            amount: ['DR', 'CR', 'Debit Amount', 'Credit Amount'],
             type: []
         }
     };
@@ -193,18 +211,49 @@ const CSVParser = (function() {
     // Parse amount string to number
     function parseAmount(amountStr, row, headers) {
         if (!amountStr || amountStr.trim() === '') {
-            // Look for debit/credit columns
+            // Special case for Indian bank formats with DR/CR columns
+            const drColumn = headers.find(h => h.toLowerCase() === 'dr');
+            const crColumn = headers.find(h => h.toLowerCase() === 'cr');
+            
+            if (drColumn && crColumn) {
+                // If both DR and CR columns exist (Indian bank format)
+                if (row[drColumn] && row[drColumn].trim() !== '') {
+                    // Debit/DR is negative (expense)
+                    const amount = row[drColumn].replace(/[$₹Rs.,]/g, '').trim();
+                    if (amount && !isNaN(parseFloat(amount))) {
+                        return -Math.abs(parseFloat(amount));
+                    }
+                }
+                
+                if (row[crColumn] && row[crColumn].trim() !== '') {
+                    // Credit/CR is positive (income)
+                    const amount = row[crColumn].replace(/[$₹Rs.,]/g, '').trim();
+                    if (amount && !isNaN(parseFloat(amount))) {
+                        return Math.abs(parseFloat(amount));
+                    }
+                }
+            }
+            
+            // Look for other debit/credit columns
             for (const header of headers) {
                 const headerLower = header.toLowerCase();
                 
-                if (headerLower.includes('debit') && row[header] && row[header].trim() !== '') {
+                if ((headerLower.includes('debit') || headerLower === 'dr') && 
+                    row[header] && row[header].trim() !== '') {
                     // Debit is negative (expense)
-                    return -Math.abs(parseFloat(row[header].replace(/[$₹Rs\.,]/g, '')));
+                    const amount = row[header].replace(/[$₹Rs.,]/g, '').trim();
+                    if (amount && !isNaN(parseFloat(amount))) {
+                        return -Math.abs(parseFloat(amount));
+                    }
                 }
                 
-                if (headerLower.includes('credit') && row[header] && row[header].trim() !== '') {
+                if ((headerLower.includes('credit') || headerLower === 'cr') && 
+                    row[header] && row[header].trim() !== '') {
                     // Credit is positive (income)
-                    return Math.abs(parseFloat(row[header].replace(/[$₹Rs\.,]/g, '')));
+                    const amount = row[header].replace(/[$₹Rs.,]/g, '').trim();
+                    if (amount && !isNaN(parseFloat(amount))) {
+                        return Math.abs(parseFloat(amount));
+                    }
                 }
             }
             
@@ -212,10 +261,14 @@ const CSVParser = (function() {
         }
         
         // Remove currency symbols and commas
-        const cleanStr = amountStr.replace(/[$£€₹Rs\.,]/g, '');
+        const cleanStr = amountStr.replace(/[$£€₹Rs.,]/g, '').trim();
         
         // Parse as float
-        return parseFloat(cleanStr);
+        if (cleanStr && !isNaN(parseFloat(cleanStr))) {
+            return parseFloat(cleanStr);
+        }
+        
+        return 0;
     }
     
     // Determine transaction type (income or expense)
@@ -309,11 +362,40 @@ const CSVParser = (function() {
             return 'amex';
         }
         
-        // Check for Indian bank format (with Tran Date, PARTICULARS, DR, CR columns)
-        if ((headersLower.includes('tran date') || headersLower.includes('transaction date')) && 
-            (headersLower.includes('particulars') || headersLower.includes('description')) && 
-            (headersLower.includes('dr') || headersLower.includes('cr'))) {
-            console.log("Detected Indian bank format");
+        // Check for Indian bank formats - updated for better detection of various Indian banks
+        // SBI Bank format
+        if ((headersLower.includes('tran date') || headersLower.includes('date')) && 
+            (headersLower.includes('particulars') || headersLower.includes('description') || headersLower.includes('narration')) && 
+            (headersLower.includes('dr') && headersLower.includes('cr'))) {
+            console.log("Detected SBI bank format");
+            return 'sbi_bank';
+        }
+        
+        // HDFC Bank format
+        if ((headersLower.includes('date') || headersLower.includes('value date')) && 
+            (headersLower.includes('narration') || headersLower.includes('particulars')) && 
+            (headersLower.includes('withdrawal amt') || headersLower.includes('deposit amt') || 
+             headersLower.includes('withdrawal amt(inr)') || headersLower.includes('deposit amt(inr)'))) {
+            console.log("Detected HDFC bank format");
+            return 'hdfc_bank';
+        }
+        
+        // Axis Bank format
+        if ((headersLower.includes('tran date') || headersLower.includes('date')) && 
+            (headersLower.includes('particulars') || headersLower.includes('transaction remarks')) && 
+            (headersLower.includes('dr') || headersLower.includes('cr') || 
+             headersLower.includes('debit amount') || headersLower.includes('credit amount'))) {
+            console.log("Detected Axis bank format");
+            return 'axis_bank';
+        }
+        
+        // Generic Indian bank format
+        if ((headersLower.includes('tran date') || headersLower.includes('transaction date') || headersLower.includes('value date')) && 
+            (headersLower.includes('particulars') || headersLower.includes('description') || headersLower.includes('narration')) && 
+            (headersLower.includes('dr') || headersLower.includes('cr') || 
+             headersLower.includes('debit') || headersLower.includes('credit') ||
+             headersLower.includes('withdrawal') || headersLower.includes('deposit'))) {
+            console.log("Detected generic Indian bank format");
             return 'indian_bank';
         }
         
@@ -325,6 +407,28 @@ const CSVParser = (function() {
     function validateTransaction(transaction) {
         // Check if required fields are present
         if (!transaction.date || !transaction.description || isNaN(transaction.amount)) {
+            return false;
+        }
+        
+        // Skip rows with non-transaction data (common in Indian bank statements)
+        if (transaction.description.toLowerCase().includes('legend') || 
+            transaction.description.toLowerCase().includes('opening balance') ||
+            transaction.description.toLowerCase().includes('closing balance') ||
+            transaction.description.toLowerCase().includes('statement') ||
+            transaction.description.toLowerCase().includes('transaction trough') ||
+            transaction.description === 'PARTICULARS' ||
+            transaction.description === 'Narration' ||
+            transaction.description === 'Description') {
+            return false;
+        }
+        
+        // Skip empty descriptions or very short ones that are likely not transactions
+        if (transaction.description.trim().length < 3) {
+            return false;
+        }
+        
+        // Skip zero-amount transactions
+        if (transaction.amount === 0) {
             return false;
         }
         

@@ -147,23 +147,29 @@ const PDFParser = (function() {
                 }
 
                 if (inTransactionSection) {
-                    // Match date pattern DD MMM YY and transaction details
+                    // Match date pattern DD MMM YY and transaction details (more flexible pattern)
                     const dateMatch = line.match(/(\d{2}\s+[A-Za-z]{3}\s+\d{2})/);
                     if (dateMatch) {
-                        // Extract amount and type (C for Credit, D for Debit)
-                        const amountMatch = line.match(/(\d+,?\d*\.\d{2})\s+([CD])/);
-                        if (amountMatch) {
-                            let description = line
-                                .replace(dateMatch[0], '')
-                                .replace(amountMatch[0], '')
-                                .trim();
+                        // Look for amounts with type indicator
+                        const amountMatches = line.match(/(\d+(?:,\d+)*\.\d{2})\s*([CD])/g);
+                        if (amountMatches) {
+                            // Get the last amount match as it's typically the transaction amount
+                            const lastAmountMatch = amountMatches[amountMatches.length - 1];
+                            const [_, amountStr, typeChar] = lastAmountMatch.match(/(\d+(?:,\d+)*\.\d{2})\s*([CD])/);
 
-                            // Clean up description
+                            // Clean up the description by removing the date and all amounts
+                            let description = line;
+                            description = description.replace(dateMatch[0], '');
+                            amountMatches.forEach(match => {
+                                description = description.replace(match, '');
+                            });
+
+                            // Remove multiple spaces and trim
                             description = description.replace(/\s+/g, ' ').trim();
 
-                            // Parse amount
-                            const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-                            const type = amountMatch[2] === 'C' ? 'income' : 'expense';
+                            // Parse amount and determine type
+                            const amount = parseFloat(amountStr.replace(/,/g, ''));
+                            const type = typeChar === 'C' ? 'income' : 'expense';
 
                             // Create transaction object
                             const transaction = {
@@ -176,7 +182,7 @@ const PDFParser = (function() {
                             };
 
                             // Guess category
-                            transaction.category = guessCategory(description);
+                            transaction.category = guessCategory(transaction.description);
 
                             transactions.push(transaction);
                         }

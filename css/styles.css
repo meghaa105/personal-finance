@@ -194,20 +194,50 @@ main {
 }
 
 .transaction-item {
-    padding: 1.25rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
+    padding: 1.5rem;
+    margin: 0.75rem 0;
+    border-radius: var(--border-radius);
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
     align-items: center;
     transition: var(--transition);
     background: var(--card-bg);
+    box-shadow: var(--box-shadow);
 }
 
 .transaction-item:hover {
-    background: var(--glass-bg);
-    transform: scale(1.01);
-    z-index: 1;
-    box-shadow: var(--box-shadow);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Category color coding */
+.category-Food {
+    border-left: 4px solid #FF6B6B;
+}
+
+.category-Shopping {
+    border-left: 4px solid #4ECDC4;
+}
+
+.category-Transport {
+    border-left: 4px solid #45B7D1;
+}
+
+.category-Entertainment {
+    border-left: 4px solid #96CEB4;
+}
+
+.category-Bills {
+    border-left: 4px solid #D4A5A5;
+}
+
+.category-Other {
+    border-left: 4px solid #9D9D9D;
+}
+
+.category-Income {
+    border-left: 4px solid var(--success-color);
 }
 
 .transaction-item:last-child {
@@ -215,27 +245,56 @@ main {
 }
 
 .transaction-details {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .transaction-title {
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    font-size: 1rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.transaction-date {
-    font-size: 0.8rem;
+.transaction-title .material-icons {
+    font-size: 1.25rem;
     color: var(--text-secondary);
 }
 
+.transaction-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.transaction-date {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.transaction-date .material-icons {
+    font-size: 1rem;
+}
+
 .transaction-category {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     background-color: rgba(76, 110, 245, 0.1);
     color: var(--primary-color);
-    padding: 0.25rem 0.5rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 100px;
-    display: inline-block;
-    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.transaction-category .material-icons {
+    font-size: 1rem;
 }
 
 .transaction-source {

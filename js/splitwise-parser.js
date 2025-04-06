@@ -16,11 +16,14 @@ const SplitwiseParser = (function() {
     };
 
     function isSplitwiseFormat(headers) {
-        return headers.includes('Date') && 
-               headers.includes('Description') && 
-               headers.includes('Category') && 
-               headers.includes('Currency') && 
-               (headers.includes('Cost') || headers.includes('Your share'));
+        // Check if headers match Splitwise export format
+        const lowercaseHeaders = headers.map(h => h.toLowerCase());
+        return lowercaseHeaders.includes('date') && 
+               lowercaseHeaders.includes('description') && 
+               lowercaseHeaders.includes('category') && 
+               lowercaseHeaders.includes('currency') && 
+               (lowercaseHeaders.includes('cost') || lowercaseHeaders.includes('your share')) &&
+               !lowercaseHeaders.includes('chqno'); // Exclude bank statement formats
     }
 
     async function parseCSV(file, filterUser = null) {
@@ -90,11 +93,12 @@ const SplitwiseParser = (function() {
 
                                             // Find amount field - prefer 'Your share' over 'Cost'
                                             let amount = 0;
-                                            if (row['Your share']) {
+                                            if ('Your share' in row && row['Your share']) {
                                                 amount = Math.abs(parseFloat(row['Your share']));
-                                            } else if (row['Cost']) {
+                                            } else if ('Cost' in row && row['Cost']) {
                                                 amount = Math.abs(parseFloat(row['Cost']));
                                             }
+                                            console.log('Processing amount:', row['Your share'], row['Cost'], amount);
                                             
                                             if (isNaN(amount) || amount === 0) return null;
 

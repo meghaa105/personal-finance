@@ -1,3 +1,4 @@
+
 /**
  * Splitwise Parser module for extracting transaction data from Splitwise CSV exports
  */
@@ -8,8 +9,8 @@ const SplitwiseParser = (function() {
     // Splitwise CSV format headers
     const HEADER_MAPPINGS = {
         date: ['Date'],
-        description: ['Description'],
-        amount: ['Cost', 'Amount'],
+        description: ['Description', 'Notes'],
+        amount: ['Cost', 'Amount', 'Your share'],
         category: ['Category'],
         currency: ['Currency'],
         type: ['Type']
@@ -28,50 +29,55 @@ const SplitwiseParser = (function() {
                         skipEmptyLines: true,
                         complete: function(results) {
                             try {
+                                console.log('Splitwise CSV headers:', results.meta.fields);
+                                console.log('Sample row:', results.data[0]);
+
                                 if (!results.data || !Array.isArray(results.data)) {
                                     reject(new Error('Invalid CSV data: Expected an array of rows'));
                                     return;
                                 }
 
-                                // Validate that this is a Splitwise CSV
+                                // Validate headers more flexibly
                                 const headers = results.meta.fields || [];
-                                const missingHeaders = REQUIRED_HEADERS.filter(h => !headers.includes(h));
-                                if (missingHeaders.length > 0) {
-                                    reject(new Error(`Invalid Splitwise CSV: Missing required headers: ${missingHeaders.join(', ')}`));
+                                const hasRequiredFields = headers.some(h => HEADER_MAPPINGS.date.includes(h)) &&
+                                                        headers.some(h => HEADER_MAPPINGS.description.includes(h)) &&
+                                                        headers.some(h => HEADER_MAPPINGS.amount.includes(h));
+                                
+                                if (!hasRequiredFields) {
+                                    reject(new Error('Invalid Splitwise CSV: Missing required headers for date, description, or amount'));
                                     return;
                                 }
-
-                                console.log('Splitwise CSV headers:', headers);
-                                console.log('Sample row:', results.data[0]);
 
                                 let transactions = results.data
                                     .filter(row => row && typeof row === 'object')
                                     .filter(row => {
                                         if (!filterUser) return true;
-                                        const userAmount = parseFloat(row[filterUser] || '0');
-                                        return userAmount !== 0;
+                                        const userShare = parseFloat(row['Your share'] || '0');
+                                        return userShare !== 0;
                                     })
                                     .map(row => {
                                         try {
-                                            // Extract date - Splitwise uses YYYY-MM-DD format
-                                            const dateStr = row['Date'];
+                                            // Find date field
+                                            const dateField = headers.find(h => HEADER_MAPPINGS.date.includes(h));
+                                            const dateStr = row[dateField];
                                             if (!dateStr) return null;
                                             const date = new Date(dateStr);
                                             if (isNaN(date.getTime())) return null;
 
-                                            // Extract description
-                                            const description = row['Description'] || row['Notes'] || 'Unknown';
+                                            // Find description field
+                                            const descField = headers.find(h => HEADER_MAPPINGS.description.includes(h));
+                                            const description = row[descField] || 'Unknown Splitwise Transaction';
                                             if (!description || description.trim().length === 0) return null;
 
-                                            // Extract amount - Splitwise uses 'Cost' or 'Amount' field
-                                            let amount = parseFloat(row['Cost'] || row['Amount'] || '0');
-                                            if (isNaN(amount) || amount === 0) return null;
-
-                                            // If we have user-specific amount, use that instead
-                                            if (filterUser && row[filterUser]) {
-                                                amount = Math.abs(parseFloat(row[filterUser]));
-                                                if (isNaN(amount) || amount === 0) return null;
+                                            // Find amount field - prefer 'Your share' over 'Cost'
+                                            let amount = 0;
+                                            if (row['Your share']) {
+                                                amount = Math.abs(parseFloat(row['Your share']));
+                                            } else if (row['Cost']) {
+                                                amount = Math.abs(parseFloat(row['Cost']));
                                             }
+                                            
+                                            if (isNaN(amount) || amount === 0) return null;
 
                                             // Extract currency
                                             const currency = row['Currency'] || 'INR';
@@ -80,12 +86,12 @@ const SplitwiseParser = (function() {
                                             let category = row['Category'] || '';
                                             category = mapSplitwiseCategory(category);
 
-                                            // Determine transaction type (expense by default)
+                                            // Set transaction type
                                             const type = 'expense';
 
                                             return {
                                                 date,
-                                                description,
+                                                description: description.trim(),
                                                 amount,
                                                 category,
                                                 type,
@@ -93,7 +99,7 @@ const SplitwiseParser = (function() {
                                                 currency
                                             };
                                         } catch (error) {
-                                            console.error('Error processing row:', error, row);
+                                            console.error('Error processing Splitwise row:', error, row);
                                             return null;
                                         }
                                     })
@@ -128,7 +134,7 @@ const SplitwiseParser = (function() {
         });
     }
 
-    // Map Splitwise categories to our standard categories
+    // Map Splitwise categories to standard categories
     function mapSplitwiseCategory(splitwiseCategory) {
         const categoryMap = {
             'Food & Drink': 'Food & Dining',
@@ -140,11 +146,14 @@ const SplitwiseParser = (function() {
             'Utilities': 'Utilities',
             'Medical': 'Health',
             'Education': 'Education',
-            'Travel': 'Travel'
+            'Travel': 'Travel',
+            'General': 'Other',
+            'Rent': 'Housing',
+            'Movies': 'Entertainment',
+            'Dining out': 'Food & Dining'
         };
 
-        const category = categoryMap[splitwiseCategory] || 'Other';
-        return category;
+        return categoryMap[splitwiseCategory] || 'Other';
     }
 
     return {

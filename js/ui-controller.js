@@ -43,7 +43,7 @@ const UIController = (function () {
 
         // Transaction modal
         transactionModal: document.getElementById("transaction-modal"),
-        modalTitle: document.querySelector("modal-title"),
+        modalTitle: document.querySelector("#transaction-modal-title"), //This line was likely the source of the error.
         transactionForm: document.getElementById("transaction-form"),
         transactionId: document.getElementById("transaction-id"),
         transactionDate: document.getElementById("transaction-date"),
@@ -534,7 +534,7 @@ const UIController = (function () {
         // Reset form
         DOM.transactionForm.reset();
         DOM.transactionId.value = "";
-        DOM.modalTitle.textContent = "Add Transaction";
+        document.getElementById("transaction-modal-title").textContent = "Add Transaction";
 
         // Set current date as default
         const today = new Date().toISOString().split("T")[0];
@@ -564,7 +564,7 @@ const UIController = (function () {
         DOM.transactionDescription.value = transaction.description;
 
         // Update modal title
-        DOM.modalTitle.textContent = "Edit Transaction";
+        document.getElementById("transaction-modal-title").textContent = "Edit Transaction";
 
         // Show modal
         DOM.transactionModal.style.display = "block";

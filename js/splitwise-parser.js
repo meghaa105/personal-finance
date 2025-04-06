@@ -4,17 +4,24 @@
  */
 const SplitwiseParser = (function() {
     // Required headers for a valid Splitwise CSV
-    const REQUIRED_HEADERS = ['Date', 'Description', 'Category', 'Cost'];
+    const REQUIRED_HEADERS = ['Date', 'Description', 'Category', 'Cost', 'Currency'];
 
     // Splitwise CSV format headers
     const HEADER_MAPPINGS = {
         date: ['Date'],
-        description: ['Description', 'Notes'],
-        amount: ['Cost', 'Amount', 'Your share'],
+        description: ['Description'],
+        amount: ['Cost', 'Your share'],
         category: ['Category'],
-        currency: ['Currency'],
-        type: ['Type']
+        currency: ['Currency']
     };
+
+    function isSplitwiseFormat(headers) {
+        return headers.includes('Date') && 
+               headers.includes('Description') && 
+               headers.includes('Category') && 
+               headers.includes('Currency') && 
+               (headers.includes('Cost') || headers.includes('Your share'));
+    }
 
     async function parseCSV(file, filterUser = null) {
         console.log('Starting Splitwise CSV parsing...', file);
@@ -48,9 +55,12 @@ const SplitwiseParser = (function() {
 
                                 // Validate headers more flexibly
                                 const headers = results.meta.fields || [];
-                                const hasRequiredFields = headers.some(h => HEADER_MAPPINGS.date.includes(h)) &&
-                                                        headers.some(h => HEADER_MAPPINGS.description.includes(h)) &&
-                                                        headers.some(h => HEADER_MAPPINGS.amount.includes(h));
+                                console.log('CSV Headers:', headers);
+                                
+                                if (!isSplitwiseFormat(headers)) {
+                                    reject(new Error('Invalid Splitwise CSV format. Please make sure you are uploading a Splitwise export file.'));
+                                    return;
+                                }
                                 
                                 if (!hasRequiredFields) {
                                     reject(new Error('Invalid Splitwise CSV: Missing required headers for date, description, or amount'));

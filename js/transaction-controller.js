@@ -17,58 +17,63 @@ const TransactionsController = (function() {
     let pendingImportTransactions = [];
 
     function init() {
-        // Initialize DOM elements
-        const elements = {
-            csvUpload: document.getElementById('csv-upload'),
-            pdfUpload: document.getElementById('pdf-upload'),
-            splitwiseUpload: document.getElementById('splitwise-upload'),
-            confirmImport: document.getElementById('confirm-import'),
-            importPreview: document.getElementById('import-preview-content'),
-            csvStatus: document.getElementById('csv-upload-status'),
-            pdfStatus: document.getElementById('pdf-upload-status'),
-            splitwiseStatus: document.getElementById('splitwise-upload-status')
-        };
+        // Initialize DOM elements directly
+        csvUploadInput = document.getElementById('csv-upload');
+        pdfUploadInput = document.getElementById('pdf-upload');
+        splitwiseUploadInput = document.getElementById('splitwise-upload');
+        confirmImportBtn = document.getElementById('confirm-import');
+        importPreviewContent = document.getElementById('import-preview-content');
+        csvUploadStatus = document.getElementById('csv-upload-status');
+        pdfUploadStatus = document.getElementById('pdf-upload-status');
+        splitwiseUploadStatus = document.getElementById('splitwise-upload-status');
 
-        // Validate all elements exist
-        Object.entries(elements).forEach(([name, element]) => {
-            if (!element) {
-                console.error(`Missing DOM element: ${name}`);
-            }
+        // Log initialization state
+        console.log('Transaction Controller Elements:', {
+            csvUploadInput,
+            pdfUploadInput,
+            splitwiseUploadInput,
+            confirmImportBtn,
+            importPreviewContent,
+            csvUploadStatus,
+            pdfUploadStatus,
+            splitwiseUploadStatus
         });
-
-        // Assign to module scope
-        csvUploadInput = elements.csvUpload;
-        pdfUploadInput = elements.pdfUpload;
-        splitwiseUploadInput = elements.splitwiseUpload;
-        confirmImportBtn = elements.confirmImport;
-        importPreviewContent = elements.importPreview;
-        csvUploadStatus = elements.csvStatus;
-        pdfUploadStatus = elements.pdfStatus;
-        splitwiseUploadStatus = elements.splitwiseStatus;
 
         setupEventListeners();
     }
 
     function setupEventListeners() {
+        // Add event listeners with error handling
+        const addSafeEventListener = (element, event, handler) => {
+            if (element) {
+                element.addEventListener(event, handler);
+                console.log(`Added ${event} listener to`, element);
+            } else {
+                console.error(`Failed to add ${event} listener - element not found`);
+            }
+        };
+
         // CSV Import
-        if (csvUploadInput) {
-            csvUploadInput.addEventListener('change', handleCSVUpload);
-        }
+        addSafeEventListener(csvUploadInput, 'change', handleCSVUpload);
         
         // PDF Import
-        if (pdfUploadInput) {
-            pdfUploadInput.addEventListener('change', handlePDFUpload);
-        }
+        addSafeEventListener(pdfUploadInput, 'change', handlePDFUpload);
         
         // Splitwise Import
-        if (splitwiseUploadInput) {
-            splitwiseUploadInput.addEventListener('change', handleSplitwiseUpload);
-        }
+        addSafeEventListener(splitwiseUploadInput, 'change', handleSplitwiseUpload);
         
         // Confirm Import
-        if (confirmImportBtn) {
-            confirmImportBtn.addEventListener('click', confirmImport);
-        }
+        addSafeEventListener(confirmImportBtn, 'click', confirmImport);
+
+        // Add click handlers to file upload labels
+        document.querySelectorAll('.file-upload label').forEach(label => {
+            label.addEventListener('click', (e) => {
+                const input = label.parentElement.querySelector('input[type="file"]');
+                if (input) {
+                    input.click();
+                }
+            });
+        });
     }
 
     async function handleCSVUpload(event) {

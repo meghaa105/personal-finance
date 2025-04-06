@@ -69,7 +69,7 @@ const PDFParser = (function () {
 
         // HDFC Bank statement pattern (common in Indian banks)
         HDFC_BANK_STATEMENT:
-            /(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(\d+(?:,\d{3})*\.\d{2})\s+(?:Cr\.?|Dr\.?)/gi,
+            /((\d{2}\/\d{2}\/\d{4})\s+([^\n]+?)(?:\s+(?:Cr|Dr))?)\s+(\d+(?:,\d{3})*(?:\.\d{2})?)/gi,
 
         // ICICI Bank statement pattern
         ICICI_BANK_STATEMENT:
@@ -532,23 +532,22 @@ const PDFParser = (function () {
             if (isHDFCStatement) {
                 console.log("Detected HDFC Bank statement format");
 
-                // Process HDFC statement - typically has Date, Narration, Withdrawal, Deposit format
+                // Process HDFC statement
                 const hdfcPattern = PATTERNS.HDFC_BANK_STATEMENT;
                 let match;
 
                 while ((match = hdfcPattern.exec(text)) !== null) {
-                    const dateStr = match[1];
-                    const description = match[2].trim();
-                    // Clean amount string - remove commas and currency symbols
-                    const amountStr = match[3].replace(/[,₹]/g, "").trim();
+                    const fullMatch = match[1];  // Full transaction line
+                    const dateStr = match[2];    // Date
+                    const description = match[3].trim();  // Description/Narration
+                    const amountStr = match[4].replace(/,/g, "").trim();  // Amount
 
                     const date = parseDate(dateStr);
                     const amount = parseFloat(amountStr);
 
-                    // Determine if it's a credit (Cr) or debit (Dr) transaction
-                    const hasCredit =
-                        match[0].includes("Cr") || match[0].includes("CR");
-                    const transactionType = hasCredit ? "income" : "expense";
+                    // Determine if it's a credit (Cr) or debit transaction
+                    const isCreditTransaction = fullMatch.toLowerCase().includes("cr");
+                    const transactionType = isCreditTransaction ? "income" : "expense";
 
                     if (date && !isNaN(amount)) {
                         transactions.push({
@@ -564,75 +563,53 @@ const PDFParser = (function () {
                     }
                 }
 
-                // If no transactions found, try line-by-line analysis
+                // If no transactions found with primary pattern, try line-by-line analysis
                 if (transactions.length === 0) {
                     console.log("Trying alternative HDFC parsing method");
 
+                    let currentDate = null;
+                    let currentDescription = null;
+
                     for (let i = 0; i < lines.length; i++) {
                         const line = lines[i].trim();
-                        if (line === "") continue;
+                        if (!line) continue;
 
-                        // Look for date pattern DD/MM/YYYY (common in HDFC statements)
+                        // Look for date pattern DD/MM/YYYY
                         const dateMatch = /(\d{2}\/\d{2}\/\d{4})/.exec(line);
-                        if (!dateMatch) continue;
-
-                        const dateStr = dateMatch[1];
-                        const date = parseDate(dateStr);
-
-                        if (!date) continue;
-
-                        // Extract description and amount
-                        const parts = line.split(/\s{2,}/); // Split by multiple spaces
-
-                        if (parts.length >= 3) {
-                            const description = parts[1].trim();
-                            let amount = 0;
-                            let transactionType = "expense";
-
-                            // Find the amount - usually the last part with a decimal
-                            for (let j = 2; j < parts.length; j++) {
-                                const amountMatch = /(\d+,?\d*\.\d{2})/.exec(
-                                    parts[j],
-                                );
-                                if (amountMatch) {
-                                    amount = parseFloat(
-                                        amountMatch[1].replace(/,/g, ""),
-                                    );
-
-                                    // Check if this is a credit (CR/Cr) or withdrawal amount
-                                    const isCreditPart =
-                                        parts[j].includes("Cr") ||
-                                        parts[j].includes("CR") ||
-                                        j === parts.length - 1; // Last column is typically balance
-
-                                    transactionType = isCreditPart
-                                        ? "income"
-                                        : "expense";
-                                    break;
-                                }
+                        if (dateMatch) {
+                            currentDate = parseDate(dateMatch[1]);
+                            // Extract description from the same line
+                            const descriptionMatch = line.substring(dateMatch[0].length).trim();
+                            if (descriptionMatch) {
+                                currentDescription = descriptionMatch;
                             }
+                            continue;
+                        }
 
-                            if (amount > 0) {
-                                transactions.push({
-                                    date: date,
-                                    description: description,
-                                    amount: amount,
-                                    type: transactionType,
-                                    category:
-                                        transactionType === "income"
-                                            ? "Income"
-                                            : guessCategory(description),
-                                });
+                        // Look for amount with Cr/Dr indicator
+                        if (currentDate && currentDescription) {
+                            const amountMatch = /(\d+(?:,\d{3})*(?:\.\d{2})?)\s*(?:Cr|Dr)?/.exec(line);
+                            if (amountMatch) {
+                                const amount = parseFloat(amountMatch[1].replace(/,/g, ""));
+                                const isCreditTransaction = line.toLowerCase().includes("cr");
+                                
+                                if (!isNaN(amount)) {
+                                    transactions.push({
+                                        date: currentDate,
+                                        description: currentDescription,
+                                        amount: amount,
+                                        type: isCreditTransaction ? "income" : "expense",
+                                        category: isCreditTransaction ? "Income" : guessCategory(currentDescription),
+                                    });
+                                    
+                                    // Reset for next transaction
+                                    currentDate = null;
+                                    currentDescription = null;
+                                }
                             }
                         }
                     }
                 }
-
-                console.log(
-                    "Found " +
-                        transactions.length +
-                        " transactions in HDFC Bank statement",
-                );
             }
         }
 
@@ -900,9 +877,7 @@ const PDFParser = (function () {
                     const dateStr = match[1];
                     const description = match[2].trim();
                     // Clean amount string - replace any currency symbols
-                    const amountStr = match[3].replace(/[$₹Rs\.,]/g, "").trim();
-
-                    const date = parseDate(dateStr);
+                    const amountStr = match[3].replace(/[$₹Rs\.,]/g, "");
                     const amount = parseFloat(amountStr);
 
                     // Guess if this is income or expense based on description
@@ -911,9 +886,9 @@ const PDFParser = (function () {
                             description,
                         );
 
-                    if (date && !isNaN(amount)) {
+                    if (parseDate(dateStr) && !isNaN(amount)) {
                         transactions.push({
-                            date: date,
+                            date: parseDate(dateStr),
                             description: description,
                             amount: amount,
                             type: isIncome ? "income" : "expense",

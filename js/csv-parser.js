@@ -127,8 +127,11 @@ const CSVParser = (function() {
         // Get the appropriate header mappings
         const mappings = bankFormat ? HEADER_MAPPINGS[bankFormat] : null;
         
-        // For SBI bank statements, use a special direct approach
-        let cleanedData = [...data]; // Create a copy of the data array
+        // Ensure data is an array
+        if (!Array.isArray(data)) {
+            console.error('Invalid data format: expected an array');
+            return [];
+        }
         
         // Special handling for SBI bank format with its specific structure
         if (bankFormat === 'sbi_bank') {
@@ -137,9 +140,9 @@ const CSVParser = (function() {
             
             // Check if we have the exact SBI format we're expecting
             const isSbiExactFormat = headers.includes('Tran Date') && 
-                                     headers.includes('PARTICULARS') && 
-                                     headers.includes('DR') && 
-                                     headers.includes('CR');
+                                   headers.includes('PARTICULARS') && 
+                                   headers.includes('DR') && 
+                                   headers.includes('CR');
             
             if (isSbiExactFormat) {
                 console.log("Using direct SBI bank statement processing");
@@ -147,7 +150,7 @@ const CSVParser = (function() {
                 // Direct processing approach for SBI bank format
                 const transactions = [];
                 
-                // Process each row directly, skipping header processing step
+                // Process each row directly
                 for (let i = 0; i < data.length; i++) {
                     const row = data[i];
                     
@@ -218,137 +221,47 @@ const CSVParser = (function() {
             }
         }
         
-        // For SBI bank statements, skip legend section (for non-direct approach)
-        if (bankFormat === 'sbi_bank') {
-            // Find where the legend section starts - trying different possible column names
-            let legendIndex = -1;
-            const possibleDateColumns = ['Tran Date', 'Value Date', 'Date', 'Txn Date', 'Transaction Date'];
-            
-            // First check for explicit "Legend:" marker
-            for (let i = 0; i < data.length; i++) {
-                for (const dateCol of possibleDateColumns) {
-                    if (data[i][dateCol] && typeof data[i][dateCol] === 'string' && 
-                        (data[i][dateCol].includes('Legend') || 
-                         data[i][dateCol].toLowerCase().includes('legend'))) {
-                        legendIndex = i;
-                        console.log(`Found legend marker at row ${i}`);
-                        break;
-                    }
-                }
-                if (legendIndex !== -1) break;
-                
-                // Also check description/particulars columns
-                const descCols = ['PARTICULARS', 'Description', 'Narration', 'Transaction Details'];
-                for (const descCol of descCols) {
-                    if (data[i][descCol] && typeof data[i][descCol] === 'string' && 
-                        (data[i][descCol].includes('Legend') || 
-                         data[i][descCol].toLowerCase().includes('legend'))) {
-                        legendIndex = i;
-                        console.log(`Found legend marker in description at row ${i}`);
-                        break;
-                    }
-                }
-                if (legendIndex !== -1) break;
-            }
-            
-            // If no explicit legend marker, look for consecutive empty rows which often indicate the end of transactions
-            if (legendIndex === -1) {
-                const dateCol = possibleDateColumns.find(col => data[0] && data[0][col] !== undefined);
-                if (dateCol) {
-                    for (let i = 0; i < data.length; i++) {
-                        // Check for 2 or more consecutive empty date rows (common pattern at end of SBI transactions)
-                        if (i > 0 && (!data[i][dateCol] || data[i][dateCol] === '') && 
-                            (!data[i-1][dateCol] || data[i-1][dateCol] === '')) {
-                            legendIndex = i - 1; // Start of empty section
-                            console.log(`Found consecutive empty rows at ${i-1}, likely end of transactions`);
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            // If we found a legend marker or empty section, trim the data
-            if (legendIndex !== -1) {
-                cleanedData = data.slice(0, legendIndex);
-                console.log(`SBI statement detected. Removed legend/tail section (${data.length - legendIndex} rows)`);
-            }
-            
-            // Special pre-processing for SBI statements with empty dates
-            cleanedData = cleanedData.filter(row => {
-                // Check if the date column exists and has a value
-                const dateCol = possibleDateColumns.find(col => row[col] !== undefined);
-                if (!dateCol) return false;
-                
-                const dateValue = row[dateCol];
-                // Skip rows with empty dates or non-date values
-                if (!dateValue || dateValue.trim() === '' || dateValue === '-') {
-                    return false;
-                }
-                
-                // Verify it looks like a date (DD-MM-YYYY format common in SBI statements)
-                const isDateFormat = /^\d{2}-\d{2}-\d{4}$/.test(dateValue.trim());
-                if (!isDateFormat) {
-                    return false;
-                }
-                
-                return true;
-            });
-            
-            console.log(`After SBI pre-processing, ${cleanedData.length} valid transaction rows remain`);
-        }
-        
         // Generic approach for all other bank formats or SBI formats that don't match the exact structure
-        return cleanedData.map((row, index) => {
+        return data.map((row, index) => {
             try {
                 // Skip completely empty rows
                 if (Object.values(row).every(val => !val || val.trim() === '')) {
                     return null;
                 }
                 
+                // Create transaction object
                 const transaction = {
-                    source: 'csv'  // Add source information
+                    date: extractField(row, headers, 'date', mappings),
+                    description: extractField(row, headers, 'description', mappings),
+                    amount: parseAmount(extractField(row, headers, 'amount', mappings), row, headers),
+                    type: determineTransactionType(
+                        extractField(row, headers, 'type', mappings),
+                        parseAmount(extractField(row, headers, 'amount', mappings), row, headers),
+                        row,
+                        headers
+                    ),
+                    source: 'csv'
                 };
-                
-                // Extract date
-                transaction.date = extractField(row, headers, 'date', mappings);
                 
                 // Skip rows without dates
                 if (!transaction.date) {
                     return null;
                 }
                 
-                // Extract description
-                transaction.description = extractField(row, headers, 'description', mappings);
-                
-                // Extract amount
-                const amountStr = extractField(row, headers, 'amount', mappings);
-                let amount = parseAmount(amountStr, row, headers);
-                
-                // Determine transaction type (income/expense)
-                const typeField = extractField(row, headers, 'type', mappings);
-                let type = determineTransactionType(typeField, amount, row, headers);
-                
-                // Ensure amount is positive (type determines if it's an expense or income)
-                amount = Math.abs(amount);
-                
-                transaction.amount = amount;
-                transaction.type = type;
-                
-                // Extract category if available
-                const categoryField = extractField(row, headers, 'category', mappings);
-                if (categoryField) {
-                    transaction.category = categoryField;
-                } else {
-                    // Guess category based on description
-                    transaction.category = guessCategory(transaction.description);
+                // Skip rows with invalid amounts
+                if (isNaN(transaction.amount) || transaction.amount === 0) {
+                    return null;
                 }
+                
+                // Guess category based on description
+                transaction.category = guessCategory(transaction.description);
                 
                 return transaction;
             } catch (error) {
                 console.error(`Error mapping row ${index}:`, error, row);
                 return null;
             }
-        }).filter(transaction => transaction !== null && validateTransaction(transaction));
+        }).filter(t => t !== null);
     }
     
     // Extract field value using header mappings

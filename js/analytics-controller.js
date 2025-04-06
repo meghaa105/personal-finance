@@ -188,11 +188,14 @@ const AnalyticsController = (function() {
         // Update summary statistics
         updateAnalyticsSummary(transactions);
         
-        // Update charts
-        updateCategoryChart(transactions);
-        updateTrendsChart(transactions);
-        updateCashFlowChart(transactions);
-        updatePaymentMethodChart(transactions);
+        // Only update charts if analytics tab is active
+        const analyticsTab = document.getElementById('analytics');
+        if (analyticsTab && analyticsTab.classList.contains('active')) {
+            updateCategoryChart(transactions);
+            updateTrendsChart(transactions);
+            updateCashFlowChart(transactions);
+            updatePaymentMethodChart(transactions);
+        }
         
         // Update filtered transactions list
         updateFilteredTransactionsList(transactions);
@@ -263,6 +266,7 @@ const AnalyticsController = (function() {
         const totalIncomeEl = document.getElementById('total-income');
         const avgDailyExpenseEl = document.getElementById('avg-daily-expense');
         const maxExpenseDayEl = document.getElementById('max-expense-day');
+        const monthlySavingsRateEl = document.getElementById('monthly-savings-rate');
         
         // Calculate metrics
         let totalSpending = 0;
@@ -299,11 +303,18 @@ const AnalyticsController = (function() {
             }
         }
         
+        // Calculate monthly savings rate
+        let savingsRate = 0;
+        if (totalIncome > 0) {
+            savingsRate = ((totalIncome - totalSpending) / totalIncome) * 100;
+        }
+        
         // Update the UI
         totalSpendingEl.textContent = TransactionUtils.formatCurrency(totalSpending);
         totalIncomeEl.textContent = TransactionUtils.formatCurrency(totalIncome);
         avgDailyExpenseEl.textContent = TransactionUtils.formatCurrency(avgDailyExpense);
         maxExpenseDayEl.textContent = maxExpenseDay === 'None' ? 'None' : `${maxExpenseDay} (${TransactionUtils.formatCurrency(maxAmount)})`;
+        monthlySavingsRateEl.textContent = savingsRate.toFixed(1) + '%';
     }
     
     /**

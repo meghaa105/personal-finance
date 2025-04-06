@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PersonalFinance - INR</title>
+    <title>Personal Finance Manager - INR</title>
     <link rel="stylesheet" href="css/styles.css">
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -17,7 +17,7 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>PersonalFinance (₹)</h1>
+            <h1>Personal Finance Manager (₹)</h1>
             <div class="tabs">
                 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
                 <button class="tab-btn" data-tab="transactions">Transactions</button>
@@ -92,41 +92,43 @@
                         <div class="time-filter">
                             <h3>Time Period</h3>
                             <div class="time-filter-buttons">
-                                <button class="filter-btn active" data-period="month">Month</button>
-                                <button class="filter-btn" data-period="quarter">Quarter</button>
-                                <button class="filter-btn" data-period="year">Year</button>
+                                <button class="filter-btn active" data-period="month">This Month</button>
+                                <button class="filter-btn" data-period="quarter">Last Quarter</button>
+                                <button class="filter-btn" data-period="year">Last Year</button>
                                 <button class="filter-btn" data-period="custom">Custom</button>
                             </div>
                             <div class="custom-date-range" style="display: none;">
                                 <input type="date" id="start-date">
-                                <span>to</span>
                                 <input type="date" id="end-date">
-                                <button id="apply-date-range" class="btn">Apply</button>
+                                <button id="apply-date-range" class="btn primary">Apply</button>
                             </div>
                         </div>
-                        
+
                         <div class="category-filter">
                             <h3>Categories</h3>
                             <div class="category-checkboxes" id="category-filters">
                                 <!-- Will be populated with categories -->
-                                <div class="empty-state">No categories available</div>
                             </div>
                         </div>
-                        
+
                         <div class="source-filter">
                             <h3>Transaction Source</h3>
                             <div class="source-checkboxes" id="source-filters">
                                 <div class="source-checkbox">
-                                    <input type="checkbox" id="source-manual" data-source="manual" checked>
-                                    <label for="source-manual">Manual Entries</label>
+                                    <input type="checkbox" id="source-manual" value="manual" checked>
+                                    <label for="source-manual">Manual Entry</label>
                                 </div>
                                 <div class="source-checkbox">
-                                    <input type="checkbox" id="source-csv" data-source="csv" checked>
-                                    <label for="source-csv">CSV Import</label>
+                                    <input type="checkbox" id="source-csv" value="csv" checked>
+                                    <label for="source-csv">Bank Statement CSV Import</label>
                                 </div>
                                 <div class="source-checkbox">
-                                    <input type="checkbox" id="source-pdf" data-source="pdf" checked>
-                                    <label for="source-pdf">PDF Import</label>
+                                    <input type="checkbox" id="source-pdf" value="pdf" checked>
+                                    <label for="source-pdf">Credit Card PDF Import</label>
+                                </div>
+                                <div class="source-checkbox">
+                                    <input type="checkbox" id="source-splitwise" value="splitwise" checked>
+                                    <label for="source-splitwise">Splitwise Import</label>
                                 </div>
                             </div>
                         </div>
@@ -152,6 +154,10 @@
                             <h4>Most Expensive Day</h4>
                             <p id="max-expense-day">None</p>
                         </div>
+                        <div class="metric">
+                            <h4>Monthly Savings Rate</h4>
+                            <p id="monthly-savings-rate">0.0%</p>
+                        </div>
                     </div>
                 </div>
                 
@@ -172,6 +178,31 @@
                         <h3>Payment Methods</h3>
                         <canvas id="payment-method-chart"></canvas>
                     </div>
+                    <!-- New Advanced Analytics Charts -->
+                    <div class="chart-wrapper">
+                        <h3>Monthly Savings Rate</h3>
+                        <canvas id="savings-rate-chart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Budget vs Actual Spending</h3>
+                        <canvas id="budget-comparison-chart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Recurring Expenses</h3>
+                        <canvas id="recurring-expenses-chart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Category Growth Analysis</h3>
+                        <canvas id="category-growth-chart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Daily Spending Patterns</h3>
+                        <canvas id="daily-pattern-chart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Expense Forecast</h3>
+                        <canvas id="expense-forecast-chart"></canvas>
+                    </div>
                 </div>
                 
                 <div class="filtered-transactions">
@@ -185,6 +216,33 @@
             
             <!-- Import Tab -->
             <section id="import" class="tab-content">
+                <div id="import-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-modal">&times;</span>
+                        <h2>Import Transactions</h2>
+                        <div class="import-form">
+                            <div class="form-group">
+                                <label for="import-file">Select File:</label>
+                                <input type="file" id="import-file" accept=".csv,.pdf" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="import-file-name">File Name:</label>
+                                <input type="text" id="import-file-name" placeholder="Enter a name for this file" required>
+                                <small class="help-text">This name will help you identify transactions from this file</small>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="button" id="cancel-import" class="btn cancel">Cancel</button>
+                                <button type="button" id="import-transactions" class="btn primary">Import</button>
+                            </div>
+                        </div>
+                        <div id="import-progress" class="progress-container" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                            <div class="progress-text">Importing...</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="import-options">
                     <div class="import-option">
                         <h3>Import PDF (Credit Card Statement)</h3>
@@ -409,6 +467,30 @@
             </div>
         </div>
 
+        <!-- File Rename Modal -->
+        <div id="rename-file-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Rename Source File</h2>
+                <div class="file-rename-form">
+                    <div class="form-group">
+                        <label for="file-select">Select File:</label>
+                        <select id="file-select" required>
+                            <!-- Will be populated with file names -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-file-name">New Name:</label>
+                        <input type="text" id="new-file-name" required>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="button" id="cancel-rename" class="btn cancel">Cancel</button>
+                        <button type="button" id="save-rename" class="btn primary">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Toast Notification -->
         <div id="toast" class="toast"></div>
     </div>
@@ -416,11 +498,15 @@
     <!-- Application Scripts -->
     <script src="js/database.js"></script>
     <script src="js/transaction-utils.js"></script>
+    <script src="js/settings-controller.js"></script>
+    <script src="js/transaction-controller.js"></script>
+    <script src="js/analytics-controller.js"></script>
+    <script src="js/advanced-analytics.js"></script>
     <script src="js/ui-controller.js"></script>
     <script src="js/pdf-parser.js"></script>
     <script src="js/csv-parser.js"></script>
+    <script src="js/splitwise-parser.js"></script>
     <script src="js/reminder-controller.js"></script>
-    <script src="js/analytics-controller.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

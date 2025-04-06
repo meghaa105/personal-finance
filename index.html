@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PersonalFinance</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- PDF.js library for PDF parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <!-- Papa Parse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>PersonalFinance</h1>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn" data-tab="transactions">Transactions</button>
+                <button class="tab-btn" data-tab="import">Import</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+            </div>
+        </header>
+        
+        <main>
+            <!-- Dashboard Tab -->
+            <section id="dashboard" class="tab-content active">
+                <div class="summary-cards">
+                    <div class="card">
+                        <h3>Total Balance</h3>
+                        <p class="total-balance">$0.00</p>
+                    </div>
+                    <div class="card">
+                        <h3>Income</h3>
+                        <p class="total-income">$0.00</p>
+                    </div>
+                    <div class="card">
+                        <h3>Expenses</h3>
+                        <p class="total-expenses">$0.00</p>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="expense-chart"></canvas>
+                </div>
+                
+                <div class="recent-transactions">
+                    <h3>Recent Transactions</h3>
+                    <div id="recent-transactions-list" class="transactions-list">
+                        <!-- Transactions will be populated here -->
+                        <div class="empty-state">No transactions available</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Transactions Tab -->
+            <section id="transactions" class="tab-content">
+                <div class="filters">
+                    <input type="text" id="search-transactions" placeholder="Search transactions...">
+                    <select id="filter-type">
+                        <option value="all">All Types</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                    <input type="month" id="filter-month">
+                </div>
+                
+                <div id="transactions-list" class="transactions-list">
+                    <!-- Transactions will be populated here -->
+                    <div class="empty-state">No transactions available</div>
+                </div>
+                
+                <button id="add-transaction-btn" class="floating-btn">
+                    <span class="material-icons">add</span>
+                </button>
+            </section>
+            
+            <!-- Import Tab -->
+            <section id="import" class="tab-content">
+                <div class="import-options">
+                    <div class="import-option">
+                        <h3>Import PDF (Credit Card Statement)</h3>
+                        <div class="file-upload">
+                            <input type="file" id="pdf-upload" accept="application/pdf">
+                            <label for="pdf-upload">
+                                <span class="material-icons">upload_file</span>
+                                <span>Select PDF File</span>
+                            </label>
+                        </div>
+                        <div id="pdf-upload-status" class="upload-status"></div>
+                    </div>
+                    
+                    <div class="import-option">
+                        <h3>Import CSV (Bank Statement)</h3>
+                        <div class="file-upload">
+                            <input type="file" id="csv-upload" accept=".csv">
+                            <label for="csv-upload">
+                                <span class="material-icons">upload_file</span>
+                                <span>Select CSV File</span>
+                            </label>
+                        </div>
+                        <div id="csv-upload-status" class="upload-status"></div>
+                    </div>
+                </div>
+                
+                <div class="import-preview">
+                    <h3>Import Preview</h3>
+                    <div id="import-preview-content">
+                        <!-- Preview content will be shown here -->
+                        <div class="empty-state">No import data to preview</div>
+                    </div>
+                    <button id="confirm-import" class="btn" disabled>Import Transactions</button>
+                </div>
+            </section>
+            
+            <!-- Settings Tab -->
+            <section id="settings" class="tab-content">
+                <div class="settings-group">
+                    <h3>Data Management</h3>
+                    <div class="setting-item">
+                        <button id="export-data" class="btn">Export All Transactions (CSV)</button>
+                    </div>
+                    <div class="setting-item">
+                        <button id="backup-data" class="btn">Backup All Data (JSON)</button>
+                    </div>
+                    <div class="setting-item">
+                        <div class="file-upload">
+                            <input type="file" id="restore-backup" accept=".json">
+                            <label for="restore-backup">Restore from Backup</label>
+                        </div>
+                    </div>
+                    <div class="setting-item danger-zone">
+                        <button id="clear-data" class="btn danger">Clear All Data</button>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <h3>Categories</h3>
+                    <div id="categories-list">
+                        <!-- Categories will be listed here -->
+                    </div>
+                    <div class="add-category">
+                        <input type="text" id="new-category" placeholder="New category name">
+                        <button id="add-category-btn" class="btn">Add</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Add Transaction Modal -->
+    <div id="transaction-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">Add Transaction</h2>
+            <form id="transaction-form">
+                <input type="hidden" id="transaction-id">
+                <div class="form-group">
+                    <label for="transaction-date">Date</label>
+                    <input type="date" id="transaction-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-amount">Amount</label>
+                    <input type="number" id="transaction-amount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-type">Type</label>
+                    <select id="transaction-type" required>
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-category">Category</label>
+                    <select id="transaction-category" required>
+                        <!-- Categories will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-description">Description</label>
+                    <input type="text" id="transaction-description" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn" id="save-transaction">Save</button>
+                    <button type="button" class="btn secondary" id="cancel-transaction">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <h2>Confirm Delete</h2>
+            <p>Are you sure you want to delete this transaction? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="confirm-delete" class="btn danger">Delete</button>
+                <button id="cancel-delete" class="btn secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript Files -->
+    <script src="js/database.js"></script>
+    <script src="js/pdf-parser.js"></script>
+    <script src="js/csv-parser.js"></script>
+    <script src="js/transaction-utils.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

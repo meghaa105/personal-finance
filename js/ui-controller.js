@@ -75,9 +75,7 @@ const UIController = (function () {
     // Initialize UI
     function init() {
         // Add transaction button
-        DOM.addTransactionBtn = document.getElementById("add-transaction-btn");
         if (DOM.addTransactionBtn) {
-            console.log("MEGHAA Add button clicked!");
             DOM.addTransactionBtn.addEventListener("click", function () {
                 showAddTransactionModal();
                 return false;

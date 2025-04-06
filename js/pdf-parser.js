@@ -147,29 +147,34 @@ const PDFParser = (function() {
                 }
 
                 if (inTransactionSection) {
-                    // Match date pattern DD MMM YY and transaction details (more flexible pattern)
-                    const dateMatch = line.match(/(\d{2}\s+[A-Za-z]{3}\s+\d{2})/);
+                    // Match date pattern DD-MM-YYYY and transaction details
+                    const dateMatch = line.match(/(\d{2}-\d{2}-\d{4})/);
                     if (dateMatch) {
-                        // Look for amounts with type indicator
-                        const amountMatches = line.match(/(\d+(?:,\d+)*\.\d{2})\s*([CD])/g);
-                        if (amountMatches) {
-                            // Get the last amount match as it's typically the transaction amount
-                            const lastAmountMatch = amountMatches[amountMatches.length - 1];
-                            const [_, amountStr, typeChar] = lastAmountMatch.match(/(\d+(?:,\d+)*\.\d{2})\s*([CD])/);
-
-                            // Clean up the description by removing the date and all amounts
-                            let description = line;
-                            description = description.replace(dateMatch[0], '');
-                            amountMatches.forEach(match => {
-                                description = description.replace(match, '');
-                            });
-
-                            // Remove multiple spaces and trim
-                            description = description.replace(/\s+/g, ' ').trim();
-
-                            // Parse amount and determine type
-                            const amount = parseFloat(amountStr.replace(/,/g, ''));
-                            const type = typeChar === 'C' ? 'income' : 'expense';
+                        // Extract transaction components
+                        const parts = line.split(/\s{2,}/); // Split by 2 or more spaces
+                        
+                        if (parts.length >= 4) { // Valid transaction line should have date, description, amount, balance
+                            const date = parts[0].trim();
+                            const amount = parseFloat(parts[parts.length - 2].replace(/,/g, '')) || 0;
+                            
+                            // Get description by joining middle parts and cleaning
+                            const description = parts.slice(1, -2)
+                                .join(' ')
+                                .replace(/\s+/g, ' ')
+                                .trim();
+                            
+                            // Skip header or footer lines
+                            if (description.toLowerCase().includes('opening balance') || 
+                                description.toLowerCase().includes('closing balance') ||
+                                description === '') {
+                                continue;
+                            }
+                            
+                            // Determine transaction type based on keywords and patterns
+                            let type = 'expense';
+                            if (description.match(/cr|credit|deposit|salary|interest earned|refund|ACH-CR/i)) {
+                                type = 'income';
+                            }
 
                             // Create transaction object
                             const transaction = {

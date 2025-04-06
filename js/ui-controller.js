@@ -71,9 +71,9 @@ const UIController = (function() {
     // Initialize UI
     function init() {
         // Add transaction button
-        const addTransactionBtn = document.getElementById('add-transaction-btn');
-        if (addTransactionBtn) {
-            addTransactionBtn.addEventListener('click', showAddTransactionModal);
+        DOM.addTransactionBtn = document.getElementById('add-transaction-btn');
+        if (DOM.addTransactionBtn) {
+            DOM.addTransactionBtn.addEventListener('click', showAddTransactionModal);
         }
 
         // Initialize DOM elements directly

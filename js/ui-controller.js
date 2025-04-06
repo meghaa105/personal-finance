@@ -2,61 +2,65 @@
  * UI Controller module
  * Manages UI interactions and DOM manipulation
  */
-const UIController = (function() {
+const UIController = (function () {
     // DOM selectors
     const DOM = {
-        tabs: document.querySelectorAll('.tab-btn'),
-        tabContents: document.querySelectorAll('.tab-content'),
+        tabs: document.querySelectorAll(".tab-btn"),
+        tabContents: document.querySelectorAll(".tab-content"),
 
         // Dashboard elements
-        totalBalance: document.querySelector('.total-balance'),
-        totalIncome: document.querySelector('.total-income'),
-        totalExpenses: document.querySelector('.total-expenses'),
-        expenseChart: document.getElementById('expense-chart'),
-        recentTransactionsList: document.getElementById('recent-transactions-list'),
+        totalBalance: document.querySelector(".total-balance"),
+        totalIncome: document.querySelector(".total-income"),
+        totalExpenses: document.querySelector(".total-expenses"),
+        expenseChart: document.getElementById("expense-chart"),
+        recentTransactionsList: document.getElementById(
+            "recent-transactions-list",
+        ),
 
         // Transactions elements
-        transactionsList: document.getElementById('transactions-list'),
-        addTransactionBtn: document.getElementById('add-transaction-btn'),
-        searchTransactions: document.getElementById('search-transactions'),
-        filterType: document.getElementById('filter-type'),
-        filterMonth: document.getElementById('filter-month'),
+        transactionsList: document.getElementById("transactions-list"),
+        addTransactionBtn: document.getElementById("add-transaction-btn"),
+        searchTransactions: document.getElementById("search-transactions"),
+        filterType: document.getElementById("filter-type"),
+        filterMonth: document.getElementById("filter-month"),
 
         // Import elements
-        pdfUpload: document.getElementById('pdf-upload'),
-        csvUpload: document.getElementById('csv-upload'),
-        pdfUploadStatus: document.getElementById('pdf-upload-status'),
-        csvUploadStatus: document.getElementById('csv-upload-status'),
-        importPreviewContent: document.getElementById('import-preview-content'),
-        confirmImportBtn: document.getElementById('confirm-import'),
+        pdfUpload: document.getElementById("pdf-upload"),
+        csvUpload: document.getElementById("csv-upload"),
+        pdfUploadStatus: document.getElementById("pdf-upload-status"),
+        csvUploadStatus: document.getElementById("csv-upload-status"),
+        importPreviewContent: document.getElementById("import-preview-content"),
+        confirmImportBtn: document.getElementById("confirm-import"),
 
         // Settings elements
-        exportDataBtn: document.getElementById('export-data'),
-        backupDataBtn: document.getElementById('backup-data'),
-        restoreBackupInput: document.getElementById('restore-backup'),
-        clearDataBtn: document.getElementById('clear-data'),
-        categoriesList: document.getElementById('categories-list'),
-        newCategoryInput: document.getElementById('new-category'),
-        addCategoryBtn: document.getElementById('add-category'),
+        exportDataBtn: document.getElementById("export-data"),
+        backupDataBtn: document.getElementById("backup-data"),
+        restoreBackupInput: document.getElementById("restore-backup"),
+        clearDataBtn: document.getElementById("clear-data"),
+        categoriesList: document.getElementById("categories-list"),
+        newCategoryInput: document.getElementById("new-category"),
+        addCategoryBtn: document.getElementById("add-category"),
 
         // Transaction modal
-        transactionModal: document.getElementById('transaction-modal'),
-        modalTitle: document.getElementById('modal-title'),
-        transactionForm: document.getElementById('transaction-form'),
-        transactionId: document.getElementById('transaction-id'),
-        transactionDate: document.getElementById('transaction-date'),
-        transactionAmount: document.getElementById('transaction-amount'),
-        transactionType: document.getElementById('transaction-type'),
-        transactionCategory: document.getElementById('transaction-category'),
-        transactionDescription: document.getElementById('transaction-description'),
-        saveTransactionBtn: document.getElementById('save-transaction'),
-        cancelTransactionBtn: document.getElementById('cancel-transaction'),
-        closeModal: document.querySelector('.close-modal'),
+        transactionModal: document.getElementById("transaction-modal"),
+        modalTitle: document.getElementById("modal-title"),
+        transactionForm: document.getElementById("transaction-form"),
+        transactionId: document.getElementById("transaction-id"),
+        transactionDate: document.getElementById("transaction-date"),
+        transactionAmount: document.getElementById("transaction-amount"),
+        transactionType: document.getElementById("transaction-type"),
+        transactionCategory: document.getElementById("transaction-category"),
+        transactionDescription: document.getElementById(
+            "transaction-description",
+        ),
+        saveTransactionBtn: document.getElementById("save-transaction"),
+        cancelTransactionBtn: document.getElementById("cancel-transaction"),
+        closeModal: document.querySelector(".close-modal"),
 
         // Confirmation modal
-        confirmationModal: document.getElementById('confirmation-modal'),
-        confirmDeleteBtn: document.getElementById('confirm-delete'),
-        cancelDeleteBtn: document.getElementById('cancel-delete')
+        confirmationModal: document.getElementById("confirmation-modal"),
+        confirmDeleteBtn: document.getElementById("confirm-delete"),
+        cancelDeleteBtn: document.getElementById("cancel-delete"),
     };
 
     // Chart instances
@@ -70,23 +74,13 @@ const UIController = (function() {
 
     // Initialize UI
     function init() {
-        // Add transaction button
-        DOM.addTransactionBtn = document.getElementById('add-transaction-btn');
-        if (DOM.addTransactionBtn) {
-            DOM.addTransactionBtn.addEventListener('click', function() {
-                showAddTransactionModal();
-                return false;
-            });
-        }
-
         // Initialize DOM elements directly
         csvUploadInput = document.getElementById("csv-upload");
         pdfUploadInput = document.getElementById("pdf-upload");
 
-
         // Set up tab navigation
-        DOM.tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
+        DOM.tabs.forEach((tab) => {
+            tab.addEventListener("click", function () {
                 switchTab(this.dataset.tab);
             });
         });
@@ -98,31 +92,44 @@ const UIController = (function() {
         updateTransactionsList();
 
         // Set up transaction form events
-
-        DOM.transactionForm.addEventListener('submit', handleTransactionFormSubmit);
-        DOM.cancelTransactionBtn.addEventListener('click', hideTransactionModal);
-        DOM.closeModal.addEventListener('click', hideTransactionModal);
+        // Add transaction button
+        DOM.addTransactionBtn.addEventListener(
+            "click",
+            showAddTransactionModal,
+        );
+        DOM.transactionForm.addEventListener(
+            "submit",
+            handleTransactionFormSubmit,
+        );
+        DOM.cancelTransactionBtn.addEventListener(
+            "click",
+            hideTransactionModal,
+        );
+        DOM.closeModal.addEventListener("click", hideTransactionModal);
 
         // Set up transaction filters
-        DOM.searchTransactions.addEventListener('input', applyTransactionFilters);
-        DOM.filterType.addEventListener('change', applyTransactionFilters);
-        DOM.filterMonth.addEventListener('change', applyTransactionFilters);
+        DOM.searchTransactions.addEventListener(
+            "input",
+            applyTransactionFilters,
+        );
+        DOM.filterType.addEventListener("change", applyTransactionFilters);
+        DOM.filterMonth.addEventListener("change", applyTransactionFilters);
 
         // Set current month as default for month filter
         const now = new Date();
-        DOM.filterMonth.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        DOM.filterMonth.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
         // Set up import handlers
-        DOM.pdfUpload.addEventListener('change', handlePDFUpload);
-        DOM.csvUpload.addEventListener('change', handleCSVUpload);
-        DOM.confirmImportBtn.addEventListener('click', confirmImport);
+        DOM.pdfUpload.addEventListener("change", handlePDFUpload);
+        DOM.csvUpload.addEventListener("change", handleCSVUpload);
+        DOM.confirmImportBtn.addEventListener("click", confirmImport);
 
         // Set up settings handlers
-        DOM.exportDataBtn.addEventListener('click', exportTransactionsToCSV);
-        DOM.backupDataBtn.addEventListener('click', backupAllData);
-        DOM.restoreBackupInput.addEventListener('change', restoreFromBackup);
-        DOM.clearDataBtn.addEventListener('click', confirmClearData);
-        DOM.addCategoryBtn.addEventListener('click', addNewCategory);
+        DOM.exportDataBtn.addEventListener("click", exportTransactionsToCSV);
+        DOM.backupDataBtn.addEventListener("click", backupAllData);
+        DOM.restoreBackupInput.addEventListener("change", restoreFromBackup);
+        DOM.clearDataBtn.addEventListener("click", confirmClearData);
+        DOM.addCategoryBtn.addEventListener("click", addNewCategory);
 
         // Update categories list
         updateCategoriesList();
@@ -131,15 +138,18 @@ const UIController = (function() {
         populateCategoryDropdown();
 
         // Set up confirmation modal events
-        DOM.confirmDeleteBtn.addEventListener('click', confirmDeleteTransaction);
-        DOM.cancelDeleteBtn.addEventListener('click', cancelDeleteTransaction);
+        DOM.confirmDeleteBtn.addEventListener(
+            "click",
+            confirmDeleteTransaction,
+        );
+        DOM.cancelDeleteBtn.addEventListener("click", cancelDeleteTransaction);
 
         // Set current date as default for new transactions
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         DOM.transactionDate.value = today;
 
         // Close modals when clicking outside
-        window.addEventListener('click', function(event) {
+        window.addEventListener("click", function (event) {
             if (event.target === DOM.transactionModal) {
                 hideTransactionModal();
             }
@@ -148,41 +158,47 @@ const UIController = (function() {
             }
         });
 
-        console.log('UI Controller initialized');
+        console.log("UI Controller initialized");
     }
 
     // Switch active tab
     function switchTab(tabId) {
         // Update tab buttons
-        DOM.tabs.forEach(tab => {
+        DOM.tabs.forEach((tab) => {
             if (tab.dataset.tab === tabId) {
-                tab.classList.add('active');
+                tab.classList.add("active");
             } else {
-                tab.classList.remove('active');
+                tab.classList.remove("active");
             }
         });
 
         // Update tab content
-        DOM.tabContents.forEach(content => {
+        DOM.tabContents.forEach((content) => {
             if (content.id === tabId) {
-                content.classList.add('active');
+                content.classList.add("active");
 
                 // Refresh content for specific tabs
-                if (tabId === 'dashboard') {
+                if (tabId === "dashboard") {
                     updateDashboard();
-                } else if (tabId === 'transactions') {
+                } else if (tabId === "transactions") {
                     updateTransactionsList();
-                } else if (tabId === 'analytics' && typeof AnalyticsController !== 'undefined') {
+                } else if (
+                    tabId === "analytics" &&
+                    typeof AnalyticsController !== "undefined"
+                ) {
                     AnalyticsController.refreshAnalytics();
-                } else if (tabId === 'reminders') {
-                    if (typeof ReminderController !== 'undefined' && ReminderController.refreshReminders) {
+                } else if (tabId === "reminders") {
+                    if (
+                        typeof ReminderController !== "undefined" &&
+                        ReminderController.refreshReminders
+                    ) {
                         ReminderController.refreshReminders();
                     }
-                } else if (tabId === 'settings') {
+                } else if (tabId === "settings") {
                     updateCategoriesList();
                 }
             } else {
-                content.classList.remove('active');
+                content.classList.remove("active");
             }
         });
     }
@@ -192,9 +208,15 @@ const UIController = (function() {
         const summary = Database.getSummary();
 
         // Update summary cards
-        DOM.totalBalance.textContent = TransactionUtils.formatCurrency(summary.totalBalance);
-        DOM.totalIncome.textContent = TransactionUtils.formatCurrency(summary.totalIncome);
-        DOM.totalExpenses.textContent = TransactionUtils.formatCurrency(summary.totalExpenses);
+        DOM.totalBalance.textContent = TransactionUtils.formatCurrency(
+            summary.totalBalance,
+        );
+        DOM.totalIncome.textContent = TransactionUtils.formatCurrency(
+            summary.totalIncome,
+        );
+        DOM.totalExpenses.textContent = TransactionUtils.formatCurrency(
+            summary.totalExpenses,
+        );
 
         // Update expense chart
         updateExpenseChart(summary.categories);
@@ -226,7 +248,8 @@ const UIController = (function() {
                 expenseChartInstance = null;
             }
 
-            DOM.expenseChart.parentNode.innerHTML = '<div class="empty-state">No expense data to display</div>';
+            DOM.expenseChart.parentNode.innerHTML =
+                '<div class="empty-state">No expense data to display</div>';
             return;
         }
 
@@ -237,50 +260,59 @@ const UIController = (function() {
             expenseChartInstance.update();
         } else {
             // If DOM element was replaced, get it again
-            const chartCanvas = document.getElementById('expense-chart');
+            const chartCanvas = document.getElementById("expense-chart");
 
             if (!chartCanvas) {
-                DOM.expenseChart.parentNode.innerHTML = '<canvas id="expense-chart"></canvas>';
+                DOM.expenseChart.parentNode.innerHTML =
+                    '<canvas id="expense-chart"></canvas>';
             }
 
-            const ctx = document.getElementById('expense-chart').getContext('2d');
+            const ctx = document
+                .getElementById("expense-chart")
+                .getContext("2d");
 
             expenseChartInstance = new Chart(ctx, {
-                type: 'doughnut',
+                type: "doughnut",
                 data: {
                     labels: categoryNames,
-                    datasets: [{
-                        data: categoryAmounts,
-                        backgroundColor: [
-                            '#4c6ef5', '#339af0', '#20c997', '#94d82d', '#fcc419'
-                        ],
-                        borderColor: '#ffffff',
-                        borderWidth: 1
-                    }]
+                    datasets: [
+                        {
+                            data: categoryAmounts,
+                            backgroundColor: [
+                                "#4c6ef5",
+                                "#339af0",
+                                "#20c997",
+                                "#94d82d",
+                                "#fcc419",
+                            ],
+                            borderColor: "#ffffff",
+                            borderWidth: 1,
+                        },
+                    ],
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: "bottom",
                             labels: {
                                 boxWidth: 12,
                                 padding: 10,
                                 font: {
-                                    size: 10
-                                }
-                            }
+                                    size: 10,
+                                },
+                            },
                         },
                         title: {
                             display: true,
-                            text: 'Top Expense Categories',
+                            text: "Top Expense Categories",
                             font: {
-                                size: 14
-                            }
-                        }
-                    }
-                }
+                                size: 14,
+                            },
+                        },
+                    },
+                },
             });
         }
     }
@@ -290,13 +322,14 @@ const UIController = (function() {
         const transactions = Database.getTransactions({ limit: 5 });
 
         if (transactions.length === 0) {
-            DOM.recentTransactionsList.innerHTML = '<div class="empty-state">No transactions available</div>';
+            DOM.recentTransactionsList.innerHTML =
+                '<div class="empty-state">No transactions available</div>';
             return;
         }
 
-        DOM.recentTransactionsList.innerHTML = '';
+        DOM.recentTransactionsList.innerHTML = "";
 
-        transactions.forEach(transaction => {
+        transactions.forEach((transaction) => {
             const transactionEl = createTransactionElement(transaction);
             DOM.recentTransactionsList.appendChild(transactionEl);
         });
@@ -310,7 +343,7 @@ const UIController = (function() {
 
         let startDate, endDate;
         if (DOM.filterMonth.value) {
-            const [year, month] = DOM.filterMonth.value.split('-');
+            const [year, month] = DOM.filterMonth.value.split("-");
             startDate = new Date(year, month - 1, 1);
             endDate = new Date(year, month, 0);
         }
@@ -322,7 +355,7 @@ const UIController = (function() {
             filters.search = searchValue;
         }
 
-        if (typeFilter !== 'all') {
+        if (typeFilter !== "all") {
             filters.type = typeFilter;
         }
 
@@ -337,31 +370,38 @@ const UIController = (function() {
         const transactions = Database.getTransactions(filters);
 
         if (transactions.length === 0) {
-            DOM.transactionsList.innerHTML = '<div class="empty-state">No transactions match your filters</div>';
+            DOM.transactionsList.innerHTML =
+                '<div class="empty-state">No transactions match your filters</div>';
             return;
         }
 
         // Group transactions by month
         const transactionsByMonth = TransactionUtils.groupByMonth(transactions);
 
-        DOM.transactionsList.innerHTML = '';
+        DOM.transactionsList.innerHTML = "";
 
         // Create section for each month
         for (const yearMonth in transactionsByMonth) {
-            const [year, month] = yearMonth.split('-');
+            const [year, month] = yearMonth.split("-");
             const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-            const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+            const monthName = date.toLocaleString("default", {
+                month: "long",
+                year: "numeric",
+            });
 
             // Create month header
-            const monthHeader = document.createElement('div');
-            monthHeader.className = 'month-header';
+            const monthHeader = document.createElement("div");
+            monthHeader.className = "month-header";
             monthHeader.textContent = monthName;
             DOM.transactionsList.appendChild(monthHeader);
 
             // Add transactions for this month
             const monthTransactions = transactionsByMonth[yearMonth];
-            monthTransactions.forEach(transaction => {
-                const transactionEl = createTransactionElement(transaction, true);
+            monthTransactions.forEach((transaction) => {
+                const transactionEl = createTransactionElement(
+                    transaction,
+                    true,
+                );
                 DOM.transactionsList.appendChild(transactionEl);
             });
         }
@@ -369,75 +409,88 @@ const UIController = (function() {
 
     // Create transaction element
     function createTransactionElement(transaction, showActions = false) {
-        const transactionEl = document.createElement('div');
-        transactionEl.className = 'transaction-item';
+        const transactionEl = document.createElement("div");
+        transactionEl.className = "transaction-item";
         transactionEl.dataset.id = transaction.id;
 
         // Transaction details
-        const details = document.createElement('div');
-        details.className = 'transaction-details';
+        const details = document.createElement("div");
+        details.className = "transaction-details";
 
-        const title = document.createElement('div');
-        title.className = 'transaction-title';
+        const title = document.createElement("div");
+        title.className = "transaction-title";
 
         // Add icon based on transaction type
-        const titleIcon = document.createElement('span');
-        titleIcon.className = 'material-icons';
-        titleIcon.textContent = transaction.type === 'income' ? 'trending_up' : 'trending_down';
+        const titleIcon = document.createElement("span");
+        titleIcon.className = "material-icons";
+        titleIcon.textContent =
+            transaction.type === "income" ? "trending_up" : "trending_down";
         title.appendChild(titleIcon);
 
-        const titleText = document.createElement('span');
+        const titleText = document.createElement("span");
         titleText.textContent = transaction.description;
         title.appendChild(titleText);
         details.appendChild(title);
 
-        const meta = document.createElement('div');
-        meta.className = 'transaction-meta';
+        const meta = document.createElement("div");
+        meta.className = "transaction-meta";
 
-        const date = document.createElement('div');
-        date.className = 'transaction-date';
-        const dateIcon = document.createElement('span');
-        dateIcon.className = 'material-icons';
-        dateIcon.textContent = 'event';
+        const date = document.createElement("div");
+        date.className = "transaction-date";
+        const dateIcon = document.createElement("span");
+        dateIcon.className = "material-icons";
+        dateIcon.textContent = "event";
         date.appendChild(dateIcon);
-        date.appendChild(document.createTextNode(TransactionUtils.formatDate(transaction.date)));
+        date.appendChild(
+            document.createTextNode(
+                TransactionUtils.formatDate(transaction.date),
+            ),
+        );
         meta.appendChild(date);
 
-        const category = document.createElement('div');
-        category.className = `transaction-category category-${transaction.category || 'Other'}`;
-        const categoryIcon = document.createElement('span');
-        categoryIcon.className = 'material-icons';
+        const category = document.createElement("div");
+        category.className = `transaction-category category-${transaction.category || "Other"}`;
+        const categoryIcon = document.createElement("span");
+        categoryIcon.className = "material-icons";
         categoryIcon.textContent = getCategoryIcon(transaction.category);
         category.appendChild(categoryIcon);
-        category.appendChild(document.createTextNode(transaction.category || 'Other'));
+        category.appendChild(
+            document.createTextNode(transaction.category || "Other"),
+        );
         meta.appendChild(category);
 
         details.appendChild(meta);
 
-
         transactionEl.appendChild(details);
 
         // Transaction amount
-        const amount = document.createElement('div');
+        const amount = document.createElement("div");
         amount.className = `transaction-amount ${transaction.type}`;
-        amount.textContent = TransactionUtils.formatCurrency(transaction.amount, transaction.type === 'income');
+        amount.textContent = TransactionUtils.formatCurrency(
+            transaction.amount,
+            transaction.type === "income",
+        );
         transactionEl.appendChild(amount);
 
         // Transaction actions (edit, delete)
         if (showActions) {
-            const actions = document.createElement('div');
-            actions.className = 'transaction-actions';
+            const actions = document.createElement("div");
+            actions.className = "transaction-actions";
 
-            const editBtn = document.createElement('button');
-            editBtn.className = 'action-btn edit';
+            const editBtn = document.createElement("button");
+            editBtn.className = "action-btn edit";
             editBtn.innerHTML = '<span class="material-icons">edit</span>';
-            editBtn.addEventListener('click', () => showEditTransactionModal(transaction.id));
+            editBtn.addEventListener("click", () =>
+                showEditTransactionModal(transaction.id),
+            );
             actions.appendChild(editBtn);
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'action-btn delete';
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "action-btn delete";
             deleteBtn.innerHTML = '<span class="material-icons">delete</span>';
-            deleteBtn.addEventListener('click', () => showDeleteConfirmation(transaction.id));
+            deleteBtn.addEventListener("click", () =>
+                showDeleteConfirmation(transaction.id),
+            );
             actions.appendChild(deleteBtn);
 
             transactionEl.appendChild(actions);
@@ -450,13 +503,20 @@ const UIController = (function() {
     function getCategoryIcon(category) {
         // Add your category icon mapping here
         switch (category) {
-            case 'Food': return 'restaurant';
-            case 'Transportation': return 'directions_car';
-            case 'Housing': return 'home';
-            case 'Utilities': return 'bolt';
-            case 'Entertainment': return 'movie';
-            case 'Income': return 'payments';
-            default: return 'category'; // Default icon
+            case "Food":
+                return "restaurant";
+            case "Transportation":
+                return "directions_car";
+            case "Housing":
+                return "home";
+            case "Utilities":
+                return "bolt";
+            case "Entertainment":
+                return "movie";
+            case "Income":
+                return "payments";
+            default:
+                return "category"; // Default icon
         }
     }
 
@@ -469,15 +529,15 @@ const UIController = (function() {
     function showAddTransactionModal() {
         // Reset form
         DOM.transactionForm.reset();
-        DOM.transactionId.value = '';
-        DOM.modalTitle.textContent = 'Add Transaction';
+        DOM.transactionId.value = "";
+        DOM.modalTitle.textContent = "Add Transaction";
 
         // Set current date as default
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         DOM.transactionDate.value = today;
 
         // Show modal
-        DOM.transactionModal.style.display = 'block';
+        DOM.transactionModal.style.display = "block";
     }
 
     // Show edit transaction modal
@@ -485,34 +545,36 @@ const UIController = (function() {
         const transaction = Database.getTransaction(transactionId);
 
         if (!transaction) {
-            alert('Transaction not found.');
+            alert("Transaction not found.");
             return;
         }
 
         // Set form values
         DOM.transactionId.value = transaction.id;
-        DOM.transactionDate.value = new Date(transaction.date).toISOString().split('T')[0];
+        DOM.transactionDate.value = new Date(transaction.date)
+            .toISOString()
+            .split("T")[0];
         DOM.transactionAmount.value = transaction.amount;
         DOM.transactionType.value = transaction.type;
-        DOM.transactionCategory.value = transaction.category || 'Other';
+        DOM.transactionCategory.value = transaction.category || "Other";
         DOM.transactionDescription.value = transaction.description;
 
         // Update modal title
-        DOM.modalTitle.textContent = 'Edit Transaction';
+        DOM.modalTitle.textContent = "Edit Transaction";
 
         // Show modal
-        DOM.transactionModal.style.display = 'block';
+        DOM.transactionModal.style.display = "block";
     }
 
     // Hide transaction modal
     function hideTransactionModal() {
-        DOM.transactionModal.style.display = 'none';
+        DOM.transactionModal.style.display = "none";
     }
 
     // Show delete confirmation modal
     function showDeleteConfirmation(transactionId) {
         transactionToDelete = transactionId;
-        DOM.confirmationModal.style.display = 'block';
+        DOM.confirmationModal.style.display = "block";
     }
 
     // Confirm delete transaction
@@ -527,16 +589,16 @@ const UIController = (function() {
             updateTransactionsList();
             updateDashboard();
         } else {
-            alert('Error deleting transaction: ' + result.error);
+            alert("Error deleting transaction: " + result.error);
         }
 
-        DOM.confirmationModal.style.display = 'none';
+        DOM.confirmationModal.style.display = "none";
         transactionToDelete = null;
     }
 
     // Cancel delete transaction
     function cancelDeleteTransaction() {
-        DOM.confirmationModal.style.display = 'none';
+        DOM.confirmationModal.style.display = "none";
         transactionToDelete = null;
     }
 
@@ -554,7 +616,7 @@ const UIController = (function() {
 
         // Validate form
         if (!date || isNaN(amount) || !description) {
-            alert('Please fill in all required fields.');
+            alert("Please fill in all required fields.");
             return;
         }
 
@@ -565,7 +627,7 @@ const UIController = (function() {
             type,
             category,
             description,
-            source: 'manual'  // Add source information for manual entries
+            source: "manual", // Add source information for manual entries
         };
 
         let result;
@@ -583,7 +645,7 @@ const UIController = (function() {
             updateTransactionsList();
             updateDashboard();
         } else {
-            alert('Error saving transaction: ' + result.error);
+            alert("Error saving transaction: " + result.error);
         }
     }
 
@@ -596,19 +658,20 @@ const UIController = (function() {
         }
 
         // Check file type
-        if (file.type !== 'application/pdf') {
-            DOM.pdfUploadStatus.textContent = 'Error: Please select a PDF file.';
-            DOM.pdfUploadStatus.className = 'upload-status error';
+        if (file.type !== "application/pdf") {
+            DOM.pdfUploadStatus.textContent =
+                "Error: Please select a PDF file.";
+            DOM.pdfUploadStatus.className = "upload-status error";
             return;
         }
 
         // Create progress bar
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        const progress = document.createElement('div');
-        progress.className = 'progress';
+        const progressBar = document.createElement("div");
+        progressBar.className = "progress-bar";
+        const progress = document.createElement("div");
+        progress.className = "progress";
         progressBar.appendChild(progress);
-        DOM.pdfUploadStatus.innerHTML = '';
+        DOM.pdfUploadStatus.innerHTML = "";
         DOM.pdfUploadStatus.appendChild(progressBar);
 
         // Simulate progress while parsing
@@ -616,7 +679,7 @@ const UIController = (function() {
         const progressInterval = setInterval(() => {
             if (progressValue < 90) {
                 progressValue += 10;
-                progress.style.width = progressValue + '%';
+                progress.style.width = progressValue + "%";
             }
         }, 200);
 
@@ -626,10 +689,10 @@ const UIController = (function() {
 
             clearInterval(progressInterval);
             if (result.success && result.transactions.length > 0) {
-                progress.style.width = '100%';
+                progress.style.width = "100%";
                 setTimeout(() => {
                     DOM.pdfUploadStatus.textContent = `Successfully parsed ${result.transactions.length} transactions.`;
-                    DOM.pdfUploadStatus.className = 'upload-status success';
+                    DOM.pdfUploadStatus.className = "upload-status success";
                 }, 500);
 
                 // Store import data
@@ -641,16 +704,18 @@ const UIController = (function() {
                 // Enable import button
                 DOM.confirmImportBtn.disabled = false;
             } else {
-                DOM.pdfUploadStatus.textContent = 'Error: No transactions found in the PDF.';
-                DOM.pdfUploadStatus.className = 'upload-status error';
+                DOM.pdfUploadStatus.textContent =
+                    "Error: No transactions found in the PDF.";
+                DOM.pdfUploadStatus.className = "upload-status error";
 
                 // Disable import button
                 DOM.confirmImportBtn.disabled = true;
             }
         } catch (error) {
-            console.error('Error parsing PDF:', error);
-            DOM.pdfUploadStatus.textContent = 'Error parsing PDF: ' + error.message;
-            DOM.pdfUploadStatus.className = 'upload-status error';
+            console.error("Error parsing PDF:", error);
+            DOM.pdfUploadStatus.textContent =
+                "Error parsing PDF: " + error.message;
+            DOM.pdfUploadStatus.className = "upload-status error";
 
             // Disable import button
             DOM.confirmImportBtn.disabled = true;
@@ -666,15 +731,16 @@ const UIController = (function() {
         }
 
         // Check file extension
-        if (!file.name.endsWith('.csv')) {
-            DOM.csvUploadStatus.textContent = 'Error: Please select a CSV file.';
-            DOM.csvUploadStatus.className = 'upload-status error';
+        if (!file.name.endsWith(".csv")) {
+            DOM.csvUploadStatus.textContent =
+                "Error: Please select a CSV file.";
+            DOM.csvUploadStatus.className = "upload-status error";
             return;
         }
 
         // Show loading status
-        DOM.csvUploadStatus.textContent = 'Parsing CSV...';
-        DOM.csvUploadStatus.className = 'upload-status';
+        DOM.csvUploadStatus.textContent = "Parsing CSV...";
+        DOM.csvUploadStatus.className = "upload-status";
 
         try {
             // Parse CSV
@@ -683,7 +749,7 @@ const UIController = (function() {
             if (result.success && result.transactions.length > 0) {
                 // Update status
                 DOM.csvUploadStatus.textContent = `Successfully parsed ${result.transactions.length} transactions.`;
-                DOM.csvUploadStatus.className = 'upload-status success';
+                DOM.csvUploadStatus.className = "upload-status success";
 
                 // Store import data
                 importData = result.transactions;
@@ -694,16 +760,18 @@ const UIController = (function() {
                 // Enable import button
                 DOM.confirmImportBtn.disabled = false;
             } else {
-                DOM.csvUploadStatus.textContent = 'Error: No transactions found in the CSV.';
-                DOM.csvUploadStatus.className = 'upload-status error';
+                DOM.csvUploadStatus.textContent =
+                    "Error: No transactions found in the CSV.";
+                DOM.csvUploadStatus.className = "upload-status error";
 
                 // Disable import button
                 DOM.confirmImportBtn.disabled = true;
             }
         } catch (error) {
-            console.error('Error parsing CSV:', error);
-            DOM.csvUploadStatus.textContent = 'Error parsing CSV: ' + error.message;
-            DOM.csvUploadStatus.className = 'upload-status error';
+            console.error("Error parsing CSV:", error);
+            DOM.csvUploadStatus.textContent =
+                "Error parsing CSV: " + error.message;
+            DOM.csvUploadStatus.className = "upload-status error";
 
             // Disable import button
             DOM.confirmImportBtn.disabled = true;
@@ -713,7 +781,8 @@ const UIController = (function() {
     // Show import preview
     function showImportPreview(transactions) {
         if (!transactions || transactions.length === 0) {
-            DOM.importPreviewContent.innerHTML = '<div class="empty-state">No transactions to preview</div>';
+            DOM.importPreviewContent.innerHTML =
+                '<div class="empty-state">No transactions to preview</div>';
             return;
         }
 
@@ -721,34 +790,34 @@ const UIController = (function() {
         importData = transactions;
 
         // Main preview container
-        const previewContainer = document.createElement('div');
-        previewContainer.className = 'preview-container';
+        const previewContainer = document.createElement("div");
+        previewContainer.className = "preview-container";
 
         // Create transaction count and controls
-        const countInfo = document.createElement('div');
-        countInfo.className = 'transaction-count-info';
+        const countInfo = document.createElement("div");
+        countInfo.className = "transaction-count-info";
         countInfo.innerHTML = `<strong>${transactions.length}</strong> transactions found`;
         previewContainer.appendChild(countInfo);
 
         // Add view toggle buttons
-        const viewControls = document.createElement('div');
-        viewControls.className = 'view-controls';
+        const viewControls = document.createElement("div");
+        viewControls.className = "view-controls";
 
-        const compactViewBtn = document.createElement('button');
-        compactViewBtn.className = 'btn compact-view active';
-        compactViewBtn.textContent = 'Compact View';
-        compactViewBtn.addEventListener('click', () => {
-            compactViewBtn.classList.add('active');
-            fullViewBtn.classList.remove('active');
+        const compactViewBtn = document.createElement("button");
+        compactViewBtn.className = "btn compact-view active";
+        compactViewBtn.textContent = "Compact View";
+        compactViewBtn.addEventListener("click", () => {
+            compactViewBtn.classList.add("active");
+            fullViewBtn.classList.remove("active");
             showCompactView();
         });
 
-        const fullViewBtn = document.createElement('button');
-        fullViewBtn.className = 'btn full-view';
-        fullViewBtn.textContent = 'View All Transactions';
-        fullViewBtn.addEventListener('click', () => {
-            fullViewBtn.classList.add('active');
-            compactViewBtn.classList.remove('active');
+        const fullViewBtn = document.createElement("button");
+        fullViewBtn.className = "btn full-view";
+        fullViewBtn.textContent = "View All Transactions";
+        fullViewBtn.addEventListener("click", () => {
+            fullViewBtn.classList.add("active");
+            compactViewBtn.classList.remove("active");
             showFullView();
         });
 
@@ -757,13 +826,13 @@ const UIController = (function() {
         previewContainer.appendChild(viewControls);
 
         // Container for the actual transaction table
-        const tableContainer = document.createElement('div');
-        tableContainer.className = 'table-container';
-        tableContainer.id = 'import-table-container';
+        const tableContainer = document.createElement("div");
+        tableContainer.className = "table-container";
+        tableContainer.id = "import-table-container";
         previewContainer.appendChild(tableContainer);
 
         // Clear existing content and add the preview container
-        DOM.importPreviewContent.innerHTML = '';
+        DOM.importPreviewContent.innerHTML = "";
         DOM.importPreviewContent.appendChild(previewContainer);
 
         // Show compact view by default
@@ -771,20 +840,26 @@ const UIController = (function() {
 
         // Helper function to create compact view (limited preview)
         function showCompactView() {
-            const container = document.getElementById('import-table-container');
-            container.innerHTML = '';
+            const container = document.getElementById("import-table-container");
+            container.innerHTML = "";
 
             // Create preview table
-            const table = document.createElement('table');
-            table.className = 'preview-table compact-table';
+            const table = document.createElement("table");
+            table.className = "preview-table compact-table";
 
             // Create table header
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
 
-            const headers = ['Date', 'Description', 'Amount', 'Type', 'Category'];
-            headers.forEach(header => {
-                const th = document.createElement('th');
+            const headers = [
+                "Date",
+                "Description",
+                "Amount",
+                "Type",
+                "Category",
+            ];
+            headers.forEach((header) => {
+                const th = document.createElement("th");
                 th.textContent = header;
                 headerRow.appendChild(th);
             });
@@ -793,41 +868,46 @@ const UIController = (function() {
             table.appendChild(thead);
 
             // Create table body
-            const tbody = document.createElement('tbody');
+            const tbody = document.createElement("tbody");
 
             // Show only first 10 transactions in compact view
             const previewTransactions = transactions.slice(0, 10);
 
-            previewTransactions.forEach(transaction => {
-                const row = document.createElement('tr');
+            previewTransactions.forEach((transaction) => {
+                const row = document.createElement("tr");
 
                 // Date cell
-                const dateCell = document.createElement('td');
-                dateCell.textContent = TransactionUtils.formatDate(transaction.date);
+                const dateCell = document.createElement("td");
+                dateCell.textContent = TransactionUtils.formatDate(
+                    transaction.date,
+                );
                 row.appendChild(dateCell);
 
                 // Description cell (truncate if too long)
-                const descriptionCell = document.createElement('td');
-                descriptionCell.className = 'description-cell';
-                descriptionCell.textContent = transaction.description.length > 30 ?
-                    transaction.description.substring(0, 30) + '...' :
-                    transaction.description;
+                const descriptionCell = document.createElement("td");
+                descriptionCell.className = "description-cell";
+                descriptionCell.textContent =
+                    transaction.description.length > 30
+                        ? transaction.description.substring(0, 30) + "..."
+                        : transaction.description;
                 descriptionCell.title = transaction.description; // Full text on hover
                 row.appendChild(descriptionCell);
 
                 // Amount cell
-                const amountCell = document.createElement('td');
-                amountCell.textContent = TransactionUtils.formatCurrency(transaction.amount);
+                const amountCell = document.createElement("td");
+                amountCell.textContent = TransactionUtils.formatCurrency(
+                    transaction.amount,
+                );
                 row.appendChild(amountCell);
 
                 // Type cell
-                const typeCell = document.createElement('td');
+                const typeCell = document.createElement("td");
                 typeCell.textContent = transaction.type;
                 row.appendChild(typeCell);
 
                 // Category cell
-                const categoryCell = document.createElement('td');
-                categoryCell.textContent = transaction.category || 'Other';
+                const categoryCell = document.createElement("td");
+                categoryCell.textContent = transaction.category || "Other";
                 row.appendChild(categoryCell);
 
                 tbody.appendChild(row);
@@ -838,8 +918,8 @@ const UIController = (function() {
 
             // If there are more transactions than preview limit, show a message
             if (transactions.length > 10) {
-                const message = document.createElement('div');
-                message.className = 'preview-message';
+                const message = document.createElement("div");
+                message.className = "preview-message";
                 message.textContent = `Showing 10 of ${transactions.length} transactions. Click "View All Transactions" to see and edit all.`;
                 container.appendChild(message);
             }
@@ -847,20 +927,27 @@ const UIController = (function() {
 
         // Helper function to create full editable view (all transactions)
         function showFullView() {
-            const container = document.getElementById('import-table-container');
-            container.innerHTML = '';
+            const container = document.getElementById("import-table-container");
+            container.innerHTML = "";
 
             // Create full view table
-            const table = document.createElement('table');
-            table.className = 'preview-table full-table';
+            const table = document.createElement("table");
+            table.className = "preview-table full-table";
 
             // Create table header
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
 
-            const headers = ['Date', 'Description', 'Amount', 'Type', 'Category', 'Actions'];
-            headers.forEach(header => {
-                const th = document.createElement('th');
+            const headers = [
+                "Date",
+                "Description",
+                "Amount",
+                "Type",
+                "Category",
+                "Actions",
+            ];
+            headers.forEach((header) => {
+                const th = document.createElement("th");
                 th.textContent = header;
                 headerRow.appendChild(th);
             });
@@ -869,97 +956,101 @@ const UIController = (function() {
             table.appendChild(thead);
 
             // Create table body
-            const tbody = document.createElement('tbody');
+            const tbody = document.createElement("tbody");
 
             // Generate category options for dropdowns
             const categories = Database.getCategories();
-            const categoryOptions = categories.map(cat =>
-                `<option value="${cat}">${cat}</option>`
-            ).join('');
+            const categoryOptions = categories
+                .map((cat) => `<option value="${cat}">${cat}</option>`)
+                .join("");
 
             // Show all transactions
             transactions.forEach((transaction, index) => {
-                const row = document.createElement('tr');
+                const row = document.createElement("tr");
                 row.dataset.index = index;
 
                 // Date cell (editable)
-                const dateCell = document.createElement('td');
-                const dateInput = document.createElement('input');
-                dateInput.type = 'date';
-                dateInput.className = 'edit-date';
-                dateInput.value = new Date(transaction.date).toISOString().split('T')[0];
-                dateInput.addEventListener('change', (e) => {
+                const dateCell = document.createElement("td");
+                const dateInput = document.createElement("input");
+                dateInput.type = "date";
+                dateInput.className = "edit-date";
+                dateInput.value = new Date(transaction.date)
+                    .toISOString()
+                    .split("T")[0];
+                dateInput.addEventListener("change", (e) => {
                     importData[index].date = new Date(e.target.value);
                 });
                 dateCell.appendChild(dateInput);
                 row.appendChild(dateCell);
 
                 // Description cell (editable)
-                const descriptionCell = document.createElement('td');
-                const descInput = document.createElement('input');
-                descInput.type = 'text';
-                descInput.className = 'edit-description';
+                const descriptionCell = document.createElement("td");
+                const descInput = document.createElement("input");
+                descInput.type = "text";
+                descInput.className = "edit-description";
                 descInput.value = transaction.description;
-                descInput.addEventListener('change', (e) => {
+                descInput.addEventListener("change", (e) => {
                     importData[index].description = e.target.value;
                 });
                 descriptionCell.appendChild(descInput);
                 row.appendChild(descriptionCell);
 
                 // Amount cell (editable)
-                const amountCell = document.createElement('td');
-                const amountInput = document.createElement('input');
-                amountInput.type = 'number';
-                amountInput.className = 'edit-amount';
-                amountInput.step = '0.01';
+                const amountCell = document.createElement("td");
+                const amountInput = document.createElement("input");
+                amountInput.type = "number";
+                amountInput.className = "edit-amount";
+                amountInput.step = "0.01";
                 amountInput.value = transaction.amount;
-                amountInput.addEventListener('change', (e) => {
+                amountInput.addEventListener("change", (e) => {
                     importData[index].amount = parseFloat(e.target.value);
                 });
                 amountCell.appendChild(amountInput);
                 row.appendChild(amountCell);
 
                 // Type cell (editable)
-                const typeCell = document.createElement('td');
-                const typeSelect = document.createElement('select');
-                typeSelect.className = 'edit-type';
+                const typeCell = document.createElement("td");
+                const typeSelect = document.createElement("select");
+                typeSelect.className = "edit-type";
                 typeSelect.innerHTML = `
-                    <option value="expense" ${transaction.type === 'expense' ? 'selected' : ''}>Expense</option>
-                    <option value="income" ${transaction.type === 'income' ? 'selected' : ''}>Income</option>
+                    <option value="expense" ${transaction.type === "expense" ? "selected" : ""}>Expense</option>
+                    <option value="income" ${transaction.type === "income" ? "selected" : ""}>Income</option>
                 `;
-                typeSelect.addEventListener('change', (e) => {
+                typeSelect.addEventListener("change", (e) => {
                     importData[index].type = e.target.value;
                     // Update category as well if switching to income
-                    if (e.target.value === 'income') {
-                        const categorySelect = row.querySelector('.edit-category');
-                        categorySelect.value = 'Income';
-                        importData[index].category = 'Income';
+                    if (e.target.value === "income") {
+                        const categorySelect =
+                            row.querySelector(".edit-category");
+                        categorySelect.value = "Income";
+                        importData[index].category = "Income";
                     }
                 });
                 typeCell.appendChild(typeSelect);
                 row.appendChild(typeCell);
 
                 // Category cell (editable)
-                const categoryCell = document.createElement('td');
-                const categorySelect = document.createElement('select');
-                categorySelect.className = 'edit-category';
+                const categoryCell = document.createElement("td");
+                const categorySelect = document.createElement("select");
+                categorySelect.className = "edit-category";
                 categorySelect.innerHTML = categoryOptions;
-                categorySelect.value = transaction.category || 'Other';
-                categorySelect.addEventListener('change', (e) => {
+                categorySelect.value = transaction.category || "Other";
+                categorySelect.addEventListener("change", (e) => {
                     importData[index].category = e.target.value;
                 });
                 categoryCell.appendChild(categorySelect);
                 row.appendChild(categoryCell);
 
                 // Actions cell
-                const actionsCell = document.createElement('td');
-                actionsCell.className = 'actions-cell';
+                const actionsCell = document.createElement("td");
+                actionsCell.className = "actions-cell";
 
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'btn-icon delete-transaction';
-                deleteBtn.innerHTML = '<span class="material-icons">delete</span>';
-                deleteBtn.title = 'Delete transaction';
-                deleteBtn.addEventListener('click', () => {
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "btn-icon delete-transaction";
+                deleteBtn.innerHTML =
+                    '<span class="material-icons">delete</span>';
+                deleteBtn.title = "Delete transaction";
+                deleteBtn.addEventListener("click", () => {
                     // Remove from our data array
                     importData.splice(index, 1);
                     // Refresh the view
@@ -983,7 +1074,7 @@ const UIController = (function() {
     // Confirm import
     function confirmImport() {
         if (!importData || importData.length === 0) {
-            alert('No transactions to import.');
+            alert("No transactions to import.");
             return;
         }
 
@@ -997,15 +1088,16 @@ const UIController = (function() {
             importData = null;
 
             // Clear upload inputs
-            DOM.pdfUpload.value = '';
-            DOM.csvUpload.value = '';
+            DOM.pdfUpload.value = "";
+            DOM.csvUpload.value = "";
 
             // Update status
-            DOM.pdfUploadStatus.textContent = '';
-            DOM.csvUploadStatus.textContent = '';
+            DOM.pdfUploadStatus.textContent = "";
+            DOM.csvUploadStatus.textContent = "";
 
             // Clear preview
-            DOM.importPreviewContent.innerHTML = '<div class="empty-state">No import data to preview</div>';
+            DOM.importPreviewContent.innerHTML =
+                '<div class="empty-state">No import data to preview</div>';
 
             // Disable import button
             DOM.confirmImportBtn.disabled = true;
@@ -1014,9 +1106,9 @@ const UIController = (function() {
             updateDashboard();
 
             // Switch to transactions tab
-            switchTab('transactions');
+            switchTab("transactions");
         } else {
-            alert('Error importing transactions: '+ result.error);
+            alert("Error importing transactions: " + result.error);
         }
     }
 
@@ -1025,7 +1117,7 @@ const UIController = (function() {
         const transactions = Database.getAllTransactions();
 
         if (transactions.length === 0) {
-            alert('No transactions to export.');
+            alert("No transactions to export.");
             return;
         }
 
@@ -1033,9 +1125,12 @@ const UIController = (function() {
 
         if (csvContent) {
             const today = new Date().toISOString().slice(0, 10);
-            TransactionUtils.generateCSVDownload(csvContent, `transactions_${today}.csv`);
+            TransactionUtils.generateCSVDownload(
+                csvContent,
+                `transactions_${today}.csv`,
+            );
         } else {
-            alert('Error generating CSV file.');
+            alert("Error generating CSV file.");
         }
     }
 
@@ -1046,7 +1141,7 @@ const UIController = (function() {
         if (data) {
             TransactionUtils.exportToJSON(data);
         } else {
-            alert('Error creating backup data.');
+            alert("Error creating backup data.");
         }
     }
 
@@ -1059,39 +1154,45 @@ const UIController = (function() {
         }
 
         // Check file extension
-        if (!file.name.endsWith('.json')) {
-            alert('Please select a JSON backup file.');
+        if (!file.name.endsWith(".json")) {
+            alert("Please select a JSON backup file.");
             return;
         }
 
         // Read file
         const reader = new FileReader();
 
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             try {
                 const data = JSON.parse(e.target.result);
 
                 // Confirm before restoring
-                if (confirm('This will replace all your current data with the backup. Continue?')) {
+                if (
+                    confirm(
+                        "This will replace all your current data with the backup. Continue?",
+                    )
+                ) {
                     const result = Database.importData(data);
 
                     if (result.success) {
-                        alert(`Backup restored: ${result.transactionCount} transactions and ${result.categoryCount} categories imported.`);
+                        alert(
+                            `Backup restored: ${result.transactionCount} transactions and ${result.categoryCount} categories imported.`,
+                        );
 
                         // Reset file input
-                        DOM.restoreBackupInput.value = '';
+                        DOM.restoreBackupInput.value = "";
 
                         // Update UI
                         updateDashboard();
                         updateCategoriesList();
                         populateCategoryDropdown();
                     } else {
-                        alert('Error restoring backup: ' + result.error);
+                        alert("Error restoring backup: " + result.error);
                     }
                 }
             } catch (error) {
-                console.error('Error parsing backup file:', error);
-                alert('Invalid backup file: ' + error.message);
+                console.error("Error parsing backup file:", error);
+                alert("Invalid backup file: " + error.message);
             }
         };
 
@@ -1100,12 +1201,20 @@ const UIController = (function() {
 
     // Confirm clear data
     function confirmClearData() {
-        if (confirm('Are you sure you want to delete all your financial data? This cannot be undone!')) {
-            if (confirm('FINAL WARNING: All transactions and custom categories will be permanently deleted.')) {
+        if (
+            confirm(
+                "Are you sure you want to delete all your financial data? This cannot be undone!",
+            )
+        ) {
+            if (
+                confirm(
+                    "FINAL WARNING: All transactions and custom categories will be permanently deleted.",
+                )
+            ) {
                 const result = Database.clearData();
 
                 if (result.success) {
-                    alert('All data has been cleared.');
+                    alert("All data has been cleared.");
 
                     // Update UI
                     updateDashboard();
@@ -1113,9 +1222,9 @@ const UIController = (function() {
                     populateCategoryDropdown();
 
                     // Switch to dashboard tab
-                    switchTab('dashboard');
+                    switchTab("dashboard");
                 } else {
-                    alert('Error clearing data: ' + result.error);
+                    alert("Error clearing data: " + result.error);
                 }
             }
         }
@@ -1125,13 +1234,13 @@ const UIController = (function() {
     function updateCategoriesList() {
         const categories = Database.getCategories();
 
-        DOM.categoriesList.innerHTML = '';
+        DOM.categoriesList.innerHTML = "";
 
-        categories.forEach(category => {
-            const categoryEl = document.createElement('div');
-            categoryEl.className = 'category-item';
+        categories.forEach((category) => {
+            const categoryEl = document.createElement("div");
+            categoryEl.className = "category-item";
 
-            const categoryName = document.createElement('span');
+            const categoryName = document.createElement("span");
             categoryName.textContent = category;
             categoryEl.appendChild(categoryName);
 
@@ -1146,7 +1255,7 @@ const UIController = (function() {
         const categoryName = DOM.newCategoryInput.value.trim();
 
         if (!categoryName) {
-            alert('Please enter a category name.');
+            alert("Please enter a category name.");
             return;
         }
 
@@ -1154,7 +1263,7 @@ const UIController = (function() {
 
         if (result.success) {
             // Clear input
-            DOM.newCategoryInput.value = '';
+            DOM.newCategoryInput.value = "";
 
             // Update categories list
             updateCategoriesList();
@@ -1162,7 +1271,7 @@ const UIController = (function() {
             // Update category dropdown
             populateCategoryDropdown();
         } else {
-            alert('Error adding category: ' + result.error);
+            alert("Error adding category: " + result.error);
         }
     }
 
@@ -1171,11 +1280,11 @@ const UIController = (function() {
         const categories = Database.getCategories();
 
         // Clear existing options
-        DOM.transactionCategory.innerHTML = '';
+        DOM.transactionCategory.innerHTML = "";
 
         // Add options
-        categories.forEach(category => {
-            const option = document.createElement('option');
+        categories.forEach((category) => {
+            const option = document.createElement("option");
             option.value = category;
             option.textContent = category;
             DOM.transactionCategory.appendChild(option);
@@ -1185,16 +1294,16 @@ const UIController = (function() {
     // Create and show toast notification
     function showToast(message, duration = 3000) {
         // Create toast container if it doesn't exist
-        let toastContainer = document.querySelector('.toast-container');
+        let toastContainer = document.querySelector(".toast-container");
         if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.className = 'toast-container';
+            toastContainer = document.createElement("div");
+            toastContainer.className = "toast-container";
             document.body.appendChild(toastContainer);
         }
 
         // Create toast element
-        const toast = document.createElement('div');
-        toast.className = 'toast';
+        const toast = document.createElement("div");
+        toast.className = "toast";
         toast.textContent = message;
         toastContainer.appendChild(toast);
 
@@ -1214,6 +1323,6 @@ const UIController = (function() {
         init,
         showToast,
         switchTab,
-        updateDashboard
+        updateDashboard,
     };
 })();

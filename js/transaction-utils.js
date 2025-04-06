@@ -5,17 +5,14 @@
 const TransactionUtils = (function() {
     // Format currency amount
     function formatCurrency(amount, showPositiveSign = false) {
+        // Remove the currency style to avoid double rupee signs
         const formatter = new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
             minimumFractionDigits: 2
         });
         
-        if (showPositiveSign && amount > 0) {
-            return '+' + formatter.format(amount);
-        }
-        
-        return formatter.format(amount);
+        const formattedAmount = formatter.format(Math.abs(amount));
+        const prefix = showPositiveSign && amount > 0 ? '+₹' : amount < 0 ? '-₹' : '₹';
+        return prefix + formattedAmount;
     }
     
     // Format date to readable string

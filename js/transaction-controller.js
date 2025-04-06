@@ -17,21 +17,58 @@ const TransactionsController = (function() {
     let pendingImportTransactions = [];
 
     function init() {
+        // Initialize DOM elements
+        const elements = {
+            csvUpload: document.getElementById('csv-upload'),
+            pdfUpload: document.getElementById('pdf-upload'),
+            splitwiseUpload: document.getElementById('splitwise-upload'),
+            confirmImport: document.getElementById('confirm-import'),
+            importPreview: document.getElementById('import-preview-content'),
+            csvStatus: document.getElementById('csv-upload-status'),
+            pdfStatus: document.getElementById('pdf-upload-status'),
+            splitwiseStatus: document.getElementById('splitwise-upload-status')
+        };
+
+        // Validate all elements exist
+        Object.entries(elements).forEach(([name, element]) => {
+            if (!element) {
+                console.error(`Missing DOM element: ${name}`);
+            }
+        });
+
+        // Assign to module scope
+        csvUploadInput = elements.csvUpload;
+        pdfUploadInput = elements.pdfUpload;
+        splitwiseUploadInput = elements.splitwiseUpload;
+        confirmImportBtn = elements.confirmImport;
+        importPreviewContent = elements.importPreview;
+        csvUploadStatus = elements.csvStatus;
+        pdfUploadStatus = elements.pdfStatus;
+        splitwiseUploadStatus = elements.splitwiseStatus;
+
         setupEventListeners();
     }
 
     function setupEventListeners() {
         // CSV Import
-        csvUploadInput.addEventListener('change', handleCSVUpload);
+        if (csvUploadInput) {
+            csvUploadInput.addEventListener('change', handleCSVUpload);
+        }
         
         // PDF Import
-        pdfUploadInput.addEventListener('change', handlePDFUpload);
+        if (pdfUploadInput) {
+            pdfUploadInput.addEventListener('change', handlePDFUpload);
+        }
         
         // Splitwise Import
-        splitwiseUploadInput.addEventListener('change', handleSplitwiseUpload);
+        if (splitwiseUploadInput) {
+            splitwiseUploadInput.addEventListener('change', handleSplitwiseUpload);
+        }
         
         // Confirm Import
-        confirmImportBtn.addEventListener('click', confirmImport);
+        if (confirmImportBtn) {
+            confirmImportBtn.addEventListener('click', confirmImport);
+        }
     }
 
     async function handleCSVUpload(event) {

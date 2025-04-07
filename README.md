@@ -8,7 +8,7 @@ Welcome to the **Personal Finance Tracker**! This application helps you manage y
 - **Income Management**: Log your income sources and amounts.
 - **Budgeting**: Set monthly budgets and monitor your spending.
 - **Reports**: Generate detailed financial reports and insights.
-- **Data Security**: Your financial data is stored securely.
+- **Data Security**: Your financial data is stored on device.
 
 ## Installation
 

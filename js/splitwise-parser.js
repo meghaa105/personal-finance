@@ -100,6 +100,7 @@ const SplitwiseParser = (function() {
                                             } else if (row['Cost']) {
                                                 amount = Math.abs(parseFloat(row['Cost']));
                                             }
+                                            console.log('Processing amount:', row['Your share'], row['Cost'], amount);
                                             
                                             if (isNaN(amount) || amount === 0) return null;
 

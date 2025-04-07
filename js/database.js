@@ -19,7 +19,8 @@ const Database = (function() {
         'Travel',
         'Income',
         'Banking & Finance',
-        'Other'
+        'Other',
+        'Sports & Fitness',
     ];
     
     // Credit card reminders storage

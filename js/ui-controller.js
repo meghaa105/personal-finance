@@ -25,8 +25,10 @@ const UIController = (function() {
         // Import elements
         pdfUpload: document.getElementById('pdf-upload'),
         csvUpload: document.getElementById('csv-upload'),
+        splitwiseUpload: document.getElementById('splitwise-upload'),
         pdfUploadStatus: document.getElementById('pdf-upload-status'),
         csvUploadStatus: document.getElementById('csv-upload-status'),
+        splitwiseUploadStatus: document.getElementById('splitwise-upload-status'),
         importPreviewContent: document.getElementById('import-preview-content'),
         confirmImportBtn: document.getElementById('confirm-import'),
         
@@ -101,6 +103,7 @@ const UIController = (function() {
         // Set up import handlers
         DOM.pdfUpload.addEventListener('change', handlePDFUpload);
         DOM.csvUpload.addEventListener('change', handleCSVUpload);
+        DOM.splitwiseUpload.addEventListener('change', handleSplitwiseUpload);
         DOM.confirmImportBtn.addEventListener('click', confirmImport);
         
         // Set up settings handlers
@@ -684,6 +687,61 @@ const UIController = (function() {
         }
     }
     
+    // Handle Splitwise CSV upload
+    async function handleSplitwiseUpload(event) {
+        const file = event.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        // Check file extension
+        if (!file.name.endsWith('.csv')) {
+            DOM.splitwiseUploadStatus.textContent = 'Error: Please select a CSV file.';
+            if (DOM.splitwiseUploadStatus) {
+                DOM.splitwiseUploadStatus.className = 'upload-status error';
+            }
+            return;
+        }
+
+        // Show loading status
+        DOM.splitwiseUploadStatus.textContent = 'Parsing Splitwise CSV...';
+        DOM.splitwiseUploadStatus.className = 'upload-status';
+
+        try {
+            // Parse Splitwise CSV
+            const result = await SplitwiseParser.parseCSV(file);
+
+            if (result.success && result.transactions.length > 0) {
+                // Update status
+                DOM.splitwiseUploadStatus.textContent = `Successfully parsed ${result.transactions.length} transactions.`;
+                DOM.splitwiseUploadStatus.className = 'upload-status success';
+
+                // Store import data
+                importData = result.transactions;
+
+                // Show preview
+                showImportPreview(result.transactions);
+
+                // Enable import button
+                DOM.confirmImportBtn.disabled = false;
+            } else {
+                DOM.splitwiseUploadStatus.textContent = 'Error: No transactions found in the Splitwise CSV.';
+                DOM.splitwiseUploadStatus.className = 'upload-status error';
+
+                // Disable import button
+                DOM.confirmImportBtn.disabled = true;
+            }
+        } catch (error) {
+            console.error('Error parsing Splitwise CSV:', error);
+            DOM.splitwiseUploadStatus.textContent = 'Error parsing Splitwise CSV: ' + error.message;
+            DOM.splitwiseUploadStatus.className = 'upload-status error';
+
+            // Disable import button
+            DOM.confirmImportBtn.disabled = true;
+        }
+    }
+    
     // Show import preview
     function showImportPreview(transactions) {
         if (!transactions || transactions.length === 0) {
@@ -973,10 +1031,12 @@ const UIController = (function() {
             // Clear upload inputs
             DOM.pdfUpload.value = '';
             DOM.csvUpload.value = '';
+            DOM.splitwiseUpload.value = '';
             
             // Update status
             DOM.pdfUploadStatus.textContent = '';
             DOM.csvUploadStatus.textContent = '';
+            DOM.splitwiseUploadStatus.textContent = '';
             
             // Clear preview
             DOM.importPreviewContent.innerHTML = '<div class="empty-state">No import data to preview</div>';

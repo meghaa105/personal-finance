@@ -180,13 +180,23 @@ const AdvancedAnalytics = (function() {
      * @param {Array} transactions - List of transactions
      */
     function updateSavingsRateChart(transactions) {
-        const ctx = document.getElementById('savings-rate-chart').getContext('2d');
+        const ctx = document.getElementById('savings-rate-chart')?.getContext('2d');
+        if (!ctx) {
+            console.error('Savings Rate Chart canvas element not found.');
+            return;
+        }
+
         const data = calculateMonthlySavings(transactions);
-        
+        if (!data || data.length === 0) {
+            console.error('No data available for Monthly Savings Rate chart.');
+            ctx.canvas.parentNode.innerHTML = '<div class="empty-state">No savings rate data available</div>';
+            return;
+        }
+
         if (savingsRateChart) {
             savingsRateChart.destroy();
         }
-        
+
         savingsRateChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -450,13 +460,12 @@ const AdvancedAnalytics = (function() {
 
     // Public API
     return {
-        refreshAdvancedAnalytics: refreshAdvancedAnalytics,
-        // Expose individual update functions for specific chart updates
         updateSavingsRateChart: updateSavingsRateChart,
         updateBudgetComparisonChart: updateBudgetComparisonChart,
         updateRecurringExpensesChart: updateRecurringExpensesChart,
         updateCategoryGrowthChart: updateCategoryGrowthChart,
         updateDailyPatternChart: updateDailyPatternChart,
-        updateExpenseForecastChart: updateExpenseForecastChart
+        updateExpenseForecastChart: updateExpenseForecastChart,
+        refreshAdvancedAnalytics: refreshAdvancedAnalytics
     };
 })();

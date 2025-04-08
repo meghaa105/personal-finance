@@ -191,10 +191,41 @@ const AnalyticsController = (function() {
         // Only update charts if analytics tab is active
         const analyticsTab = document.getElementById('analytics');
         if (analyticsTab && analyticsTab.classList.contains('active')) {
-            updateCategoryChart(transactions);
-            updateTrendsChart(transactions);
-            updateCashFlowChart(transactions);
-            updatePaymentMethodChart(transactions);
+            try {
+                updateCategoryChart(transactions);
+            } catch (error) {
+                console.error('Error updating category chart:', error);
+            }
+
+            try {
+                updateTrendsChart(transactions);
+            } catch (error) {
+                console.error('Error updating trends chart:', error);
+            }
+
+            try {
+                updateCashFlowChart(transactions);
+            } catch (error) {
+                console.error('Error updating cash flow chart:', error);
+            }
+
+            try {
+                updatePaymentMethodChart(transactions);
+            } catch (error) {
+                console.error('Error updating payment method chart:', error);
+            }
+
+            try {
+                AdvancedAnalytics.updateSavingsRateChart(transactions);
+            } catch (error) {
+                console.error('Error updating savings rate chart:', error);
+            }
+
+            try {
+                AdvancedAnalytics.updateBudgetComparisonChart(transactions);
+            } catch (error) {
+                console.error('Error updating budget comparison chart:', error);
+            }
         }
         
         // Update filtered transactions list

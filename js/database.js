@@ -202,17 +202,16 @@ const Database = (function() {
     function deleteTransaction(transactionId) {
         const initialLength = transactions.length;
         transactions = transactions.filter(t => t.id !== transactionId);
-        
+
         if (transactions.length === initialLength) {
-            return { error: 'Transaction not found.' };
+            return { error: "Transaction not found." };
         }
-        
-        // Save to localStorage
-        const saveResult = saveTransactions();
+
+        const saveResult = saveTransactions(); // Save updated transactions to storage
         if (saveResult.error) {
             return saveResult;
         }
-        
+
         return { success: true };
     }
     

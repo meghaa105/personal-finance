@@ -60,7 +60,7 @@ const UIController = (function () {
         closeModal: document.querySelector(".close-modal"),
 
         // Confirmation modal
-        confirmationModal: document.getElementById("confirmation-modal"),
+        confirmationModal: document.getElementById("delete-confirmation"),
         confirmDeleteBtn: document.getElementById("confirm-delete"),
         cancelDeleteBtn: document.getElementById("cancel-delete"),
     };
@@ -121,6 +121,9 @@ const UIController = (function () {
         DOM.filterType.addEventListener("change", applyTransactionFilters);
         DOM.filterMonth.addEventListener("change", applyTransactionFilters);
 
+        // Add event listener for real-time search
+        DOM.searchTransactions.addEventListener("input", updateTransactionsList);
+
         // Set current month as default for month filter
         const now = new Date();
         DOM.filterMonth.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -164,6 +167,9 @@ const UIController = (function () {
                 cancelDeleteTransaction();
             }
         });
+
+        // Initialize delete confirmation modal buttons
+        setupDeleteConfirmationListeners();
 
         console.log("UI Controller initialized");
     }
@@ -344,8 +350,7 @@ const UIController = (function () {
 
     // Update main transactions list
     function updateTransactionsList() {
-        // Get filter values
-        const searchValue = DOM.searchTransactions.value.trim();
+        const searchValue = DOM.searchTransactions.value.trim().toLowerCase();
         const typeFilter = DOM.filterType.value;
 
         let startDate, endDate;
@@ -355,63 +360,40 @@ const UIController = (function () {
             endDate = new Date(year, month, 0);
         }
 
-        // Apply filters
         const filters = {};
-
-        if (searchValue) {
-            filters.search = searchValue;
-        }
-
-        if (typeFilter !== "all") {
-            filters.type = typeFilter;
-        }
-
-        if (startDate) {
-            filters.startDate = startDate;
-        }
-
-        if (endDate) {
-            filters.endDate = endDate;
-        }
+        if (searchValue) filters.search = searchValue;
+        if (typeFilter !== "all") filters.type = typeFilter;
+        if (startDate) filters.startDate = startDate;
+        if (endDate) filters.endDate = endDate;
 
         const transactions = Database.getTransactions(filters);
 
         if (transactions.length === 0) {
-            DOM.transactionsList.innerHTML =
-                '<div class="empty-state">No transactions match your filters</div>';
+            DOM.transactionsList.innerHTML = '<div class="empty-state">No transactions match your filters</div>';
             return;
         }
 
-        // Group transactions by month
-        const transactionsByMonth = TransactionUtils.groupByMonth(transactions);
-
         DOM.transactionsList.innerHTML = "";
 
-        // Create section for each month
-        for (const yearMonth in transactionsByMonth) {
-            const [year, month] = yearMonth.split("-");
-            const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-            const monthName = date.toLocaleString("default", {
-                month: "long",
-                year: "numeric",
-            });
+        transactions.forEach((transaction) => {
+            const transactionEl = createTransactionElement(transaction, true);
+            if (searchValue) {
+                highlightSearchMatch(transactionEl, searchValue);
+            }
+            DOM.transactionsList.appendChild(transactionEl);
+        });
+    }
 
-            // Create month header
-            const monthHeader = document.createElement("div");
-            monthHeader.className = "month-header";
-            monthHeader.textContent = monthName;
-            DOM.transactionsList.appendChild(monthHeader);
-
-            // Add transactions for this month
-            const monthTransactions = transactionsByMonth[yearMonth];
-            monthTransactions.forEach((transaction) => {
-                const transactionEl = createTransactionElement(
-                    transaction,
-                    true,
-                );
-                DOM.transactionsList.appendChild(transactionEl);
-            });
-        }
+    // Highlight matching text in search results
+    function highlightSearchMatch(element, searchValue) {
+        const fieldsToHighlight = ["transaction-title", "transaction-category", "transaction-amount"];
+        fieldsToHighlight.forEach((className) => {
+            const field = element.querySelector(`.${className}`);
+            if (field) {
+                const regex = new RegExp(`(${searchValue})`, "gi");
+                field.innerHTML = field.textContent.replace(regex, "<mark>$1</mark>");
+            }
+        });
     }
 
     // Create transaction element
@@ -599,30 +581,40 @@ const UIController = (function () {
     // Show delete confirmation modal
     function showDeleteConfirmation(transactionId) {
         transactionToDelete = transactionId;
+        if (!DOM.confirmationModal) {
+            console.error("Delete confirmation modal not found.");
+            return;
+        }
         DOM.confirmationModal.style.display = "block";
     }
 
     // Confirm delete transaction
     function confirmDeleteTransaction() {
         if (!transactionToDelete) {
+            alert("No transaction selected for deletion.");
             return;
         }
 
         const result = Database.deleteTransaction(transactionToDelete);
 
         if (result.success) {
-            updateTransactionsList();
-            updateDashboard();
+            updateTransactionsList(); // Refresh the transactions list
+            updateDashboard(); // Update the dashboard summary
+            showToast("Transaction deleted successfully."); // Optional: Show a success message
         } else {
             alert("Error deleting transaction: " + result.error);
         }
 
-        DOM.confirmationModal.style.display = "none";
-        transactionToDelete = null;
+        DOM.confirmationModal.style.display = "none"; // Hide the confirmation modal
+        transactionToDelete = null; // Reset the transaction to delete
     }
 
     // Cancel delete transaction
     function cancelDeleteTransaction() {
+        if (!DOM.confirmationModal) {
+            console.error("Delete confirmation modal not found.");
+            return;
+        }
         DOM.confirmationModal.style.display = "none";
         transactionToDelete = null;
     }
@@ -1422,6 +1414,21 @@ const UIController = (function () {
                 toastContainer.remove();
             }
         }, duration);
+    }
+
+    // Initialize delete confirmation modal buttons
+    function setupDeleteConfirmationListeners() {
+        if (DOM.cancelDeleteBtn) {
+            DOM.cancelDeleteBtn.addEventListener("click", cancelDeleteTransaction);
+        } else {
+            console.error("Cancel delete button not found.");
+        }
+
+        if (DOM.confirmDeleteBtn) {
+            DOM.confirmDeleteBtn.addEventListener("click", confirmDeleteTransaction);
+        } else {
+            console.error("Confirm delete button not found.");
+        }
     }
 
     // Return public API

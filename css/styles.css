@@ -1745,3 +1745,12 @@ input:focus, select:focus, textarea:focus {
 .apply-filters .btn:hover {
     background-color: var(--primary-dark);
 }
+
+/* Highlighted search matches */
+mark {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: bold;
+    padding: 0 2px;
+    border-radius: 2px;
+}

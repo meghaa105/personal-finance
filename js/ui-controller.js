@@ -1315,11 +1315,27 @@ const UIController = (function () {
     function updateCategoriesList() {
         const categories = Database.getCategories();
 
+        if (!DOM.categoriesList) {
+            console.error("Categories list container not found.");
+            return;
+        }
+
         DOM.categoriesList.innerHTML = "";
+
+        if (categories.length === 0) {
+            DOM.categoriesList.innerHTML = '<div class="empty-state">No custom categories added</div>';
+            return;
+        }
 
         categories.forEach((category) => {
             const categoryEl = document.createElement("div");
             categoryEl.className = "category-item";
+
+            // Add category icon
+            const categoryIcon = document.createElement("span");
+            categoryIcon.className = "material-icons category-icon";
+            categoryIcon.textContent = getCategoryIcon(category);
+            categoryEl.appendChild(categoryIcon);
 
             // Add category name
             const categoryName = document.createElement("span");

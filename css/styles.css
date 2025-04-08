@@ -311,16 +311,16 @@ main {
 }
 
 .transaction-category {
-    font-size: 0.9rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
-    padding: 0.35rem 1rem;
-    border-radius: 20px;
-    display: flex;
+    font-size: 0.85rem;
+    background: rgba(124, 58, 237, 0.1);
+    color: var(--primary-color);
+    padding: 0.4rem 0.9rem;
+    border-radius: 12px;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+    border: 1px solid rgba(124, 58, 237, 0.2);
 }
 
 .transaction-source {
@@ -336,10 +336,11 @@ main {
     position: relative;
     font-size: 1.1rem;
     font-weight: 600;
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    min-width: 120px;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    min-width: 100px;
     text-align: right;
+    background: rgba(0, 0, 0, 0.02);
 }
 
 /* Removed rupee symbol from CSS since it's handled in JS */

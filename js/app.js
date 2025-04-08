@@ -78,17 +78,11 @@ document.addEventListener('DOMContentLoaded', function() {
         storagePrefix: 'personalFinance_'
     };
     
-    // Hide modal initialization on load
-    const clearDataModal = document.getElementById("clear-data-confirmation");
-    const renameFileModal = document.getElementById("rename-file-modal");
-    
-    if (clearDataModal) {
-        clearDataModal.style.display = "none";
-    }
-    
-    if (renameFileModal) {
-        renameFileModal.style.display = "none";
-    }
+    // Hide all modals on load
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
     
     // Log successful initialization
     console.log('Application initialized successfully!');

@@ -1139,11 +1139,14 @@ input:focus, select:focus, textarea:focus {
     background-color: rgba(0, 0, 0, 0.6);
     z-index: 1000;
     overflow: auto;
-    display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
     backdrop-filter: blur(4px);
+}
+
+.modal.show {
+    display: flex;
 }
 
 .modal-content {

@@ -1130,26 +1130,38 @@ input:focus, select:focus, textarea:focus {
 
 /* Modals */
 .modal {
-    display: none; /* Ensure modals are hidden by default */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
     z-index: 1000;
     overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 1rem;
+    backdrop-filter: blur(4px);
 }
 
 .modal-content {
-    background-color: #fff;
-    border-radius: 12px; /* Rounded corners */
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+    border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     text-align: center;
-    max-width: 400px;
-    width: 90%;
+    max-width: 450px;
+    width: 95%;
+    position: relative;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
 }
 
 .modal-content h3 {
@@ -1213,14 +1225,44 @@ input:focus, select:focus, textarea:focus {
 }
 
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    text-align: left;
 }
 
 .form-group:last-child {
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     margin-bottom: 0;
     display: flex;
-    gap: 0.5rem;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    outline: none;
 }
 
 .form-group label {

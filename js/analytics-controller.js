@@ -27,6 +27,26 @@ const AnalyticsController = (function() {
         end: null
     };
     
+    // Import or define the getCategoryIcon function
+    function getCategoryIcon(category) {
+        switch (category) {
+            case "Food & Dining": return "restaurant";
+            case "Groceries": return "shopping_cart";
+            case "Shopping": return "local_mall";
+            case "Transportation": return "directions_car";
+            case "Entertainment": return "movie";
+            case "Housing": return "home";
+            case "Utilities": return "bolt";
+            case "Health": return "medical_services";
+            case "Education": return "school";
+            case "Personal": return "person";
+            case "Travel": return "flight";
+            case "Income": return "payments";
+            case "Banking & Finance": return "account_balance";
+            default: return "help_outline";
+        }
+    }
+    
     /**
      * Initialize the analytics controller
      */
@@ -87,6 +107,23 @@ const AnalyticsController = (function() {
         // Listen for database changes
         document.addEventListener('transactions-updated', refreshAnalytics);
         document.addEventListener('categories-updated', updateCategoryFilters);
+
+        // Apply all filters button
+        document.getElementById("apply-all-filters").addEventListener("click", function () {
+            // Apply all filters: time period, categories, and sources
+            const activeTimePeriod = document.querySelector(".time-filter-buttons .filter-btn.active").getAttribute("data-period");
+            applyTimePeriodFilter(activeTimePeriod);
+
+            selectedCategories = Array.from(
+                document.querySelectorAll(".category-checkbox input:checked")
+            ).map((input) => input.getAttribute("data-category"));
+
+            selectedSources = Array.from(
+                document.querySelectorAll(".source-checkbox input:checked")
+            ).map((input) => input.getAttribute("value"));
+
+            refreshAnalytics(); // Refresh analytics with the applied filters
+        });
     }
     
     /**
@@ -110,35 +147,41 @@ const AnalyticsController = (function() {
      * Update category filter checkboxes based on available categories
      */
     function updateCategoryFilters() {
-        const categories = Database.getCategories();
-        
+        const categories = Database.getCategories(); // Fetch categories from the database
+
+        if (!categoryFiltersContainer) {
+            console.error("Category filters container not found.");
+            return;
+        }
+
+        // Clear existing filters
+        categoryFiltersContainer.innerHTML = ""; // Clear the container
+
         if (categories.length === 0) {
             categoryFiltersContainer.innerHTML = '<div class="empty-state">No categories available</div>';
             return;
         }
-        
-        let html = '';
-        categories.forEach(category => {
+
+        // Populate the category filters
+        categories.forEach((category) => {
             const isChecked = selectedCategories.length === 0 || selectedCategories.includes(category);
-            html += `
+            const filterHTML = `
                 <div class="category-checkbox">
-                    <input type="checkbox" id="cat-${category}" data-category="${category}" ${isChecked ? 'checked' : ''}>
+                    <input type="checkbox" id="cat-${category}" data-category="${category}" ${isChecked ? "checked" : ""}>
                     <label for="cat-${category}">${category}</label>
                 </div>
             `;
+            categoryFiltersContainer.insertAdjacentHTML("beforeend", filterHTML);
         });
-        
-        categoryFiltersContainer.innerHTML = html;
-        
+
         // Add event listeners to checkboxes
-        document.querySelectorAll('.category-checkbox input').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                // Update selected categories
+        document.querySelectorAll(".category-checkbox input").forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
                 selectedCategories = Array.from(
-                    document.querySelectorAll('.category-checkbox input:checked')
-                ).map(input => input.getAttribute('data-category'));
-                
-                refreshAnalytics();
+                    document.querySelectorAll(".category-checkbox input:checked")
+                ).map((input) => input.getAttribute("data-category"));
+
+                refreshAnalytics(); // Refresh analytics and update graphs
             });
         });
     }
@@ -184,52 +227,20 @@ const AnalyticsController = (function() {
      */
     function refreshAnalytics() {
         const transactions = getFilteredTransactions();
-        
-        // Update summary statistics
-        updateAnalyticsSummary(transactions);
-        
-        // Only update charts if analytics tab is active
-        const analyticsTab = document.getElementById('analytics');
-        if (analyticsTab && analyticsTab.classList.contains('active')) {
-            try {
-                updateCategoryChart(transactions);
-            } catch (error) {
-                console.error('Error updating category chart:', error);
-            }
 
-            try {
-                updateTrendsChart(transactions);
-            } catch (error) {
-                console.error('Error updating trends chart:', error);
-            }
+        // Filter transactions by selected categories
+        const filteredTransactions = transactions.filter((transaction) =>
+            selectedCategories.length === 0 || selectedCategories.includes(transaction.category)
+        );
 
-            try {
-                updateCashFlowChart(transactions);
-            } catch (error) {
-                console.error('Error updating cash flow chart:', error);
-            }
-
-            try {
-                updatePaymentMethodChart(transactions);
-            } catch (error) {
-                console.error('Error updating payment method chart:', error);
-            }
-
-            try {
-                AdvancedAnalytics.updateSavingsRateChart(transactions);
-            } catch (error) {
-                console.error('Error updating savings rate chart:', error);
-            }
-
-            try {
-                AdvancedAnalytics.updateBudgetComparisonChart(transactions);
-            } catch (error) {
-                console.error('Error updating budget comparison chart:', error);
-            }
-        }
-        
-        // Update filtered transactions list
-        updateFilteredTransactionsList(transactions);
+        // Update graphs with filtered transactions
+        updateAnalyticsSummary(filteredTransactions);
+        updateCategoryChart(filteredTransactions);
+        updateTrendsChart(filteredTransactions);
+        updateCashFlowChart(filteredTransactions);
+        updatePaymentMethodChart(filteredTransactions);
+        AdvancedAnalytics.updateSavingsRateChart(filteredTransactions);
+        AdvancedAnalytics.updateBudgetComparisonChart(filteredTransactions);
     }
     
     /**
@@ -397,7 +408,8 @@ const AnalyticsController = (function() {
         
         const options = {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: true, // Maintain the aspect ratio
+            aspectRatio: 1, // Set the aspect ratio to 1 (square)
             plugins: {
                 legend: {
                     position: 'right',
@@ -617,8 +629,14 @@ const AnalyticsController = (function() {
      * @param {Array} transactions - Filtered transactions
      */
     function updatePaymentMethodChart(transactions) {
-        const ctx = document.getElementById('payment-method-chart').getContext('2d');
-        
+        const ctxElement = document.getElementById('payment-method-chart');
+        if (!ctxElement) {
+            console.error("Error: Payment method chart element not found.");
+            return;
+        }
+
+        const ctx = ctxElement.getContext('2d');
+
         // Filter expense transactions only
         const expenses = transactions.filter(t => t.type === 'expense');
         

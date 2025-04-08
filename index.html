@@ -86,55 +86,53 @@
                 <div class="analytics-search-bar">
                     <input type="text" id="analytics-search" placeholder="Search transactions by description...">
                 </div>
-
                 <div class="analytics-filters">
-                    <div class="filters-wrapper">
-                        <div class="time-filter">
-                            <h3>Time Period</h3>
-                            <div class="time-filter-buttons">
-                                <button class="filter-btn active" data-period="month">This Month</button>
-                                <button class="filter-btn" data-period="quarter">Last Quarter</button>
-                                <button class="filter-btn" data-period="year">Last Year</button>
-                                <button class="filter-btn" data-period="custom">Custom</button>
-                            </div>
-                            <div class="custom-date-range" style="display: none;">
-                                <input type="date" id="start-date">
-                                <input type="date" id="end-date">
-                                <button id="apply-date-range" class="btn primary">Apply</button>
-                            </div>
+                    <div class="time-filter">
+                        <h3>Time Period</h3>
+                        <div class="time-filter-buttons">
+                            <button class="filter-btn active" data-period="month">This Month</button>
+                            <button class="filter-btn" data-period="quarter">Last Quarter</button>
+                            <button class="filter-btn" data-period="year">Last Year</button>
+                            <button class="filter-btn" data-period="custom">Custom</button>
                         </div>
-
-                        <div class="category-filter">
-                            <h3>Categories</h3>
-                            <div class="category-checkboxes" id="category-filters">
-                                <!-- Will be populated with categories -->
-                            </div>
+                        <div class="custom-date-range" style="display: none;">
+                            <input type="date" id="start-date">
+                            <span>to</span>
+                            <input type="date" id="end-date">
+                            <button id="apply-date-range" class="btn">Apply</button>
                         </div>
-
-                        <div class="source-filter">
-                            <h3>Transaction Source</h3>
-                            <div class="source-checkboxes" id="source-filters">
-                                <div class="source-checkbox">
-                                    <input type="checkbox" id="source-manual" value="manual" checked>
-                                    <label for="source-manual">Manual Entry</label>
-                                </div>
-                                <div class="source-checkbox">
-                                    <input type="checkbox" id="source-csv" value="csv" checked>
-                                    <label for="source-csv">Bank Statement CSV Import</label>
-                                </div>
-                                <div class="source-checkbox">
-                                    <input type="checkbox" id="source-pdf" value="pdf" checked>
-                                    <label for="source-pdf">Credit Card PDF Import</label>
-                                </div>
-                                <div class="source-checkbox">
-                                    <input type="checkbox" id="source-splitwise" value="splitwise" checked>
-                                    <label for="source-splitwise">Splitwise Import</label>
-                                </div>
+                    </div>
+                    <div class="category-filter">
+                        <h3>Categories</h3>
+                        <div class="category-checkboxes" id="category-filters">
+                            <!-- Categories will be dynamically populated -->
+                        </div>
+                    </div>
+                    <div class="source-filter">
+                        <h3>Transaction Source</h3>
+                        <div class="source-checkboxes" id="source-filters">
+                            <div class="source-checkbox">
+                                <input type="checkbox" id="source-manual" value="manual" checked>
+                                <label for="source-manual">Manual Entry</label>
+                            </div>
+                            <div class="source-checkbox">
+                                <input type="checkbox" id="source-csv" value="csv" checked>
+                                <label for="source-csv">Bank Statement CSV Import</label>
+                            </div>
+                            <div class="source-checkbox">
+                                <input type="checkbox" id="source-pdf" value="pdf" checked>
+                                <label for="source-pdf">Credit Card PDF Import</label>
+                            </div>
+                            <div class="source-checkbox">
+                                <input type="checkbox" id="source-splitwise" value="splitwise" checked>
+                                <label for="source-splitwise">Splitwise Import</label>
                             </div>
                         </div>
                     </div>
+                    <div class="apply-filters">
+                        <button id="apply-all-filters" class="btn primary">Apply All Filters</button>
+                    </div>
                 </div>
-
                 <div class="analytics-summary">
                     <h3>Analytics Summary</h3>
                     <div class="summary-metrics">

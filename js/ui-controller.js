@@ -1320,6 +1320,7 @@ const UIController = (function () {
             return;
         }
 
+        // Clear existing categories
         DOM.categoriesList.innerHTML = "";
 
         if (categories.length === 0) {
@@ -1327,15 +1328,10 @@ const UIController = (function () {
             return;
         }
 
+        // Populate categories
         categories.forEach((category) => {
             const categoryEl = document.createElement("div");
             categoryEl.className = "category-item";
-
-            // Add category icon
-            const categoryIcon = document.createElement("span");
-            categoryIcon.className = "material-icons category-icon";
-            categoryIcon.textContent = getCategoryIcon(category);
-            categoryEl.appendChild(categoryIcon);
 
             // Add category name
             const categoryName = document.createElement("span");
@@ -1346,24 +1342,18 @@ const UIController = (function () {
             const deleteBtn = document.createElement("button");
             deleteBtn.className = "delete-btn material-icons";
             deleteBtn.textContent = "delete";
-            deleteBtn.addEventListener("click", () => deleteCategory(category));
+            deleteBtn.addEventListener("click", () => {
+                if (confirm(`Are you sure you want to delete the category "${category}"?`)) {
+                    Database.deleteCategory(category);
+                    updateCategoriesList();
+                    AnalyticsController.updateCategoryFilters(); // Refresh category filters
+                    AnalyticsController.refreshAnalytics(); // Ensure graphs are updated
+                }
+            });
             categoryEl.appendChild(deleteBtn);
 
             DOM.categoriesList.appendChild(categoryEl);
         });
-    }
-
-    function deleteCategory(category) {
-        if (confirm(`Are you sure you want to delete the category "${category}"?`)) {
-            const result = Database.deleteCategory(category);
-
-            if (result.success) {
-                updateCategoriesList();
-                populateCategoryDropdown();
-            } else {
-                alert("Error deleting category: " + result.error);
-            }
-        }
     }
 
     // Add new category
@@ -1439,6 +1429,5 @@ const UIController = (function () {
         init,
         showToast,
         switchTab,
-        updateDashboard,
     };
 })();

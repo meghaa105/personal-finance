@@ -1077,7 +1077,7 @@ input:focus, select:focus, textarea:focus {
 
 /* Modals */
 .modal {
-    display: none;
+    display: none; /* Ensure modals are hidden by default */
     position: fixed;
     top: 0;
     left: 0;
@@ -1090,13 +1090,60 @@ input:focus, select:focus, textarea:focus {
 }
 
 .modal-content {
-    background-color: var(--card-bg);
-    margin: 2rem auto;
-    max-width: 500px;
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    position: relative;
+    background-color: #fff;
+    border-radius: 12px; /* Rounded corners */
+    padding: 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-content h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: #1f2937; /* Dark text color */
+}
+
+.modal-content p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: #4b5563; /* Secondary text color */
+}
+
+.modal-content .form-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.modal-content .btn {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-content .btn.cancel {
+    background-color: #e5e7eb; /* Light gray */
+    color: #374151; /* Dark gray text */
+}
+
+.modal-content .btn.cancel:hover {
+    background-color: #d1d5db; /* Darker gray */
+}
+
+.modal-content .btn.danger {
+    background-color: #ef4444; /* Red */
+    color: #fff; /* White text */
+}
+
+.modal-content .btn.danger:hover {
+    background-color: #dc2626; /* Darker red */
 }
 
 .close-modal {
@@ -1753,4 +1800,143 @@ mark {
     font-weight: bold;
     padding: 0 2px;
     border-radius: 2px;
+}
+
+/* Rename File Modal */
+#rename-file-modal .modal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+#rename-file-modal h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #1f2937;
+}
+
+#rename-file-modal .form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+#rename-file-modal .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #4b5563;
+}
+
+#rename-file-modal .form-group select,
+#rename-file-modal .form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #f9fafb;
+}
+
+#rename-file-modal .form-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+#rename-file-modal .btn {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#rename-file-modal .btn.cancel {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+#rename-file-modal .btn.cancel:hover {
+    background-color: #d1d5db;
+}
+
+#rename-file-modal .btn.primary {
+    background-color: #6366f1;
+    color: #fff;
+}
+
+#rename-file-modal .btn.primary:hover {
+    background-color: #4f46e5;
+}
+
+/* Error Modal */
+#error-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Dimmed background */
+    z-index: 1000;
+    align-self: center;
+}
+
+#error-modal .modal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+#error-modal h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: #d32f2f; /* Red color for error */
+}
+
+#error-modal p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: #4b5563; /* Secondary text color */
+}
+
+#error-modal .form-buttons {
+    display: flex;
+    justify-content: center;
+    align-self: center;
+}
+
+#error-modal .btn.primary {
+    background-color: #d32f2f; /* Red button */
+    color: #fff;
+}
+
+#error-modal .btn.primary:hover {
+    background-color: #b71c1c; /* Darker red */
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }

@@ -364,7 +364,13 @@ const AnalyticsController = (function() {
      * @param {Array} transactions - Filtered transactions
      */
     function updateCategoryChart(transactions) {
-        const ctx = document.getElementById('category-chart').getContext('2d');
+        const ctxElement = document.getElementById('category-chart');
+        if (!ctxElement) {
+            console.error("Error: Category chart element not found.");
+            return; // Exit the function if the element is not found
+        }
+
+        const ctx = ctxElement.getContext('2d');
         
         // Filter expense transactions only
         const expenses = transactions.filter(t => t.type === 'expense');
@@ -851,6 +857,7 @@ const AnalyticsController = (function() {
     // Public API
     return {
         init: init,
-        refreshAnalytics: refreshAnalytics
+        refreshAnalytics: refreshAnalytics,
+        updateCategoryFilters: updateCategoryFilters
     };
 })();

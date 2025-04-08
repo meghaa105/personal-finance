@@ -54,6 +54,7 @@ const TransactionsController = (function () {
         });
 
         setupEventListeners();
+        setupRenameFileModalListeners(); // Setup modal listeners
     }
 
     function setupEventListeners() {
@@ -102,7 +103,7 @@ const TransactionsController = (function () {
         if (!file) return;
 
         try {
-            // Show parsing status with spinner
+// Show parsing status with spinner
             csvUploadStatus.innerHTML = `
                 <div class="parsing-status">
                     <div class="parsing-spinner"></div>
@@ -110,6 +111,7 @@ const TransactionsController = (function () {
                 </div>`;
 
             const transactions = await CSVParser.parseCSV(file);
+            transactions.forEach(t => t.source = 'CSV'); // Mark source as CSV
             showImportPreview(transactions);
             csvUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
             csvUploadStatus.className = "upload-status success";
@@ -125,14 +127,14 @@ const TransactionsController = (function () {
         if (!file) return;
 
         try {
-            // Show parsing status with spinner
             pdfUploadStatus.innerHTML = `
                 <div class="parsing-status">
                     <div class="parsing-spinner"></div>
                     <span>Processing PDF file: ${file.name}</span>
                 </div>`;
 
-            const transactions = await PDFParser.parsePDF(file);
+            const result = await PDFParser.parsePDF(file);
+            const transactions = result.transactions.map(t => ({ ...t, source: 'PDF' })); // Mark source as PDF
             showImportPreview(transactions);
             pdfUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
             pdfUploadStatus.className = "upload-status success";
@@ -163,15 +165,16 @@ const TransactionsController = (function () {
             progressBar.style.width = "50%";
 
             const result = await SplitwiseParser.parseCSV(file);
+            const transactions = result.transactions.map(t => ({ ...t, source: 'Splitwise' })); // Mark source as Splitwise
 
-            if (result && result.transactions && result.transactions.length > 0) {
+            if (transactions && transactions.length > 0) {
                 progressBar.style.width = "100%";
                 setTimeout(() => {
-                    splitwiseUploadStatus.textContent = `Successfully processed ${result.transactions.length} transactions`;
+                    splitwiseUploadStatus.textContent = `Successfully processed ${transactions.length} transactions`;
                     splitwiseUploadStatus.className = "upload-status success";
                 }, 500);
 
-                showImportPreview(result.transactions);
+                showImportPreview(transactions);
                 confirmImportBtn.disabled = false;
             } else {
                 throw new Error("No valid transactions found in file");
@@ -200,16 +203,16 @@ const TransactionsController = (function () {
 
             if (file.name.toLowerCase().endsWith('.pdf')) {
                 const result = await PDFParser.parsePDF(file);
-                transactions = result.transactions;
+                transactions = result.transactions.map(t => ({ ...t, source: 'PDF' })); // Mark source as PDF
             } else if (file.name.toLowerCase().endsWith('.csv')) {
                 // Try Splitwise format first
                 try {
                     const result = await SplitwiseParser.parseCSV(file);
-                    transactions = result.transactions;
+                    transactions = result.transactions.map(t => ({ ...t, source: 'Splitwise' })); // Mark source as Splitwise
                 } catch (e) {
                     // If Splitwise fails, try regular CSV format
                     const result = await CSVParser.parseCSV(file);
-                    transactions = result.transactions;
+                    transactions = result.transactions.map(t => ({ ...t, source: 'CSV' })); // Mark source as CSV
                 }
             }
 
@@ -295,6 +298,67 @@ const TransactionsController = (function () {
         } catch (error) {
             console.error("Import Error:", error);
             importPreviewContent.innerHTML = `<div class="error-message">Error importing transactions: ${error.message}</div>`;
+        }
+    }
+
+    // Show Rename Source File Modal
+    function showRenameFileModal() {
+        const renameFileModal = document.getElementById("rename-file-modal");
+        if (!renameFileModal) {
+            console.error("Rename file modal not found.");
+            return;
+        }
+        renameFileModal.style.display = "block";
+
+        // Populate the file select dropdown
+        const fileSelect = document.getElementById("file-select");
+        if (fileSelect) {
+            fileSelect.innerHTML = ""; // Clear existing options
+            const files = Database.getImportedFiles(); // Assume this function retrieves imported files
+            files.forEach((file) => {
+                const option = document.createElement("option");
+                option.value = file.id;
+                option.textContent = file.name;
+                fileSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Hide Rename Source File Modal
+    function hideRenameFileModal() {
+        const renameFileModal = document.getElementById("rename-file-modal");
+        if (renameFileModal) {
+            renameFileModal.style.display = "none";
+        }
+    }
+
+    // Attach event listeners for modal buttons
+    function setupRenameFileModalListeners() {
+        const cancelRenameBtn = document.getElementById("cancel-rename");
+        const saveRenameBtn = document.getElementById("save-rename");
+
+        if (cancelRenameBtn) {
+            cancelRenameBtn.addEventListener("click", hideRenameFileModal);
+        }
+
+        if (saveRenameBtn) {
+            saveRenameBtn.addEventListener("click", () => {
+                const fileSelect = document.getElementById("file-select");
+                const newFileName = document.getElementById("new-file-name").value.trim();
+
+                if (fileSelect && newFileName) {
+                    const fileId = fileSelect.value;
+                    const result = Database.renameImportedFile(fileId, newFileName); // Assume this function renames the file
+                    if (result.success) {
+                        hideRenameFileModal();
+                        UIController.showToast("File renamed successfully!");
+                    } else {
+                        alert("Error renaming file: " + result.error);
+                    }
+                } else {
+                    alert("Please select a file and enter a new name.");
+                }
+            });
         }
     }
 

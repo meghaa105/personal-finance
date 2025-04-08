@@ -461,7 +461,7 @@
         </div>
 
         <!-- Clear Data Confirmation Modal -->
-        <div id="clear-data-confirmation" class="modal">
+        <div id="clear-data-confirmation" class="modal" style="display: none;">
             <div class="modal-content">
                 <h3>Confirm Clear All Data</h3>
                 <p>Are you sure you want to clear all data? This will delete all your transactions, categories and reminders. This action cannot be undone.</p>
@@ -473,15 +473,14 @@
         </div>
 
         <!-- File Rename Modal -->
-        <div id="rename-file-modal" class="modal">
+        <div id="rename-file-modal" class="modal" style="display: none;">
             <div class="modal-content">
-                <span class="close-modal">&times;</span>
                 <h2>Rename Source File</h2>
                 <div class="file-rename-form">
                     <div class="form-group">
                         <label for="file-select">Select File:</label>
                         <select id="file-select" required>
-                            <!-- Will be populated with file names -->
+                            <!-- Will be populated dynamically -->
                         </select>
                     </div>
                     <div class="form-group">
@@ -492,6 +491,17 @@
                         <button type="button" id="cancel-rename" class="btn cancel">Cancel</button>
                         <button type="button" id="save-rename" class="btn primary">Save</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="error-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>Error</h3>
+                <p id="error-message"></p>
+                <div class="form-buttons">
+                    <button id="close-error" class="btn primary">Close</button>
                 </div>
             </div>
         </div>

@@ -960,6 +960,10 @@ const PDFParser = (function () {
             }
         }
 
+        transactions.forEach(transaction => {
+            transaction.source = "PDF"; // Ensure the source is set to "PDF"
+        });
+
         return transactions;
     }
 

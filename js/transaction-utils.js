@@ -195,24 +195,19 @@ const TransactionUtils = (function() {
         }
 
         // Define CSV headers
-        const headers = ['Date', 'Description', 'Amount', 'Type', 'Category'];
-
-        // Create CSV content
+        const headers = ['Date', 'Description', 'Amount', 'Type', 'Category', 'Source'];
         let csvContent = headers.join(',') + '\n';
 
         // Add transaction rows
         transactions.forEach(transaction => {
             const date = formatDate(transaction.date);
-
-            // Escape description to handle commas, quotes, etc.
-            const description = `"${transaction.description.replace(/"/g, '""')}"`;
-
+            const description = `"${transaction.description.replace(/"/g, '""')}"`; // Escape quotes
             const amount = transaction.amount;
             const type = transaction.type;
             const category = transaction.category || 'Other';
+            const source = transaction.source || 'Manual'; // Default to 'Manual' if no source is provided
 
-            const row = [date, description, amount, type, category].join(',');
-            csvContent += row + '\n';
+            csvContent += [date, description, amount, type, category, source].join(',') + '\n';
         });
 
         return csvContent;

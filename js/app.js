@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('UI Controller module not loaded');
     }
     
+    // Setup clear data modal listeners
+    if (typeof setupClearDataModalListeners === "function") {
+        setupClearDataModalListeners();
+    } else {
+        console.error("setupClearDataModalListeners is not defined.");
+    }
+    
     // Initialize Reminder controller
     if (typeof ReminderController !== 'undefined') {
         ReminderController.init();
@@ -34,6 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof AnalyticsController !== 'undefined') {
         AnalyticsController.init();
         console.log('Analytics Controller initialized');
+        
+        // Update category filters on page load
+        AnalyticsController.updateCategoryFilters();
     } else {
         console.error('Analytics Controller module not loaded');
     }
@@ -68,8 +78,50 @@ document.addEventListener('DOMContentLoaded', function() {
         storagePrefix: 'personalFinance_'
     };
     
+    // Hide modal initialization on load
+    const clearDataModal = document.getElementById("clear-data-confirmation");
+    const renameFileModal = document.getElementById("rename-file-modal");
+    
+    if (clearDataModal) {
+        clearDataModal.style.display = "none";
+    }
+    
+    if (renameFileModal) {
+        renameFileModal.style.display = "none";
+    }
+    
     // Log successful initialization
     console.log('Application initialized successfully!');
+});
+
+// Trigger Clear Data Modal
+document.getElementById("clear-data").addEventListener("click", () => {
+    const clearDataModal = document.getElementById("clear-data-confirmation");
+    if (clearDataModal) {
+        clearDataModal.style.display = "block";
+    }
+});
+
+document.getElementById("cancel-clear-data").addEventListener("click", () => {
+    const clearDataModal = document.getElementById("clear-data-confirmation");
+    if (clearDataModal) {
+        clearDataModal.style.display = "none";
+    }
+});
+
+// Trigger Rename File Modal
+document.getElementById("rename-file-modal").addEventListener("click", () => {
+    const renameFileModal = document.getElementById("rename-file-modal");
+    if (renameFileModal) {
+        renameFileModal.style.display = "block";
+    }
+});
+
+document.getElementById("cancel-rename").addEventListener("click", () => {
+    const renameFileModal = document.getElementById("rename-file-modal");
+    if (renameFileModal) {
+        renameFileModal.style.display = "none";
+    }
 });
 
 // Handle errors globally

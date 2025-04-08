@@ -227,32 +227,33 @@ const ReminderController = (function() {
 
     function handleReminderFormSubmit(event) {
         event.preventDefault();
-        
+
+        const cardNameInput = document.getElementById('card-name');
+        const billAmountInput = document.getElementById('bill-amount');
+        const dueDateInput = document.getElementById('due-date');
+
+        if (!cardNameInput || !billAmountInput || !dueDateInput) {
+            console.error("One or more required elements are missing in the DOM.");
+            return;
+        }
+
         const reminderData = {
-            cardName: document.getElementById('card-name').value,
-            amount: parseFloat(document.getElementById('payment-amount').value),
-            dueDate: document.getElementById('due-date').value,
-            reminderDays: parseInt(document.getElementById('reminder-days').value),
-            notes: document.getElementById('reminder-notes').value.trim(),
+            cardName: cardNameInput.value,
+            amount: parseFloat(billAmountInput.value),
+            dueDate: dueDateInput.value,
+            notes: document.getElementById('reminder-notes')?.value.trim() || '',
             isPaid: false
         };
-        
+
         if (currentReminderId) {
-            // Update existing reminder
             Database.updateCreditCardReminder(currentReminderId, reminderData);
         } else {
-            // Add new reminder
             Database.addCreditCardReminder(reminderData);
         }
-        
-        // Refresh UI
+
         refreshReminders();
-        
-        // Hide modal
         hideReminderModal();
-        
-        // Show toast notification
-        UIController.showToast(`Credit card reminder ${currentReminderId ? 'updated' : 'added'} successfully!`);
+        UIController.showToast(`Reminder ${currentReminderId ? 'updated' : 'added'} successfully!`);
     }
 
     function markReminderAsPaid(reminderId) {

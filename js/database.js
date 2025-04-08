@@ -137,7 +137,7 @@ const Database = (function() {
     }
     
     // Bulk add transactions (for imports)
-    function addTransactions(transactionsArray) {
+    function addTransactions(transactionsArray, source = 'manual') {
         if (!Array.isArray(transactionsArray) || transactionsArray.length === 0) {
             return { error: 'No valid transactions to add.' };
         }
@@ -150,6 +150,7 @@ const Database = (function() {
                 description: transaction.description,
                 category: transaction.category || 'Other',
                 type: transaction.type || 'expense',
+                source: transaction.source || source, // Store the source
                 createdAt: new Date()
             };
         });
@@ -303,7 +304,7 @@ const Database = (function() {
     
     // Get all categories
     function getCategories() {
-        return [...categories];
+        return [...categories]; // Return a copy of the categories array
     }
     
     // Add a new category
@@ -345,7 +346,7 @@ const Database = (function() {
         const isInUse = transactions.some(t => t.category === categoryName);
         
         if (isInUse) {
-            return { error: 'Cannot delete category that is in use by transactions.' };
+            return { error: `The category "${categoryName}" is linked to one or more transactions and cannot be deleted.` };
         }
         
         categories.splice(index, 1);

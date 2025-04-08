@@ -63,6 +63,11 @@ const UIController = (function () {
         confirmationModal: document.getElementById("delete-confirmation"),
         confirmDeleteBtn: document.getElementById("confirm-delete"),
         cancelDeleteBtn: document.getElementById("cancel-delete"),
+
+        // Error modal
+        errorModal: document.getElementById("error-modal"),
+        errorMessage: document.getElementById("error-message"),
+        closeErrorBtn: document.getElementById("close-error"),
     };
 
     // Chart instances
@@ -73,6 +78,53 @@ const UIController = (function () {
 
     // Transaction being deleted (for confirmation)
     let transactionToDelete = null;
+
+    // Handle transaction form submit
+    function handleTransactionFormSubmit(event) {
+        event.preventDefault();
+
+        // Get form values
+        const id = DOM.transactionId.value;
+        const date = DOM.transactionDate.value;
+        const amount = parseFloat(DOM.transactionAmount.value);
+        const type = DOM.transactionType.value;
+        const category = DOM.transactionCategory.value;
+        const description = DOM.transactionDescription.value;
+
+        // Validate form
+        if (!date || isNaN(amount) || !description) {
+            alert("Please fill in all required fields.");
+            return;
+        }
+
+        // Create transaction object
+        const transaction = {
+            date,
+            amount,
+            type,
+            category,
+            description,
+            source: "manual", // Add source information for manual entries
+        };
+
+        let result;
+
+        // Add or update transaction
+        if (id) {
+            result = Database.updateTransaction(id, transaction);
+        } else {
+            result = Database.addTransaction(transaction);
+        }
+
+        // Handle result
+        if (result.success) {
+            hideTransactionModal();
+            updateTransactionsList();
+            updateDashboard();
+        } else {
+            alert("Error saving transaction: " + result.error);
+        }
+    }
 
     // Initialize UI
     function init() {
@@ -102,11 +154,12 @@ const UIController = (function () {
         updateTransactionsList();
 
         // Set up transaction form events
-
-        DOM.transactionForm.addEventListener(
-            "submit",
-            handleTransactionFormSubmit,
-        );
+        const transactionForm = document.getElementById("transaction-form");
+        if (transactionForm) {
+            transactionForm.addEventListener("submit", handleTransactionFormSubmit);
+        } else {
+            console.error("Transaction form not found.");
+        }
         DOM.cancelTransactionBtn.addEventListener(
             "click",
             hideTransactionModal,
@@ -138,7 +191,7 @@ const UIController = (function () {
         DOM.exportDataBtn.addEventListener("click", exportTransactionsToCSV);
         DOM.backupDataBtn.addEventListener("click", backupAllData);
         DOM.restoreBackupInput.addEventListener("change", restoreFromBackup);
-        DOM.clearDataBtn.addEventListener("click", confirmClearData);
+        DOM.clearDataBtn.addEventListener("click", showClearDataConfirmation);
         DOM.addCategoryBtn.addEventListener("click", addNewCategory);
 
         // Update categories list
@@ -170,6 +223,12 @@ const UIController = (function () {
 
         // Initialize delete confirmation modal buttons
         setupDeleteConfirmationListeners();
+
+        // Initialize clear data confirmation modal buttons
+        setupClearDataModalListeners();
+
+        // Initialize error modal buttons
+        setupErrorModalListeners();
 
         console.log("UI Controller initialized");
     }
@@ -448,8 +507,13 @@ const UIController = (function () {
         );
         meta.appendChild(category);
 
-        details.appendChild(meta);
+        // Add source display
+        const source = document.createElement("div");
+        source.className = "transaction-source";
+        source.textContent = `Source: ${transaction.source || "Manual"}`;
+        meta.appendChild(source);
 
+        details.appendChild(meta);
         transactionEl.appendChild(details);
 
         // Transaction amount
@@ -619,11 +683,8 @@ const UIController = (function () {
         transactionToDelete = null;
     }
 
-    // Handle transaction form submit
-    function handleTransactionFormSubmit(event) {
-        event.preventDefault();
-
-        // Get form values
+    // Show clear data confirmation modal
+    function showClearDataConfirmation() {
         const id = DOM.transactionId.value;
         const date = DOM.transactionDate.value;
         const amount = parseFloat(DOM.transactionAmount.value);
@@ -1148,9 +1209,9 @@ const UIController = (function () {
             alert("No transactions to import.");
             return;
         }
-
         // Add transactions to database
-        const result = Database.addTransactions(importData);
+        const source = importData[0]?.source || 'manual'; // Use the source from the first transaction
+        const result = Database.addTransactions(importData, source);
 
         if (result.success) {
             alert(`Successfully imported ${result.count} transactions.`);
@@ -1335,11 +1396,13 @@ const UIController = (function () {
             deleteBtn.className = "delete-btn material-icons";
             deleteBtn.textContent = "delete";
             deleteBtn.addEventListener("click", () => {
-                if (confirm(`Are you sure you want to delete the category "${category}"?`)) {
-                    Database.deleteCategory(category);
+                const result = Database.deleteCategory(category);
+                if (result.success) {
                     updateCategoriesList();
                     AnalyticsController.updateCategoryFilters(); // Refresh category filters
                     AnalyticsController.refreshAnalytics(); // Ensure graphs are updated
+                } else {
+                    showErrorDialog(result.error); // Show error dialog
                 }
             });
             categoryEl.appendChild(deleteBtn);
@@ -1416,6 +1479,21 @@ const UIController = (function () {
         }, duration);
     }
 
+    // Show error dialog
+    function showErrorDialog(message) {
+        if (DOM.errorModal && DOM.errorMessage) {
+            DOM.errorMessage.textContent = message;
+            DOM.errorModal.style.display = "block";
+        }
+    }
+
+    // Close error dialog
+    function closeErrorDialog() {
+        if (DOM.errorModal) {
+            DOM.errorModal.style.display = "none";
+        }
+    }
+
     // Initialize delete confirmation modal buttons
     function setupDeleteConfirmationListeners() {
         if (DOM.cancelDeleteBtn) {
@@ -1428,6 +1506,52 @@ const UIController = (function () {
             DOM.confirmDeleteBtn.addEventListener("click", confirmDeleteTransaction);
         } else {
             console.error("Confirm delete button not found.");
+        }
+    }
+
+    // Initialize clear data modal buttons
+    function setupClearDataModalListeners() {
+        const clearDataModal = document.getElementById("clear-data-confirmation");
+        const cancelClearDataBtn = document.getElementById("cancel-clear-data");
+        const confirmClearDataBtn = document.getElementById("confirm-clear-data");
+
+        if (!clearDataModal) {
+            console.error("Clear Data Confirmation Modal not found.");
+            return;
+        }
+
+        if (cancelClearDataBtn) {
+            cancelClearDataBtn.addEventListener("click", () => {
+                clearDataModal.style.display = "none";
+            });
+        } else {
+            console.error("Cancel Clear Data button not found.");
+        }
+
+        if (confirmClearDataBtn) {
+            confirmClearDataBtn.addEventListener("click", () => {
+                const result = Database.clearData();
+                if (result.success) {
+                    alert("All data has been cleared.");
+                    clearDataModal.style.display = "none";
+                    updateDashboard();
+                    updateCategoriesList();
+                    populateCategoryDropdown();
+                } else {
+                    alert("Error clearing data: " + result.error);
+                }
+            });
+        } else {
+            console.error("Confirm Clear Data button not found.");
+        }
+    }
+
+    // Initialize error modal buttons
+    function setupErrorModalListeners() {
+        if (DOM.closeErrorBtn) {
+            DOM.closeErrorBtn.addEventListener("click", closeErrorDialog);
+        } else {
+            console.error("Close error button not found.");
         }
     }
 

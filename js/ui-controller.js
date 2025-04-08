@@ -510,20 +510,36 @@ const UIController = (function () {
     function getCategoryIcon(category) {
         // Add your category icon mapping here
         switch (category) {
-            case "Food":
-                return "restaurant";
+            case "Food & Dining":
+                return "restaurant"; // Fork and knife icon
+            case "Groceries":
+                return "shopping_cart"; // Shopping cart icon
+            case "Shopping":
+                return "local_mall"; // Mall bag icon
             case "Transportation":
-                return "directions_car";
-            case "Housing":
-                return "home";
-            case "Utilities":
-                return "bolt";
+                return "directions_car"; // Car icon
             case "Entertainment":
-                return "movie";
+                return "movie"; // Movie icon
+            case "Housing":
+                return "home"; // Home icon
+            case "Utilities":
+                return "bolt"; // Lightning bolt icon
+            case "Health":
+                return "medical_services"; // Medical services icon
+            case "Education":
+                return "school"; // School icon
+            case "Personal":
+                return "person"; // Person icon
+            case "Travel":
+                return "flight"; // Airplane icon
             case "Income":
-                return "payments";
+                return "payments"; // Payments icon
+            case "Banking & Finance":
+                return "account_balance"; // Bank icon
+            case "Other":
+                return "category"; // Default category icon
             default:
-                return "category"; // Default icon
+                return "help_outline"; // Help icon for unknown categories
         }
     }
 
@@ -1305,14 +1321,33 @@ const UIController = (function () {
             const categoryEl = document.createElement("div");
             categoryEl.className = "category-item";
 
+            // Add category name
             const categoryName = document.createElement("span");
             categoryName.textContent = category;
             categoryEl.appendChild(categoryName);
 
-            // Don't allow deleting default categories for now
+            // Add delete button
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-btn material-icons";
+            deleteBtn.textContent = "delete";
+            deleteBtn.addEventListener("click", () => deleteCategory(category));
+            categoryEl.appendChild(deleteBtn);
 
             DOM.categoriesList.appendChild(categoryEl);
         });
+    }
+
+    function deleteCategory(category) {
+        if (confirm(`Are you sure you want to delete the category "${category}"?`)) {
+            const result = Database.deleteCategory(category);
+
+            if (result.success) {
+                updateCategoriesList();
+                populateCategoryDropdown();
+            } else {
+                alert("Error deleting category: " + result.error);
+            }
+        }
     }
 
     // Add new category

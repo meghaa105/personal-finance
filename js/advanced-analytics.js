@@ -210,6 +210,7 @@ const AdvancedAnalytics = (function() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -247,6 +248,7 @@ const AdvancedAnalytics = (function() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -294,6 +296,7 @@ const AdvancedAnalytics = (function() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -333,6 +336,7 @@ const AdvancedAnalytics = (function() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     r: {
                         beginAtZero: true
@@ -349,11 +353,11 @@ const AdvancedAnalytics = (function() {
     function updateExpenseForecastChart(transactions) {
         const ctx = document.getElementById('expense-forecast-chart').getContext('2d');
         const forecast = generateExpenseForecast(transactions);
-        
+
         if (expenseForecastChart) {
             expenseForecastChart.destroy();
         }
-        
+
         expenseForecastChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -376,6 +380,7 @@ const AdvancedAnalytics = (function() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -431,6 +436,7 @@ const AdvancedAnalytics = (function() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     y: {
                         beginAtZero: true,

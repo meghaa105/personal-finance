@@ -397,7 +397,7 @@ const AnalyticsController = (function() {
         
         const options = {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
             plugins: {
                 legend: {
                     position: 'right',
@@ -482,7 +482,7 @@ const AnalyticsController = (function() {
         
         const options = {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
             scales: {
                 y: {
                     beginAtZero: true,
@@ -573,7 +573,7 @@ const AnalyticsController = (function() {
         
         const options = {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true, // Ensure aspect ratio is maintained
             scales: {
                 y: {
                     ticks: {
@@ -657,7 +657,7 @@ const AnalyticsController = (function() {
         
         const options = {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
             plugins: {
                 legend: {
                     position: 'right',

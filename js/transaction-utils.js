@@ -264,21 +264,21 @@ const TransactionUtils = (function() {
     // Helper function to get category icon
     function getCategoryIcon(category) {
         switch (category) {
-            case 'Food': return 'restaurant';
-            case 'Transportation': return 'directions_car';
-            case 'Housing': return 'home';
-            case 'Utilities': return 'bolt';
-            case 'Entertainment': return 'movie';
-            case 'Income': return 'payments';
-            case 'Shopping': return 'shopping_cart';
-            case 'Health': return 'local_hospital';
-            case 'Education': return 'school';
-            case 'Travel': return 'flight';
-            case 'Bills': return 'receipt';
-            case 'Investments': return 'trending_up';
-            case 'Groceries': return 'local_grocery_store';
-            case 'Dining': return 'restaurant_menu';
-            default: return 'payments'; // Default icon
+            case "Food & Dining": return "restaurant"; // Fork and knife icon
+            case "Groceries": return "shopping_cart"; // Shopping cart icon
+            case "Shopping": return "local_mall"; // Mall bag icon
+            case "Transportation": return "directions_car"; // Car icon
+            case "Entertainment": return "movie"; // Movie icon
+            case "Housing": return "home"; // Home icon
+            case "Utilities": return "bolt"; // Lightning bolt icon
+            case "Health": return "medical_services"; // Medical services icon
+            case "Education": return "school"; // School icon
+            case "Personal": return "person"; // Person icon
+            case "Travel": return "flight"; // Airplane icon
+            case "Income": return "payments"; // Payments icon
+            case "Banking & Finance": return "account_balance"; // Bank icon
+            case "Other": return "category"; // Default category icon
+            default: return "help_outline"; // Help icon for unknown categories
         }
     }
 

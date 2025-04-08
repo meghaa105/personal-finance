@@ -86,7 +86,7 @@
                 <div class="analytics-search-bar">
                     <input type="text" id="analytics-search" placeholder="Search transactions by description...">
                 </div>
-                <div class="analytics-filters">
+                <div class="filters-wrapper">
                     <div class="time-filter">
                         <h3>Time Period</h3>
                         <div class="time-filter-buttons">
@@ -129,9 +129,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="apply-filters">
-                        <button id="apply-all-filters" class="btn primary">Apply All Filters</button>
-                    </div>
+                </div>
+                <div class="apply-filters">
+                    <button id="apply-all-filters" class="btn primary">Apply All Filters</button>
                 </div>
                 <div class="analytics-summary">
                     <h3>Analytics Summary</h3>
@@ -159,7 +159,7 @@
                     </div>
                 </div>
 
-                <div class="analytics-charts">
+                <div class="analytics-charts grid-container">
                     <div class="chart-wrapper">
                         <h3>Spending by Category</h3>
                         <canvas id="category-chart"></canvas>

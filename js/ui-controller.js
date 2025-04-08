@@ -128,6 +128,23 @@ const UIController = (function () {
 
     // Initialize UI
     function init() {
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + N for new transaction
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                showAddTransactionModal();
+            }
+            // Ctrl/Cmd + 1-6 for tab switching
+            if ((e.ctrlKey || e.metaKey) && !isNaN(e.key) && e.key >= '1' && e.key <= '6') {
+                e.preventDefault();
+                const tabIndex = parseInt(e.key) - 1;
+                if (DOM.tabs[tabIndex]) {
+                    switchTab(DOM.tabs[tabIndex].dataset.tab);
+                }
+            }
+        });
+
         // Add transaction button
         if (DOM.addTransactionBtn) {
             DOM.addTransactionBtn.addEventListener("click", function () {
@@ -167,10 +184,21 @@ const UIController = (function () {
         DOM.closeModal.addEventListener("click", hideTransactionModal);
 
         // Set up transaction filters
-        DOM.searchTransactions.addEventListener(
-            "input",
-            applyTransactionFilters,
-        );
+        DOM.searchTransactions.addEventListener("input", function(e) {
+            applyTransactionFilters();
+            
+            // Show search suggestions
+            const searchTerm = e.target.value.toLowerCase().trim();
+            if (searchTerm.length >= 2) {
+                const transactions = Database.getTransactions();
+                const suggestions = [...new Set(transactions
+                    .map(t => t.description)
+                    .filter(desc => desc.toLowerCase().includes(searchTerm))
+                    .slice(0, 5))];
+                
+                showSearchSuggestions(suggestions);
+            }
+        });
         DOM.filterType.addEventListener("change", applyTransactionFilters);
         DOM.filterMonth.addEventListener("change", applyTransactionFilters);
 

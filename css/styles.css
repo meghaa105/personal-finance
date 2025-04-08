@@ -2,6 +2,17 @@
 :root {
     --primary-color: #7c3aed;
     --primary-light: #a78bfa;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-color: #e5e7eb;
+        --text-secondary: #9ca3af;
+        --background-color: #111827;
+        --card-bg: #1f2937;
+        --border-color: #374151;
+        --glass-bg: rgba(31, 41, 55, 0.8);
+    }
     --primary-dark: #6d28d9;
     --accent-color: #f59e0b;
     --text-color: #111827;
@@ -1494,6 +1505,31 @@ input:focus, select:focus, textarea:focus {
 
 .reminder-actions .material-icons {
     font-size: 1.2rem;
+}
+
+/* Loading Animation */
+.loading {
+    position: relative;
+    opacity: 0.7;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 2px solid var(--primary-color);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Toast Notifications */

@@ -309,6 +309,8 @@ const AnalyticsController = (function() {
         const avgDailyExpenseEl = document.getElementById('avg-daily-expense');
         const maxExpenseDayEl = document.getElementById('max-expense-day');
         const monthlySavingsRateEl = document.getElementById('monthly-savings-rate');
+        const topCategoriesEl = document.getElementById('top-spending-categories');
+        const spendingTrendEl = document.getElementById('spending-trend');
         
         // Calculate metrics
         let totalSpending = 0;
@@ -357,6 +359,45 @@ const AnalyticsController = (function() {
         avgDailyExpenseEl.textContent = TransactionUtils.formatCurrency(avgDailyExpense);
         maxExpenseDayEl.textContent = maxExpenseDay === 'None' ? 'None' : `${maxExpenseDay} (${TransactionUtils.formatCurrency(maxAmount)})`;
         monthlySavingsRateEl.textContent = savingsRate.toFixed(1) + '%';
+
+        // Calculate top spending categories
+        const categoryTotals = {};
+        transactions.forEach(transaction => {
+            if (transaction.type === 'expense') {
+                const category = transaction.category || 'Other';
+                categoryTotals[category] = (categoryTotals[category] || 0) + transaction.amount;
+            }
+        });
+
+        const topCategories = Object.entries(categoryTotals)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3);
+
+        topCategoriesEl.innerHTML = topCategories.map(([category, amount]) => `
+            <div class="spending-insight">
+                <span class="category-name">${category}</span>
+                <span class="amount">${TransactionUtils.formatCurrency(amount)}</span>
+            </div>
+        `).join('');
+
+        // Calculate month-over-month trend
+        const currentMonth = new Date().getMonth();
+        const currentMonthExpenses = transactions
+            .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === currentMonth)
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const lastMonthExpenses = transactions
+            .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === currentMonth - 1)
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        const trend = ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100;
+        const trendDirection = trend > 0 ? 'increased' : 'decreased';
+        
+        spendingTrendEl.innerHTML = `
+            <div class="spending-insight ${trendDirection}">
+                <span>Month-over-month spending has ${trendDirection} by ${Math.abs(trend).toFixed(1)}%</span>
+            </div>
+        `;
     }
     
     /**

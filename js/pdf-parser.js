@@ -880,21 +880,19 @@ const PDFParser = (function () {
                     const amountStr = match[3].replace(/[$₹Rs\.,]/g, "");
                     const amount = parseFloat(amountStr);
 
-                    // Guess if this is income or expense based on description
-                    const isIncome =
-                        /payment|deposit|salary|credit|cashback|refund/i.test(
-                            description,
-                        );
+                    // Determine transaction type based on description
+                    const isIncome = /payment|deposit|salary|credit|cashback|refund/i.test(description);
+                    const isExpense = /purchase|debit|withdrawal|transfer to|upi|spent|expense/i.test(description);
+
+                    const type = isIncome ? "income" : isExpense ? "expense" : "expense"; // Default to expense
 
                     if (parseDate(dateStr) && !isNaN(amount)) {
                         transactions.push({
                             date: parseDate(dateStr),
                             description: description,
                             amount: amount,
-                            type: isIncome ? "income" : "expense",
-                            category: isIncome
-                                ? "Income"
-                                : guessCategory(description),
+                            type: type,
+                            category: type === "income" ? "Income" : guessCategory(description),
                         });
                     }
                 }

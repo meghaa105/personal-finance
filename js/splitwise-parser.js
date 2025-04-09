@@ -111,14 +111,18 @@ const SplitwiseParser = (function() {
                                             let category = row['Category'] || '';
                                             category = mapSplitwiseCategory(category, row[descField]);
 
-                                            // Set transaction type
-                                            const type = 'expense';
+                                            // Determine transaction type
+                                            const incomeCategories = ['Income', 'Investments', 'Refunds'];
+                                            const isIncomeCategory = incomeCategories.includes(category);
+                                            const isIncome = isIncomeCategory || /received|refund|credit/i.test(description);
+                                            const isExpense = /paid|spent|debit|expense|upi|transfer to/i.test(description);
+                                            const type = isIncome ? "income" : isExpense ? "expense" : "expense"; // Default to expense
 
                                             return {
                                                 date,
                                                 description: description.trim(),
                                                 amount,
-                                                category,
+                                                category: type === "income" ? "Income" : category,
                                                 type,
                                                 source: 'splitwise',
                                                 currency

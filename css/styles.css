@@ -1818,32 +1818,156 @@ input:focus, select:focus, textarea:focus {
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {
-    .summary-cards {
-        grid-template-columns: 1fr;
+    /* General Layout */
+    .app-container {
+        padding: 0;
     }
 
-    .import-options {
-        grid-template-columns: 1fr;
+    /* Header */
+    header {
+        padding: 1rem;
     }
 
+    header h1 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    /* Cards and Grids */
+    .summary-cards, 
+    .import-options, 
     .analytics-filters {
         grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 0.5rem;
     }
 
-    .summary-metrics {
-        grid-template-columns: 1fr 1fr;
+    .card {
+        padding: 1rem;
+        margin-bottom: 0.75rem;
     }
 
-    .analytics-charts {
-        grid-template-columns: 1fr;
+    /* Charts */
+    .chart-container {
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+    }
+
+    .chart-container canvas {
+        width: 100% !important;
+        max-width: none;
+    }
+
+    /* Forms and Modals */
+    .modal-content {
+        width: 95%;
+        padding: 1rem;
+        margin: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 0.75rem;
     }
 
     .form-group:last-child {
         flex-direction: column;
+        gap: 0.5rem;
     }
 
     .form-group:last-child button {
         width: 100%;
+    }
+
+    /* Transactions */
+    .transaction-item {
+        padding: 0.75rem;
+        grid-template-columns: 1fr auto;
+    }
+
+    .transaction-meta {
+        gap: 0.5rem;
+    }
+
+    .transaction-amount {
+        font-size: 0.9rem;
+        min-width: 80px;
+    }
+
+    .transaction-actions {
+        padding: 0 0.25rem;
+    }
+
+    /* Analytics */
+    .analytics-charts {
+        grid-template-columns: 1fr;
+        padding: 0.5rem;
+    }
+
+    .summary-metrics {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .metric {
+        padding: 0.75rem;
+    }
+
+    /* Import Section */
+    .import-preview-table {
+        font-size: 0.85rem;
+    }
+
+    .import-preview-table th,
+    .import-preview-table td {
+        padding: 0.5rem;
+    }
+
+    /* Floating Button */
+    .floating-btn {
+        width: 48px;
+        height: 48px;
+        right: 1rem;
+        bottom: 1rem;
+    }
+
+    /* Toast Messages */
+    .toast-container {
+        width: 90%;
+        left: 5%;
+        transform: none;
+    }
+}
+
+/* Small Phone Screens */
+@media screen and (max-width: 375px) {
+    header h1 {
+        font-size: 1.1rem;
+    }
+
+    .tab-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .transaction-title {
+        font-size: 0.9rem;
+    }
+
+    .transaction-meta {
+        flex-direction: column;
+        gap: 0.25rem;
     }
 }
 

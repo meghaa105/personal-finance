@@ -42,10 +42,14 @@ const UIController = (function () {
         categoriesList: document.getElementById("categories-list"),
         newCategoryInput: document.getElementById("new-category"),
         addCategoryBtn: document.getElementById("add-category"),
+        budgetsList: document.getElementById("budgets-list"), // Added for budget display
+        budgetCategory: document.getElementById("budget-category"), // Added for budget input
+        budgetAmount: document.getElementById("budget-amount"),     // Added for budget input
+        setBudgetBtn: document.getElementById("set-budget"),       // Added for budget button
 
         // Transaction modal
         transactionModal: document.getElementById("transaction-modal"),
-        modalTitle: document.querySelector("#transaction-modal-title"), //This line was likely the source of the error.
+        modalTitle: document.querySelector("#transaction-modal-title"),
         transactionForm: document.getElementById("transaction-form"),
         transactionId: document.getElementById("transaction-id"),
         transactionDate: document.getElementById("transaction-date"),
@@ -258,6 +262,32 @@ const UIController = (function () {
         // Initialize error modal buttons
         setupErrorModalListeners();
 
+        // Initialize budget management
+        if (DOM.setBudgetBtn && DOM.budgetCategory && DOM.budgetAmount) {
+            DOM.setBudgetBtn.addEventListener('click', function() {
+                const category = DOM.budgetCategory.value;
+                const amount = parseFloat(DOM.budgetAmount.value);
+
+                if (!category || isNaN(amount) || amount < 0) {
+                    showToast('Please enter a valid category and amount');
+                    return;
+                }
+
+                const result = Database.setBudget(category, amount);
+                if (result.success) {
+                    showToast(`Budget set for ${category}`);
+                    updateBudgetsList();
+                    DOM.budgetAmount.value = '';
+                } else {
+                    showErrorDialog(result.error);
+                }
+            });
+        }
+
+        // Update budgets list and category dropdown
+        updateBudgetsList();
+        populateBudgetCategoryDropdown();
+
         console.log("UI Controller initialized");
     }
 
@@ -299,6 +329,7 @@ const UIController = (function () {
                     }
                 } else if (tabId === "settings") {
                     updateCategoriesList();
+                    updateBudgetsList(); //Update budget list when settings tab is shown
                 }
             } else {
                 content.classList.remove("active");
@@ -1599,6 +1630,39 @@ const UIController = (function () {
         } else {
             console.error("Close error button not found.");
         }
+    }
+
+    // Update budgets list
+    function updateBudgetsList() {
+        const budgets = Database.getBudgets();
+        if (!DOM.budgetsList) {
+            console.error("Budgets list container not found.");
+            return;
+        }
+        DOM.budgetsList.innerHTML = "";
+        if (budgets.length === 0) {
+            DOM.budgetsList.innerHTML = '<div class="empty-state">No budgets set</div>';
+            return;
+        }
+        budgets.forEach(budget => {
+            const budgetEl = document.createElement('div');
+            budgetEl.className = 'budget-item';
+            budgetEl.innerHTML = `${budget.category}: ${TransactionUtils.formatCurrency(budget.amount)}`;
+            DOM.budgetsList.appendChild(budgetEl);
+        });
+    }
+
+
+    // Populate budget category dropdown
+    function populateBudgetCategoryDropdown() {
+        const categories = Database.getCategories();
+        DOM.budgetCategory.innerHTML = ''; // Clear existing options
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            DOM.budgetCategory.appendChild(option);
+        });
     }
 
     // Return public API

@@ -356,6 +356,21 @@
                 <div class="settings-group">
                     <h3>Categories Management</h3>
                     <div class="setting-item">
+                        <h3>Budget Management</h3>
+                        <div id="budget-list" class="budget-list">
+                            <!-- Budgets will be populated here -->
+                        </div>
+                        <div class="budget-input">
+                            <select id="budget-category"></select>
+                            <input type="number" id="budget-amount" placeholder="Enter budget amount..." min="0" step="100">
+                            <button id="set-budget" class="btn">
+                                <span class="material-icons">savings</span>
+                                Set Budget
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <h3>Categories</h3>
                         <div class="category-input">
                             <input type="text" id="new-category" placeholder="Enter category name...">
                             <button id="add-category" class="btn">

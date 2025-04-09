@@ -279,6 +279,51 @@ main {
     border-left: 4px solid var(--success-color);
 }
 
+/* Budget Management */
+.budget-list {
+    margin: 1rem 0;
+}
+
+.budget-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.budget-input {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.budget-progress {
+    height: 4px;
+    background: var(--background-lighter);
+    border-radius: 2px;
+    margin-top: 0.5rem;
+}
+
+.budget-progress-bar {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.budget-progress-bar.warning {
+    background: var(--warning-color);
+}
+
+.budget-progress-bar.danger {
+    background: var(--danger-color);
+}
+
 .transaction-item:last-child {
     border-bottom: none;
 }

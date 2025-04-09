@@ -30,7 +30,8 @@ const Database = (function() {
     const STORAGE_KEYS = {
         TRANSACTIONS: 'personalFinance_transactions',
         CATEGORIES: 'personalFinance_categories',
-        CREDIT_CARD_REMINDERS: 'personalFinance_creditCardReminders'
+        CREDIT_CARD_REMINDERS: 'personalFinance_creditCardReminders',
+        BUDGETS: 'personalFinance_budgets'
     };
     
     // Initialize database from localStorage
@@ -589,6 +590,29 @@ const Database = (function() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
     }
     
+    // Budget management
+    let budgets = {};
+
+    function setBudget(category, amount) {
+        budgets[category] = parseFloat(amount);
+        localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(budgets));
+        return { success: true };
+    }
+
+    function getBudget(category) {
+        return budgets[category] || 0;
+    }
+
+    function getAllBudgets() {
+        return { ...budgets };
+    }
+
+    function deleteBudget(category) {
+        delete budgets[category];
+        localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(budgets));
+        return { success: true };
+    }
+
     // Return public API
     return {
         init,
@@ -606,6 +630,10 @@ const Database = (function() {
         exportData,
         importData,
         clearData,
+        setBudget,
+        getBudget,
+        getAllBudgets,
+        deleteBudget,
         // Credit card reminder methods
         addCreditCardReminder,
         updateCreditCardReminder,

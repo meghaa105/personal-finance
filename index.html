@@ -357,12 +357,18 @@
                     <h3>Categories Management</h3>
                     <div class="setting-item">
                         <div class="category-input">
-                            <input type="text" id="new-category" placeholder="Add new category...">
-                            <button id="add-category" class="btn">Add</button>
+                            <input type="text" id="new-category" placeholder="Enter category name...">
+                            <button id="add-category" class="btn">
+                                <span class="material-icons">add</span>
+                                Add Category
+                            </button>
                         </div>
-                        <div id="categories-list" class="categories-list">
+                        <div id="categories-list">
                             <!-- Categories will be populated here -->
-                            <div class="empty-state">No custom categories added</div>
+                            <div class="category-empty-state">
+                                <span class="material-icons">category</span>
+                                <p>No custom categories added yet</p>
+                            </div>
                         </div>
                     </div>
                 </div>

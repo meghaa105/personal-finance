@@ -33,7 +33,7 @@ const UIController = (function () {
         splitwiseUploadStatus: document.getElementById('splitwise-upload-status'),
         importPreviewContent: document.getElementById('import-preview-content'),
         confirmImportBtn: document.getElementById('confirm-import'),
-        
+
         // Settings elements
         exportDataBtn: document.getElementById("export-data"),
         backupDataBtn: document.getElementById("backup-data"),
@@ -186,7 +186,7 @@ const UIController = (function () {
         DOM.csvUpload.addEventListener('change', handleCSVUpload);
         DOM.splitwiseUpload.addEventListener('change', handleSplitwiseUpload);
         DOM.confirmImportBtn.addEventListener('click', confirmImport);
-        
+
         // Set up settings handlers
         DOM.exportDataBtn.addEventListener("click", exportTransactionsToCSV);
         DOM.backupDataBtn.addEventListener("click", backupAllData);
@@ -258,7 +258,10 @@ const UIController = (function () {
                     tabId === "analytics" &&
                     typeof AnalyticsController !== "undefined"
                 ) {
-                    AnalyticsController.refreshAnalytics();
+                    // Give DOM time to render before refreshing analytics
+                    setTimeout(() => {
+                        AnalyticsController.refreshAnalytics();
+                    }, 100);
                 } else if (tabId === "reminders") {
                     if (
                         typeof ReminderController !== "undefined" &&
@@ -849,12 +852,12 @@ const UIController = (function () {
             console.error('Error parsing CSV:', error);
             DOM.csvUploadStatus.textContent = 'Error parsing CSV: ' + error.message;
             DOM.csvUploadStatus.className = 'upload-status error';
-            
+
             // Disable import button
             DOM.confirmImportBtn.disabled = true;
         }
     }
-    
+
     // Handle Splitwise CSV upload
     async function handleSplitwiseUpload(event) {
         const file = event.target.files[0];
@@ -909,7 +912,7 @@ const UIController = (function () {
             DOM.confirmImportBtn.disabled = true;
         }
     }
-    
+
     // Show import preview
     function showImportPreview(transactions) {
         if (!transactions || transactions.length === 0) {
@@ -1223,12 +1226,12 @@ const UIController = (function () {
             DOM.pdfUpload.value = '';
             DOM.csvUpload.value = '';
             DOM.splitwiseUpload.value = '';
-            
+
             // Update status
             DOM.pdfUploadStatus.textContent = '';
             DOM.csvUploadStatus.textContent = '';
             DOM.splitwiseUploadStatus.textContent = '';
-            
+
             // Clear preview
             DOM.importPreviewContent.innerHTML =
                 '<div class="empty-state">No import data to preview</div>';

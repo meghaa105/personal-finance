@@ -10,13 +10,13 @@ const AnalyticsController = (function() {
     const categoryFiltersContainer = document.getElementById('category-filters');
     const searchInput = document.getElementById('analytics-search');
     const sourceFiltersContainer = document.getElementById('source-filters');
-    
+
     // Chart references
     let categoryChart = null;
     let trendsChart = null;
     let cashFlowChart = null;
     let paymentMethodChart = null;
-    
+
     // Current filter state
     let currentTimePeriod = 'month';
     let selectedCategories = [];
@@ -26,7 +26,7 @@ const AnalyticsController = (function() {
         start: null,
         end: null
     };
-    
+
     // Import or define the getCategoryIcon function
     function getCategoryIcon(category) {
         switch (category) {
@@ -46,7 +46,7 @@ const AnalyticsController = (function() {
             default: return "help_outline";
         }
     }
-    
+
     /**
      * Initialize the analytics controller
      */
@@ -54,9 +54,12 @@ const AnalyticsController = (function() {
         setupEventListeners();
         initializeDatePickers();
         updateCategoryFilters();
-        refreshAnalytics();
+        // Ensure charts have been created in DOM before refreshing
+        setTimeout(() => {
+            refreshAnalytics();
+        }, 100);
     }
-    
+
     /**
      * Set up event listeners for analytics components
      */
@@ -69,7 +72,7 @@ const AnalyticsController = (function() {
                     b.classList.remove('active');
                 });
                 this.classList.add('active');
-                
+
                 // Show/hide custom date range inputs
                 if (period === 'custom') {
                     document.querySelector('.custom-date-range').style.display = 'flex';
@@ -79,10 +82,10 @@ const AnalyticsController = (function() {
                 }
             });
         });
-        
+
         // Apply custom date range
         applyDateBtn.addEventListener('click', applyCustomDateRange);
-        
+
         // Setup search functionality
         if (searchInput) {
             searchInput.addEventListener('input', function() {
@@ -90,7 +93,7 @@ const AnalyticsController = (function() {
                 refreshAnalytics();
             });
         }
-        
+
         // Setup source filter checkboxes
         if (sourceFiltersContainer) {
             document.querySelectorAll('#source-filters input[type="checkbox"]').forEach(checkbox => {
@@ -98,12 +101,12 @@ const AnalyticsController = (function() {
                     selectedSources = Array.from(
                         document.querySelectorAll('#source-filters input[type="checkbox"]:checked')
                     ).map(input => input.getAttribute('data-source'));
-                    
+
                     refreshAnalytics();
                 });
             });
         }
-        
+
         // Listen for database changes
         document.addEventListener('transactions-updated', refreshAnalytics);
         document.addEventListener('categories-updated', updateCategoryFilters);
@@ -125,24 +128,24 @@ const AnalyticsController = (function() {
             refreshAnalytics(); // Refresh analytics with the applied filters
         });
     }
-    
+
     /**
      * Initialize date pickers with appropriate default values
      */
     function initializeDatePickers() {
         const today = new Date();
-        
+
         // Set end date to today
         const endDateStr = today.toISOString().split('T')[0];
         endDateInput.value = endDateStr;
-        
+
         // Set start date to 30 days ago
         const startDate = new Date();
         startDate.setDate(today.getDate() - 30);
         const startDateStr = startDate.toISOString().split('T')[0];
         startDateInput.value = startDateStr;
     }
-    
+
     /**
      * Update category filter checkboxes based on available categories
      */
@@ -185,7 +188,7 @@ const AnalyticsController = (function() {
             });
         });
     }
-    
+
     /**
      * Apply time period filter
      * @param {string} period - Time period (month, quarter, year)
@@ -194,34 +197,34 @@ const AnalyticsController = (function() {
         currentTimePeriod = period;
         customDateRange.start = null;
         customDateRange.end = null;
-        
+
         refreshAnalytics();
     }
-    
+
     /**
      * Apply custom date range filter
      */
     function applyCustomDateRange() {
         const startDate = new Date(startDateInput.value);
         const endDate = new Date(endDateInput.value);
-        
+
         if (isNaN(startDate) || isNaN(endDate)) {
             // Show error
             return;
         }
-        
+
         if (startDate > endDate) {
             // Show error
             return;
         }
-        
+
         currentTimePeriod = 'custom';
         customDateRange.start = startDate;
         customDateRange.end = endDate;
-        
+
         refreshAnalytics();
     }
-    
+
     /**
      * Refresh all analytics data and visualizations
      */
@@ -242,17 +245,17 @@ const AnalyticsController = (function() {
         AdvancedAnalytics.updateSavingsRateChart(filteredTransactions);
         AdvancedAnalytics.updateBudgetComparisonChart(filteredTransactions);
     }
-    
+
     /**
      * Get transactions filtered by current filter settings
      * @returns {Array} Filtered transactions
      */
     function getFilteredTransactions() {
         let filters = {};
-        
+
         // Apply date filters
         const now = new Date();
-        
+
         if (currentTimePeriod === 'custom' && customDateRange.start && customDateRange.end) {
             filters.startDate = customDateRange.start;
             filters.endDate = customDateRange.end;
@@ -270,15 +273,15 @@ const AnalyticsController = (function() {
             filters.startDate = startDate;
             filters.endDate = now;
         }
-        
+
         // Apply category filters
         if (selectedCategories.length > 0) {
             filters.categories = selectedCategories;
         }
-        
+
         // Get transactions based on filters
         let transactions = Database.getTransactions(filters);
-        
+
         // Apply search filter if there's a search query
         if (searchQuery) {
             transactions = transactions.filter(transaction => {
@@ -286,7 +289,7 @@ const AnalyticsController = (function() {
                        (transaction.category && transaction.category.toLowerCase().includes(searchQuery));
             });
         }
-        
+
         // Apply source filter
         if (selectedSources && selectedSources.length > 0) {
             transactions = transactions.filter(transaction => {
@@ -295,10 +298,10 @@ const AnalyticsController = (function() {
                 return selectedSources.includes(source);
             });
         }
-        
+
         return transactions;
     }
-    
+
     /**
      * Update analytics summary section with metrics
      * @param {Array} transactions - Filtered transactions
@@ -311,18 +314,18 @@ const AnalyticsController = (function() {
         const monthlySavingsRateEl = document.getElementById('monthly-savings-rate');
         const topCategoriesEl = document.getElementById('top-spending-categories');
         const spendingTrendEl = document.getElementById('spending-trend');
-        
+
         // Calculate metrics
         let totalSpending = 0;
         let totalIncome = 0;
-        
+
         // Daily totals for calculations
         const dailyExpenses = {};
-        
+
         transactions.forEach(transaction => {
             if (transaction.type === 'expense') {
                 totalSpending += transaction.amount;
-                
+
                 // Track daily expenses
                 const dateStr = new Date(transaction.date).toLocaleDateString('en-IN');
                 dailyExpenses[dateStr] = (dailyExpenses[dateStr] || 0) + transaction.amount;
@@ -330,29 +333,29 @@ const AnalyticsController = (function() {
                 totalIncome += transaction.amount;
             }
         });
-        
+
         // Calculate average daily expense
         let avgDailyExpense = 0;
         const dayCount = Object.keys(dailyExpenses).length || 1; // Avoid division by zero
         avgDailyExpense = totalSpending / dayCount;
-        
+
         // Find max expense day
         let maxExpenseDay = 'None';
         let maxAmount = 0;
-        
+
         for (const [dateStr, amount] of Object.entries(dailyExpenses)) {
             if (amount > maxAmount) {
                 maxAmount = amount;
                 maxExpenseDay = dateStr;
             }
         }
-        
+
         // Calculate monthly savings rate
         let savingsRate = 0;
         if (totalIncome > 0) {
             savingsRate = ((totalIncome - totalSpending) / totalIncome) * 100;
         }
-        
+
         // Update the UI
         totalSpendingEl.textContent = TransactionUtils.formatCurrency(totalSpending);
         totalIncomeEl.textContent = TransactionUtils.formatCurrency(totalIncome);
@@ -392,14 +395,14 @@ const AnalyticsController = (function() {
 
         const trend = ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100;
         const trendDirection = trend > 0 ? 'increased' : 'decreased';
-        
+
         spendingTrendEl.innerHTML = `
             <div class="spending-insight ${trendDirection}">
                 <span>Month-over-month spending has ${trendDirection} by ${Math.abs(trend).toFixed(1)}%</span>
             </div>
         `;
     }
-    
+
     /**
      * Update the category distribution chart
      * @param {Array} transactions - Filtered transactions
@@ -412,10 +415,10 @@ const AnalyticsController = (function() {
         }
 
         const ctx = ctxElement.getContext('2d');
-        
+
         // Filter expense transactions only
         const expenses = transactions.filter(t => t.type === 'expense');
-        
+
         if (expenses.length === 0) {
             if (categoryChart) {
                 categoryChart.destroy();
@@ -428,23 +431,23 @@ const AnalyticsController = (function() {
             ctx.canvas.parentNode.innerHTML = '<div class="empty-state">No expense data available</div>';
             return;
         }
-        
+
         ctx.canvas.style.display = 'block';
         ctx.canvas.parentNode.style.display = 'block';
-        
+
         // Group transactions by category
         const categoryTotals = {};
         expenses.forEach(transaction => {
             const category = transaction.category || 'Uncategorized';
             categoryTotals[category] = (categoryTotals[category] || 0) + transaction.amount;
         });
-        
+
         const categories = Object.keys(categoryTotals);
         const amounts = Object.values(categoryTotals);
-        
+
         // Generate colors for each category
         const colors = generateColors(categories.length);
-        
+
         const data = {
             labels: categories,
             datasets: [{
@@ -452,7 +455,7 @@ const AnalyticsController = (function() {
                 backgroundColor: colors
             }]
         };
-        
+
         const options = {
             responsive: true,
             maintainAspectRatio: true, // Maintain the aspect ratio
@@ -477,28 +480,28 @@ const AnalyticsController = (function() {
                 }
             }
         };
-        
+
         if (categoryChart) {
             categoryChart.destroy();
         }
-        
+
         categoryChart = new Chart(ctx, {
             type: 'pie',
             data: data,
             options: options
         });
     }
-    
+
     /**
      * Update the spending trends chart
      * @param {Array} transactions - Filtered transactions
      */
     function updateTrendsChart(transactions) {
         const ctx = document.getElementById('trends-chart').getContext('2d');
-        
+
         // Group transactions by month
         const monthlyData = groupTransactionsByMonth(transactions);
-        
+
         if (Object.keys(monthlyData.expenses).length === 0) {
             if (trendsChart) {
                 trendsChart.destroy();
@@ -511,14 +514,14 @@ const AnalyticsController = (function() {
             ctx.canvas.parentNode.innerHTML = '<div class="empty-state">No trend data available</div>';
             return;
         }
-        
+
         ctx.canvas.style.display = 'block';
         ctx.canvas.parentNode.style.display = 'block';
-        
+
         const months = Object.keys(monthlyData.expenses).sort((a, b) => new Date(a) - new Date(b));
         const expenseData = months.map(month => monthlyData.expenses[month] || 0);
         const incomeData = months.map(month => monthlyData.income[month] || 0);
-        
+
         const data = {
             labels: months,
             datasets: [
@@ -538,7 +541,7 @@ const AnalyticsController = (function() {
                 }
             ]
         };
-        
+
         const options = {
             responsive: true,
             maintainAspectRatio: true,
@@ -563,25 +566,25 @@ const AnalyticsController = (function() {
                 }
             }
         };
-        
+
         if (trendsChart) {
             trendsChart.destroy();
         }
-        
+
         trendsChart = new Chart(ctx, {
             type: 'bar',
             data: data,
             options: options
         });
     }
-    
+
     /**
      * Update the cash flow chart
      * @param {Array} transactions - Filtered transactions
      */
     function updateCashFlowChart(transactions) {
         const ctx = document.getElementById('cash-flow-chart').getContext('2d');
-        
+
         if (transactions.length === 0) {
             if (cashFlowChart) {
                 cashFlowChart.destroy();
@@ -594,18 +597,18 @@ const AnalyticsController = (function() {
             ctx.canvas.parentNode.innerHTML = '<div class="empty-state">No cash flow data available</div>';
             return;
         }
-        
+
         ctx.canvas.style.display = 'block';
         ctx.canvas.parentNode.style.display = 'block';
-        
+
         // Sort transactions by date
         const sortedTransactions = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
-        
+
         // Calculate running balance
         let balance = 0;
         const labels = [];
         const balanceData = [];
-        
+
         sortedTransactions.forEach(transaction => {
             const date = new Date(transaction.date).toLocaleDateString('en-IN');
             if (transaction.type === 'income') {
@@ -613,11 +616,11 @@ const AnalyticsController = (function() {
             } else {
                 balance -= transaction.amount;
             }
-            
+
             labels.push(date);
             balanceData.push(balance);
         });
-        
+
         const data = {
             labels: labels,
             datasets: [{
@@ -629,7 +632,7 @@ const AnalyticsController = (function() {
                 tension: 0.1
             }]
         };
-        
+
         const options = {
             responsive: true,
             maintainAspectRatio: true, // Ensure aspect ratio is maintained
@@ -659,18 +662,18 @@ const AnalyticsController = (function() {
                 }
             }
         };
-        
+
         if (cashFlowChart) {
             cashFlowChart.destroy();
         }
-        
+
         cashFlowChart = new Chart(ctx, {
             type: 'line',
             data: data,
             options: options
         });
     }
-    
+
     /**
      * Update the payment method chart
      * @param {Array} transactions - Filtered transactions
@@ -686,7 +689,7 @@ const AnalyticsController = (function() {
 
         // Filter expense transactions only
         const expenses = transactions.filter(t => t.type === 'expense');
-        
+
         if (expenses.length === 0) {
             if (paymentMethodChart) {
                 paymentMethodChart.destroy();
@@ -699,19 +702,19 @@ const AnalyticsController = (function() {
             ctx.canvas.parentNode.innerHTML = '<div class="empty-state">No payment method data available</div>';
             return;
         }
-        
+
         ctx.canvas.style.display = 'block';
         ctx.canvas.parentNode.style.display = 'block';
-        
+
         // Extract and group by payment methods
         const paymentMethods = extractPaymentMethods(expenses);
-        
+
         const methods = Object.keys(paymentMethods);
         const amounts = Object.values(paymentMethods);
-        
+
         // Generate colors
         const colors = generateColors(methods.length);
-        
+
         const data = {
             labels: methods,
             datasets: [{
@@ -719,7 +722,7 @@ const AnalyticsController = (function() {
                 backgroundColor: colors
             }]
         };
-        
+
         const options = {
             responsive: true,
             maintainAspectRatio: true,
@@ -743,38 +746,38 @@ const AnalyticsController = (function() {
                 }
             }
         };
-        
+
         if (paymentMethodChart) {
             paymentMethodChart.destroy();
         }
-        
+
         paymentMethodChart = new Chart(ctx, {
             type: 'doughnut',
             data: data,
             options: options
         });
     }
-    
+
     /**
      * Update the filtered transactions list
      * @param {Array} transactions - Filtered transactions
      */
     function updateFilteredTransactionsList(transactions) {
         const container = document.getElementById('analytics-transactions');
-        
+
         if (transactions.length === 0) {
             container.innerHTML = '<div class="empty-state">No transactions match the current filters</div>';
             return;
         }
-        
+
         // Sort transactions by date (newest first)
         const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-        
+
         let html = '';
         sortedTransactions.forEach(transaction => {
             const date = new Date(transaction.date).toLocaleDateString('en-IN');
             const amountClass = transaction.type === 'income' ? 'income' : 'expense';
-            
+
             html += `
                 <div class="transaction-item">
                     <div class="transaction-details">
@@ -788,10 +791,10 @@ const AnalyticsController = (function() {
                 </div>
             `;
         });
-        
+
         container.innerHTML = html;
     }
-    
+
     /**
      * Group transactions by month
      * @param {Array} transactions - Transactions array
@@ -802,21 +805,21 @@ const AnalyticsController = (function() {
             income: {},
             expenses: {}
         };
-        
+
         transactions.forEach(transaction => {
             const date = new Date(transaction.date);
             const monthYear = `${date.toLocaleString('en-IN', { month: 'short' })} ${date.getFullYear()}`;
-            
+
             if (transaction.type === 'income') {
                 monthlyData.income[monthYear] = (monthlyData.income[monthYear] || 0) + transaction.amount;
             } else {
                 monthlyData.expenses[monthYear] = (monthlyData.expenses[monthYear] || 0) + transaction.amount;
             }
         });
-        
+
         return monthlyData;
     }
-    
+
     /**
      * Extract payment methods from transactions
      * @param {Array} transactions - Expense transactions
@@ -824,11 +827,11 @@ const AnalyticsController = (function() {
      */
     function extractPaymentMethods(transactions) {
         const paymentMethods = {};
-        
+
         transactions.forEach(transaction => {
             // Use paymentMethod if available, otherwise use a fallback based on description
             let method = transaction.paymentMethod || 'Other';
-            
+
             // Auto-detect common payment methods from description if not set
             const description = transaction.description.toLowerCase();
             if (!transaction.paymentMethod) {
@@ -853,13 +856,13 @@ const AnalyticsController = (function() {
                     method = 'Net Banking';
                 }
             }
-            
+
             paymentMethods[method] = (paymentMethods[method] || 0) + transaction.amount;
         });
-        
+
         return paymentMethods;
     }
-    
+
     /**
      * Generate colors for charts
      * @param {number} count - Number of colors needed
@@ -876,9 +879,9 @@ const AnalyticsController = (function() {
             'rgba(255, 193, 7, 0.8)',    // Yellow
             'rgba(108, 117, 125, 0.8)'   // Gray
         ];
-        
+
         const colors = [];
-        
+
         // Use base colors for first few items
         for (let i = 0; i < count; i++) {
             if (i < baseColors.length) {
@@ -891,10 +894,10 @@ const AnalyticsController = (function() {
                 colors.push(color);
             }
         }
-        
+
         return colors;
     }
-    
+
     // Public API
     return {
         init: init,

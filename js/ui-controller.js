@@ -1383,6 +1383,8 @@ const UIController = (function () {
 
         // Populate categories
         categories.forEach((category) => {
+            if (category === 'Income' || category === 'Other') return; // Skip default categories
+
             const categoryEl = document.createElement("div");
             categoryEl.className = "category-item";
 
@@ -1395,14 +1397,22 @@ const UIController = (function () {
             const deleteBtn = document.createElement("button");
             deleteBtn.className = "delete-btn material-icons";
             deleteBtn.textContent = "delete";
-            deleteBtn.addEventListener("click", () => {
-                const result = Database.deleteCategory(category);
-                if (result.success) {
-                    updateCategoriesList();
-                    AnalyticsController.updateCategoryFilters(); // Refresh category filters
-                    AnalyticsController.refreshAnalytics(); // Ensure graphs are updated
-                } else {
-                    showErrorDialog(result.error); // Show error dialog
+            deleteBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (confirm(`Are you sure you want to delete the category "${category}"?`)) {
+                    const result = Database.deleteCategory(category);
+                    if (result.success) {
+                        categoryEl.remove();
+                        updateCategoriesList();
+                        populateCategoryDropdown();
+                        if (typeof AnalyticsController !== 'undefined') {
+                            AnalyticsController.updateCategoryFilters();
+                            AnalyticsController.refreshAnalytics();
+                        }
+                        showToast(`Category "${category}" deleted successfully`);
+                    } else {
+                        showErrorDialog(result.error);
+                    }
                 }
             });
             categoryEl.appendChild(deleteBtn);

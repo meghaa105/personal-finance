@@ -607,6 +607,17 @@ const Database = (function() {
         return { ...budgets };
     }
 
+    function getBudgets() {
+        const budgetsList = [];
+        for (const category in budgets) {
+            budgetsList.push({
+                category: category,
+                amount: budgets[category]
+            });
+        }
+        return budgetsList;
+    }
+
     function deleteBudget(category) {
         delete budgets[category];
         localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(budgets));
@@ -633,6 +644,7 @@ const Database = (function() {
         setBudget,
         getBudget,
         getAllBudgets,
+        getBudgets,
         deleteBudget,
         // Credit card reminder methods
         addCreditCardReminder,

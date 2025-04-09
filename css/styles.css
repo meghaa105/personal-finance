@@ -1033,6 +1033,14 @@ main {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+    margin-left: auto;
+}
+
+.category-item .delete-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
 .category-item .delete-btn:hover {

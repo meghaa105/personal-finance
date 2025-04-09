@@ -1397,8 +1397,13 @@ const UIController = (function () {
             const deleteBtn = document.createElement("button");
             deleteBtn.className = "delete-btn material-icons";
             deleteBtn.textContent = "delete";
-            deleteBtn.addEventListener("click", (e) => {
+            deleteBtn.onclick = function(e) {
+                e.preventDefault();
                 e.stopPropagation();
+                if (category === 'Income' || category === 'Other') {
+                    showToast('Cannot delete default categories');
+                    return;
+                }
                 if (confirm(`Are you sure you want to delete the category "${category}"?`)) {
                     const result = Database.deleteCategory(category);
                     if (result.success) {
@@ -1411,10 +1416,10 @@ const UIController = (function () {
                         }
                         showToast(`Category "${category}" deleted successfully`);
                     } else {
-                        showErrorDialog(result.error);
+                        showErrorDialog(result.error || 'Cannot delete category that is in use');
                     }
                 }
-            });
+            };
             categoryEl.appendChild(deleteBtn);
 
             DOM.categoriesList.appendChild(categoryEl);

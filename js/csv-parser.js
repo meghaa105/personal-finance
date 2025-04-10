@@ -800,35 +800,82 @@ const CSVParser = (function() {
     function guessCategory(description) {
         if (!description) return 'Other';
 
+        if (!description) return 'Other';
         const descriptionLower = description.toLowerCase();
 
-        // Check for income keywords - Enhanced for Indian banks
-        const incomeKeywords = ['salary', 'deposit', 'payment received', 'refund', 'transfer from', 'credit', 'cr', 'trf from', 'imps', 'neft', 'rtgs', 'upi', 'inward', 'by transfer'];
-        for (const keyword of incomeKeywords) {
-            if (descriptionLower.includes(keyword)) {
+        // First check for specific transaction patterns
+        if (descriptionLower.includes('upi-')) {
+            const upiDescription = descriptionLower.split('upi-')[1];
+            // Look for merchant name in UPI description
+            for (const [category, keywords] of Object.entries(categoryKeywords)) {
+                for (const keyword of keywords) {
+                    if (upiDescription.includes(keyword.toLowerCase())) {
+                        return category;
+                    }
+                }
+            }
+        }
+
+        // Check for POS transactions
+        if (descriptionLower.includes('pos ')) {
+            const posDescription = descriptionLower.split('pos ')[1];
+            // Look for merchant name after POS
+            for (const [category, keywords] of Object.entries(categoryKeywords)) {
+                for (const keyword of keywords) {
+                    if (posDescription.includes(keyword.toLowerCase())) {
+                        return category;
+                    }
+                }
+            }
+        }
+
+        // Check for income-specific patterns first
+        const incomePatterns = [
+            /salary(?:\s+credited)?/i,
+            /(?:interest|dividend|cashback)\s+credited/i,
+            /refund\s+(?:credited|received)/i,
+            /income\s+tax\s+refund/i,
+            /deposit\s+by/i,
+            /credit\s+received/i
+        ];
+
+        for (const pattern of incomePatterns) {
+            if (pattern.test(descriptionLower)) {
                 return 'Income';
             }
         }
 
-        // Check for common expense categories - Optimized for Indian merchants and categories
-        const categoryKeywords = {
-            'Food & Dining': ['restaurant', 'cafe', 'coffee', 'diner', 'food', 'pizza', 'burger', 'mcdonalds', 'subway', 'swiggy', 'zomato', 'dominos', 'dosa', 'biryani', 'dhaba', 'thali', 'udupi', 'saravana', 'chaayos', 'barista', 'chai', 'eat', 'kitchen', 'sweet', 'mithai'],
-            'Groceries': ['grocery', 'supermarket', 'market', 'big basket', 'bigbasket', 'dmart', 'reliance fresh', 'more', 'grofers', 'jiomart', 'blinkit', 'kirana', 'nature basket', 'spencers', 'star bazaar', 'vegetables', 'fruits', 'milk', 'provision'],
-            'Shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'snapdeal', 'lenskart', 'croma', 'reliance digital', 'vijay sales', 'lifestyle', 'pantaloons', 'westside', 'mall', 'bazaar'],
-            'Transportation': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'transit', 'train', 'irctc', 'railway', 'metro', 'bus', 'red bus', 'redbus', 'petrol', 'diesel', 'fuel', 'indian oil', 'hp', 'bharat petroleum', 'bpcl', 'toll', 'fastag'],
-            'Entertainment': ['movie', 'cinema', 'pvr', 'inox', 'bookmyshow', 'theater', 'netflix', 'hotstar', 'disney+', 'amazon prime', 'sony liv', 'zee5', 'jio cinema', 'game', 'gaming', 'concert', 'event'],
-            'Housing': ['rent', 'lease', 'maintenance', 'society', 'apartment', 'flat', 'property', 'home', 'housing', 'accommodation', 'builder', 'construction', 'repair', 'renovation'],
-            'Utilities': ['electric', 'electricity', 'bill','water', 'internet', 'broadband', 'jio', 'airtel', 'bsnl', 'vi', 'vodafone', 'idea', 'tata sky', 'dth', 'gas', 'lpg', 'indane', 'utility', 'pipeline'],
-            'Health': ['doctor', 'hospital', 'medical', 'apollo', 'fortis', 'max', 'medanta', 'medplus', 'pharmacy', 'pharmeasy', 'netmeds', 'tata 1mg', 'dental', 'vision', 'healthcare', 'clinic', 'diagnostic', 'lab', 'test', 'medicine', 'ayurvedic'],
-            'Education': ['tuition', 'school', 'college', 'university', 'education', 'book', 'course', 'byjus', 'unacademy', 'vedantu', 'whitehat', 'cuemath', 'coaching', 'institute', 'academy', 'library', 'learning'],
-            'Travel': ['travel', 'hotel', 'oyo', 'makemytrip', 'goibibo', 'booking.com', 'cleartrip', 'ixigo', 'trivago', 'airline', 'indigo', 'spicejet', 'vistara', 'air india', 'flight', 'vacation', 'trip', 'tourism', 'resort', 'package', 'goa', 'manali', 'kerala'],
-            'Insurance': ['insurance', 'policy', 'premium', 'lic', 'health insurance', 'vehicle insurance', 'hdfc ergo', 'bajaj allianz', 'icici lombard', 'max bupa', 'star health', 'new india', 'mutual', 'term', 'life'],
-            'Investments': ['investment', 'mutual fund', 'stocks', 'shares', 'demat', 'zerodha', 'groww', 'upstox', 'kuvera', 'uti', 'sbi', 'hdfc', 'icici', 'axis', 'kotak', 'sip', 'nps', 'ppf', 'fixed deposit', 'fd', 'nifty', 'sensex']
+        // Check transaction type indicators
+        const typeIndicators = {
+            'Banking & Finance': [/upi/i, /imps/i, /neft/i, /rtgs/i, /emi/i, /loan/i, /credit\s+card/i, /atm/i],
+            'Utilities': [/recharge/i, /bill\s+payment/i, /electricity/i, /water/i, /gas/i],
+            'Insurance': [/insurance/i, /premium/i, /policy/i],
+            'Investments': [/mutual\s+fund/i, /investment/i, /stocks?/i, /shares/i, /sip/i, /demat/i]
         };
 
+        for (const [category, patterns] of Object.entries(typeIndicators)) {
+            for (const pattern of patterns) {
+                if (pattern.test(descriptionLower)) {
+                    return category;
+                }
+            }
+        }
+
+        // Check for exact merchant matches in category keywords
         for (const [category, keywords] of Object.entries(categoryKeywords)) {
             for (const keyword of keywords) {
-                if (descriptionLower.includes(keyword)) {
+                // Use word boundaries for more accurate matching
+                const pattern = new RegExp(`\\b${keyword.toLowerCase()}\\b`, 'i');
+                if (pattern.test(descriptionLower)) {
+                    return category;
+                }
+            }
+        }
+
+        // If no specific match found, check for partial matches
+        for (const [category, keywords] of Object.entries(categoryKeywords)) {
+            for (const keyword of keywords) {
+                if (descriptionLower.includes(keyword.toLowerCase())) {
                     return category;
                 }
             }

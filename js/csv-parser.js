@@ -800,43 +800,17 @@ const CSVParser = (function() {
     function guessCategory(description) {
         if (!description) return 'Other';
 
-        if (!description) return 'Other';
         const descriptionLower = description.toLowerCase();
 
-        // First check for specific transaction patterns
-        if (descriptionLower.includes('upi-')) {
-            const upiDescription = descriptionLower.split('upi-')[1];
-            // Look for merchant name in UPI description
-            for (const [category, keywords] of Object.entries(categoryKeywords)) {
-                for (const keyword of keywords) {
-                    if (upiDescription.includes(keyword.toLowerCase())) {
-                        return category;
-                    }
-                }
-            }
-        }
-
-        // Check for POS transactions
-        if (descriptionLower.includes('pos ')) {
-            const posDescription = descriptionLower.split('pos ')[1];
-            // Look for merchant name after POS
-            for (const [category, keywords] of Object.entries(categoryKeywords)) {
-                for (const keyword of keywords) {
-                    if (posDescription.includes(keyword.toLowerCase())) {
-                        return category;
-                    }
-                }
-            }
-        }
-
-        // Check for income-specific patterns first
+        // Check for specific income patterns first
         const incomePatterns = [
             /salary(?:\s+credited)?/i,
             /(?:interest|dividend|cashback)\s+credited/i,
             /refund\s+(?:credited|received)/i,
             /income\s+tax\s+refund/i,
             /deposit\s+by/i,
-            /credit\s+received/i
+            /credit\s+received/i,
+            /payment\s+received/i
         ];
 
         for (const pattern of incomePatterns) {
@@ -845,39 +819,54 @@ const CSVParser = (function() {
             }
         }
 
-        // Check transaction type indicators
-        const typeIndicators = {
-            'Banking & Finance': [/upi/i, /imps/i, /neft/i, /rtgs/i, /emi/i, /loan/i, /credit\s+card/i, /atm/i],
-            'Utilities': [/recharge/i, /bill\s+payment/i, /electricity/i, /water/i, /gas/i],
-            'Insurance': [/insurance/i, /premium/i, /policy/i],
-            'Investments': [/mutual\s+fund/i, /investment/i, /stocks?/i, /shares/i, /sip/i, /demat/i]
+        // Define and check transaction type patterns
+        const categoryPatterns = {
+            'Food & Dining': [/(?:swiggy|zomato|uber\s*eats|dominos|pizza|restaurant|cafe|food|dining|eat|kitchen|hotel)/i],
+            'Groceries': [/(?:bigbasket|grofers|blinkit|dmart|market|grocery|kirana|fresh|provision|fruits|vegetables)/i],
+            'Shopping': [/(?:amazon|flipkart|myntra|ajio|snapdeal|retail|mart|store|shop|mall|bazaar)/i],
+            'Transportation': [/(?:uber|ola|rapido|metro|bus|train|taxi|auto|petrol|diesel|fuel|fastag)/i],
+            'Utilities': [/(?:electricity|water|gas|broadband|mobile|bill|recharge|dth|utility)/i],
+            'Health': [/(?:hospital|clinic|medical|pharmacy|medicine|doctor|apollo|fortis|diagnostic|lab|test)/i],
+            'Education': [/(?:school|college|university|course|tuition|education|coaching|institute|academy)/i],
+            'Travel': [/(?:hotel|flight|travel|trip|tour|vacation|holiday|booking|oyo|mmt|makemytrip)/i],
+            'Entertainment': [/(?:movie|cinema|pvr|inox|netflix|prime|hotstar|entertainment|game|gaming)/i],
+            'Insurance': [/(?:insurance|policy|premium|lic|term|life)/i],
+            'Investments': [/(?:mutual\s*fund|stock|share|demat|investment|zerodha|groww|upstox|sip|nps|ppf)/i],
+            'Banking & Finance': [/(?:emi|loan|credit\s*card|bank|finance|payment|transfer|neft|rtgs|imps)/i]
         };
 
-        for (const [category, patterns] of Object.entries(typeIndicators)) {
-            for (const pattern of patterns) {
-                if (pattern.test(descriptionLower)) {
-                    return category;
+        // First check UPI transactions
+        if (descriptionLower.includes('upi')) {
+            const upiParts = descriptionLower.split(/(?:upi|/)-/);
+            if (upiParts.length > 1) {
+                const merchantPart = upiParts[1].trim();
+                // Check merchant name against patterns
+                for (const [category, patterns] of Object.entries(categoryPatterns)) {
+                    if (patterns.some(pattern => pattern.test(merchantPart))) {
+                        return category;
+                    }
                 }
             }
         }
 
-        // Check for exact merchant matches in category keywords
-        for (const [category, keywords] of Object.entries(categoryKeywords)) {
-            for (const keyword of keywords) {
-                // Use word boundaries for more accurate matching
-                const pattern = new RegExp(`\\b${keyword.toLowerCase()}\\b`, 'i');
-                if (pattern.test(descriptionLower)) {
-                    return category;
+        // Check POS transactions
+        if (descriptionLower.includes('pos')) {
+            const posParts = descriptionLower.split(/pos\s*/);
+            if (posParts.length > 1) {
+                const merchantPart = posParts[1].trim();
+                // Check merchant name against patterns
+                for (const [category, patterns] of Object.entries(categoryPatterns)) {
+                    if (patterns.some(pattern => pattern.test(merchantPart))) {
+                        return category;
+                    }
                 }
             }
         }
 
-        // If no specific match found, check for partial matches
-        for (const [category, keywords] of Object.entries(categoryKeywords)) {
-            for (const keyword of keywords) {
-                if (descriptionLower.includes(keyword.toLowerCase())) {
-                    return category;
-                }
+        // Check full description against patterns
+        for (const [category, patterns] of Object.entries(categoryPatterns)) {
+            if (patterns.some(pattern => pattern.test(descriptionLower))) {
+                return category;
             }
         }
 

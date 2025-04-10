@@ -798,9 +798,15 @@ const CSVParser = (function() {
 
     // Guess category based on transaction description
     function guessCategory(description) {
-        if (!description) return 'Other';
+        console.log('Attempting to categorize transaction:', description);
+        
+        if (!description) {
+            console.log('No description provided, defaulting to Other');
+            return 'Other';
+        }
 
         const descriptionLower = description.toLowerCase();
+        console.log('Normalized description:', descriptionLower);
 
         // Check for specific income patterns first
         const incomePatterns = [
@@ -821,11 +827,15 @@ const CSVParser = (function() {
 
         // Check UPI transactions first
         if (descriptionLower.includes('upi')) {
+            console.log('UPI transaction detected');
             const upiParts = descriptionLower.split(/(?:upi|\/)-/);
             if (upiParts.length > 1) {
                 const merchantPart = upiParts[1].trim();
+                console.log('Extracted UPI merchant:', merchantPart);
                 // Check merchant against patterns below
-                return categorizeMerchant(merchantPart);
+                const category = categorizeMerchant(merchantPart);
+                console.log('Categorized UPI transaction as:', category);
+                return category;
             }
         }
 
@@ -857,7 +867,14 @@ const CSVParser = (function() {
 
         // Check full description against patterns
         for (const [category, patterns] of Object.entries(categoryPatterns)) {
-            if (patterns.some(pattern => pattern.test(descriptionLower))) {
+            console.log('Checking patterns for category:', category);
+            if (patterns.some(pattern => {
+                const matches = pattern.test(descriptionLower);
+                if (matches) {
+                    console.log('Match found for pattern:', pattern, 'in category:', category);
+                }
+                return matches;
+            })) {
                 return category;
             }
         }
@@ -867,7 +884,9 @@ const CSVParser = (function() {
 
     // Helper function to categorize merchants
     function categorizeMerchant(merchant) {
+        console.log('Categorizing merchant:', merchant);
         const merchantLower = merchant.toLowerCase();
+        console.log('Normalized merchant name:', merchantLower);
         // Add more sophisticated merchant categorization logic here if needed
 
         // Example: Check for common restaurant names

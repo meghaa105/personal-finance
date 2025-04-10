@@ -819,11 +819,11 @@ const CSVParser = (function() {
             }
         }
 
-        // Define and check transaction type patterns
+        // Define and check transaction type patterns with enhanced categorization
         const categoryPatterns = {
             'Food & Dining': [/(?:swiggy|zomato|uber\s*eats|dominos|pizza|restaurant|cafe|food|dining|eat|kitchen|dhaba|biryani|curry|bakery|sweet|mithai|hotel.*rest|tea|chai|coffee|cafeteria|canteen|bistro|deli|eatery|foodhall|mess)/i],
             'Groceries': [/(?:bigbasket|grofers|blinkit|dmart|market|grocery|kirana|fresh|provision|fruits|vegetables|super\s*market|supermart|general\s*store|departmental|mart.*retail|retail.*mart|dairy|organic|nature.*basket|reliance\s*fresh|more\s*retail|nilgiris|spencers)/i],
-            'Shopping': [/(?:amazon|flipkart|myntra|ajio|snapdeal|retail|mart(?!\s*grocery)|store|shop|mall|bazaar|lifestyle|westside|shoppers\s*stop|trends|max|clothing|fashion|apparel|footwear|accessories|electronics|gadget|home.*decor|furnish)/i],
+            'Shopping': [/(?:amazon|flipkart|myntra|ajio|snapdeal|retail|mart(?!\s*grocery)|store|shop|mall|bazaar|lifestyle|westside|shoppersstop|trends|max|clothing|fashion|apparel|footwear|accessories|electronics|gadget|home.*decor|furnish)/i],
             'Transportation': [/(?:uber|ola|rapido|metro|bus|train|taxi|auto|petrol|diesel|fuel|fastag|parking|toll|fare|railway|irctc|redbus|ticket|travel.*transport|cab|rickshaw)/i],
             'Utilities': [/(?:electricity|water|gas|broadband|mobile|bill\s*pay|recharge|dth|utility|wifi|internet|phone|cellular|power|maintenance|society|mtnl|bsnl|airtel|jio|vi|vodafone)/i],
             'Health': [/(?:hospital|clinic|medical|pharmacy|medicine|doctor|apollo|fortis|diagnostic|lab|test|wellness|dental|health|treatment|consultation|physician|specialist|medplus|netmeds|1mg|pharmeasy)/i],

@@ -819,10 +819,20 @@ const CSVParser = (function() {
             }
         }
 
+        // Check UPI transactions first
+        if (descriptionLower.includes('upi')) {
+            const upiParts = descriptionLower.split(/(?:upi|\/)-/);
+            if (upiParts.length > 1) {
+                const merchantPart = upiParts[1].trim();
+                // Check merchant against patterns below
+                return categorizeMerchant(merchantPart);
+            }
+        }
+
         // Define and check transaction type patterns with enhanced categorization
         const categoryPatterns = {
             'Food & Dining': [/(?:swiggy|zomato|uber\s*eats|dominos|pizza|restaurant|cafe|food|dining|eat|kitchen|dhaba|biryani|curry|bakery|sweet|mithai|hotel.*rest|tea|chai|coffee|cafeteria|canteen|bistro|deli|eatery|foodhall|mess)/i],
-            'Groceries': [/(?:bigbasket|grofers|blinkit|dmart|market|grocery|kirana|fresh|provision|fruits|vegetables|super\s*market|supermart|general\s*store|departmental|mart.*retail|retail.*mart|dairy|organic|nature.*basket|reliance\s*fresh|more\s*retail|nilgiris|spencers)/i],
+            'Groceries': [/(?:bigbasket|grofers|blinkit|dmart|market|grocery|kirana|fresh|provision|fruits|vegetables|super\s*marketsupermart|general\s*store|departmental|mart.*retail|retail.*mart|dairy|organic|nature.*basket|reliance\s*fresh|more\s*retail|nilgiris|spencers)/i],
             'Shopping': [/(?:amazon|flipkart|myntra|ajio|snapdeal|retail|mart(?!\s*grocery)|store|shop|mall|bazaar|lifestyle|westside|shoppersstop|trends|max|clothing|fashion|apparel|footwear|accessories|electronics|gadget|home.*decor|furnish)/i],
             'Transportation': [/(?:uber|ola|rapido|metro|bus|train|taxi|auto|petrol|diesel|fuel|fastag|parking|toll|fare|railway|irctc|redbus|ticket|travel.*transport|cab|rickshaw)/i],
             'Utilities': [/(?:electricity|water|gas|broadband|mobile|bill\s*pay|recharge|dth|utility|wifi|internet|phone|cellular|power|maintenance|society|mtnl|bsnl|airtel|jio|vi|vodafone)/i],
@@ -835,31 +845,13 @@ const CSVParser = (function() {
             'Banking & Finance': [/(?:emi|loan|credit\s*card|bank(?!.*grocery)|finance|payment|transfer|neft|rtgs|imps|upi|net\s*banking|mobile\s*banking|account|balance|interest|charge|fee|annual|processing|service|cash|atm|cheque|draft)/i]
         };
 
-        // First check UPI transactions
-        if (descriptionLower.includes('upi')) {
-            const upiParts = descriptionLower.split(/(?:upi|/)-/);
-            if (upiParts.length > 1) {
-                const merchantPart = upiParts[1].trim();
-                // Check merchant name against patterns
-                for (const [category, patterns] of Object.entries(categoryPatterns)) {
-                    if (patterns.some(pattern => pattern.test(merchantPart))) {
-                        return category;
-                    }
-                }
-            }
-        }
-
         // Check POS transactions
         if (descriptionLower.includes('pos')) {
             const posParts = descriptionLower.split(/pos\s*/);
             if (posParts.length > 1) {
                 const merchantPart = posParts[1].trim();
-                // Check merchant name against patterns
-                for (const [category, patterns] of Object.entries(categoryPatterns)) {
-                    if (patterns.some(pattern => pattern.test(merchantPart))) {
-                        return category;
-                    }
-                }
+                // Check merchant against patterns below
+                return categorizeMerchant(merchantPart);
             }
         }
 
@@ -872,6 +864,33 @@ const CSVParser = (function() {
 
         return 'Other';
     }
+
+    // Helper function to categorize merchants
+    function categorizeMerchant(merchant) {
+        const merchantLower = merchant.toLowerCase();
+        // Add more sophisticated merchant categorization logic here if needed
+
+        // Example: Check for common restaurant names
+        const restaurantPatterns = [
+            /mcdonalds/i, /burger\s*king/i, /starbucks/i, /dominos/i, /pizza\s*hut/i,
+            /kfc/i, /taco\s*bell/i, /wendys/i, /arbys/i, /subway/i
+        ];
+
+        if (restaurantPatterns.some(pattern => pattern.test(merchantLower))) {
+            return 'Food & Dining';
+        }
+
+        // Example: Check for common grocery store names
+        const groceryPatterns = [/whole\s*foods/i, /kroger/i, /safeway/i, /trader\s*joes/i, /albertsons/i];
+        if (groceryPatterns.some(pattern => pattern.test(merchantLower))) {
+            return 'Groceries';
+        }
+
+        // Add more merchant-specific categories as needed
+
+        return 'Other';
+    }
+
 
     // Return public API
     return {

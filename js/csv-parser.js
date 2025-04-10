@@ -461,36 +461,57 @@ const CSVParser = (function() {
         const creditColumn = headers.find(h => h.toLowerCase().includes('credit') || h === 'CR');
         const debitColumn = headers.find(h => h.toLowerCase().includes('debit') || h === 'DR');
 
+        // Check specific credit/debit columns
         if (creditColumn && debitColumn) {
-            if (row[creditColumn] && row[creditColumn].trim() !== '' && row[creditColumn] !== '0') {
+            if (row[creditColumn] && row[creditColumn].trim() !== '' && row[creditColumn] !== '0' && row[creditColumn] !== '-') {
                 return 'income';
             }
-            if (row[debitColumn] && row[debitColumn].trim() !== '' && row[debitColumn] !== '0') {
+            if (row[debitColumn] && row[debitColumn].trim() !== '' && row[debitColumn] !== '0' && row[debitColumn] !== '-') {
                 return 'expense';
             }
         }
 
-        // Check for specific income indicators
-        const incomeKeywords = [
-            'salary credited',
-            'interest credited',
-            'dividend credit',
-            'refund credited',
-            'cashback credited',
-            'income tax refund',
-            'credit',
-            'credited',
-            'deposit',
-            'refund'
+        // Check for income-specific patterns
+        const specificIncomePatterns = [
+            /salary\s+credited/i,
+            /interest\s+credited/i,
+            /dividend\s+credited/i,
+            /refund\s+credited/i,
+            /cashback\s+received/i,
+            /income\s+tax\s+refund/i,
+            /deposit\s+by/i,
+            /credit\s+received/i
         ];
 
-        for (const keyword of incomeKeywords) {
-            if (descriptionLower.includes(keyword)) {
+        for (const pattern of specificIncomePatterns) {
+            if (pattern.test(descriptionLower)) {
                 return 'income';
             }
         }
 
-        // Default to expense
+        // Check for expense-specific patterns
+        const expensePatterns = [
+            /payment\s+to/i,
+            /debit\s+card/i,
+            /withdrawal/i,
+            /purchase/i,
+            /spent\s+at/i,
+            /bill\s+payment/i,
+            /debit\s+for/i
+        ];
+
+        for (const pattern of expensePatterns) {
+            if (pattern.test(descriptionLower)) {
+                return 'expense';
+            }
+        }
+
+        // If amount is negative, it's likely an expense
+        if (amount < 0) {
+            return 'expense';
+        }
+
+        // Default to expense for safety
         return 'expense';
     }
 

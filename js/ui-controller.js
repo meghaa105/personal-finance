@@ -40,9 +40,9 @@ const UIController = (function () {
         restoreBackupInput: document.getElementById("restore-backup"),
         clearDataBtn: document.getElementById("clear-data"),
         categoriesList: document.getElementById("categories-list"),
-        newCategoryInput: document.getElementById("new-category"),
-        addCategoryBtn: document.getElementById("add-category"),
-        budgetsList: document.getElementById("budgets-list"), // Added for budget display
+        newCategoryInput: document.getElementById("new-category"), // Ensure this is initialized
+        addCategoryBtn: document.getElementById("add-category"), // Ensure this is initialized
+        budgetsList: document.getElementById("budgets-list"), // Ensure this is initialized
         budgetCategory: document.getElementById("budget-category"), // Added for budget input
         budgetAmount: document.getElementById("budget-amount"),     // Added for budget input
         setBudgetBtn: document.getElementById("set-budget"),       // Added for budget button
@@ -210,8 +210,8 @@ const UIController = (function () {
         DOM.searchTransactions.addEventListener("input", updateTransactionsList);
 
         // Set current month as default for month filter
-        const now = new Date();
-        DOM.filterMonth.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        // const now = new Date();
+        // DOM.filterMonth.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
         // Set up import handlers
         DOM.pdfUpload.addEventListener('change', handlePDFUpload);
@@ -1429,6 +1429,7 @@ const UIController = (function () {
     // Update categories list
     function updateCategoriesList() {
         const categories = Database.getCategories();
+        const categoriesIcons = Database.getCategoryIcons();
 
         if (!DOM.categoriesList) {
             console.error("Categories list container not found.");
@@ -1444,7 +1445,7 @@ const UIController = (function () {
         }
 
         // Populate categories
-        categories.forEach((category) => {
+        categories.forEach((category, index) => {
             if (category === 'Income' || category === 'Other') return; // Skip default categories
 
             const categoryEl = document.createElement("div");
@@ -1452,7 +1453,7 @@ const UIController = (function () {
 
             // Add category name
             const categoryName = document.createElement("span");
-            categoryName.textContent = category;
+            categoryName.textContent = `${(categoriesIcons[index] ?? "❓")} ${category}`;
             categoryEl.appendChild(categoryName);
 
             // Add delete button
@@ -1530,7 +1531,14 @@ const UIController = (function () {
     }
 
     // Create and show toast notification
-    function showToast(message, duration = 3000) {
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        if (!message) {
+            toast.style.display = 'none'; // Hide toast if message is empty
+            return;
+        }
+        toast.style.display = 'block'; // Show toast if message exists
+
         // Create toast container if it doesn't exist
         let toastContainer = document.querySelector(".toast-container");
         if (!toastContainer) {
@@ -1540,20 +1548,20 @@ const UIController = (function () {
         }
 
         // Create toast element
-        const toast = document.createElement("div");
-        toast.className = "toast";
-        toast.textContent = message;
-        toastContainer.appendChild(toast);
+        const toastElement = document.createElement("div");
+        toastElement.className = "toast";
+        toastElement.textContent = message;
+        toastContainer.appendChild(toastElement);
 
         // Remove toast after duration
         setTimeout(() => {
-            toast.remove();
+            toastElement.remove();
 
             // Remove container if empty
             if (toastContainer.childNodes.length === 0) {
                 toastContainer.remove();
             }
-        }, duration);
+        }, 3000);
     }
 
     // Show error dialog
@@ -1672,3 +1680,13 @@ const UIController = (function () {
         switchTab,
     };
 })();
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!DOM.addCategoryBtn) {
+        console.error("Add Category button not found.");
+    }
+
+    if (!DOM.newCategoryInput) {
+        console.error("New Category input not found.");
+    }
+});

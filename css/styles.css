@@ -15,6 +15,12 @@
     --hover-bg: rgba(255, 255, 255, 0.2);
     --hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     --transition: all 0.3s ease;
+    --border-radius: 10px;
+}
+
+footer {
+    padding: 0.5rem;
+    text-align: center;
 }
 
 * {
@@ -116,7 +122,7 @@ main {
 /* Cards */
 .card {
     background: rgba(0, 0, 0, 0.05); /* Subtle transparent background */
-    border-radius: var(--border-radius-lg);
+    border-radius: 10px; /* Add default border radius */
     padding: 1.75rem;
     margin-bottom: 1.5rem;
     box-shadow: var(--shadow-lg);
@@ -197,7 +203,7 @@ main {
 /* Chart */
 .chart-container {
     background: rgba(0, 0, 0, 0.05); /* Subtle transparent background */
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Add default border radius */
     padding: 1rem; /* Reduced padding for a more compact layout */
     margin: 0 0 1rem 0; /* Reduced margin for better spacing */
     box-shadow: var(--shadow-lg);
@@ -216,6 +222,7 @@ main {
 
 /* Transaction Lists */
 .transactions-list {
+    /* background-color: var(--card-bg); */
     border-radius: var(--border-radius);
     /* box-shadow: var(--shadow-lg); */
     overflow: hidden;
@@ -224,7 +231,7 @@ main {
 .transaction-item {
     padding: 1rem;
     margin: 0.75rem 0;
-    border-radius: 8px;
+    border-radius: 10px; /* Add default border radius */
     display: grid;
     grid-template-columns: 1fr auto auto;
     gap: 1rem;
@@ -414,7 +421,7 @@ main {
     color: var(--text-secondary);
     transition: var(--transition);
     padding: 0.5rem;
-    border-radius: 50%;
+    border-radius: 10px; /* Add consistent border-radius */
 }
 
 .action-btn:hover {
@@ -450,7 +457,7 @@ main {
     min-width: 100px;
     padding: 0.5rem;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Consistent border radius */
     font-size: 0.9rem;
 }
 
@@ -461,7 +468,8 @@ main {
     gap: 1rem;
     max-height: 400px; /* Limit height for the entire filter section */
     overflow-y: auto; /* Enable scrolling for the entire section */
-    padding-right: 0.5rem; /* Add padding for scrollbar spacing */
+    padding: 0.5rem; /* Add padding for scrollbar spacing */
+    border-radius: 10px; /* Consistent border radius */
 }
 
 @media (min-width: 768px) {
@@ -473,8 +481,8 @@ main {
 /* Individual Filter Boxes */
 .time-filter, .category-filter, .source-filter {
     background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
+    border-radius: 10px; /* Consistent border radius */
+    padding: 1.5rem; /* Ensure equal padding */
     box-shadow: var(--shadow-lg);
     max-height: unset; /* Remove height restriction */
     overflow: unset; /* Disable individual scrolling */
@@ -483,8 +491,8 @@ main {
 /* Time Period Filter */
 .time-filter {
     background-color: #fff;
-    border-radius: 8px;
-    padding: 1.5rem;
+    border-radius: 10px; /* Consistent border radius */
+    padding: 1.5rem; /* Ensure equal padding */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -508,7 +516,7 @@ main {
 .filter-btn {
     padding: 0.5rem 1.25rem; /* Adjust padding for better button size */
     border: none;
-    border-radius: 20px;
+    border-radius: 10px; /* Add consistent border-radius */
     background-color: #d0bfff;
     color: #5f3dc4;
     font-weight: 500;
@@ -676,7 +684,7 @@ main {
 
 .import-option {
     background-color: var(--card-bg);
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Add default border radius */
     padding: 1.5rem;
     box-shadow: var(--shadow-lg);
     transition: transform 0.2s ease;
@@ -982,7 +990,7 @@ main {
 /* Settings */
 .settings-group {
     background-color: var(--card-bg);
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Consistent border radius */
     padding: 1rem;
     margin-bottom: 1.5rem;
     box-shadow: var(--shadow-lg);
@@ -1020,8 +1028,14 @@ main {
     box-shadow: var(--shadow-lg);
 }
 
-.category-input input {
-    flex: 1;
+.category-input-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Add spacing between input and button */
+}
+
+.category-input-group input {
+    flex: 1; /* Allow the input to take up available space */
     padding: 0.75rem 1rem;
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
@@ -1029,9 +1043,22 @@ main {
     transition: all 0.3s ease;
 }
 
-.category-input input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+.category-input-group button {
+    flex-shrink: 0; /* Prevent the button from shrinking */
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+}
+
+.category-input-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.category-input-wrapper,
+.category-icon-wrapper {
+    flex: 1;
 }
 
 #categories-list {
@@ -1135,7 +1162,7 @@ main {
     color: white;
     border: none;
     padding: 0.875rem 1.75rem;
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Add consistent border-radius */
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     font-size: 0.95rem;
@@ -1216,7 +1243,7 @@ input, select, textarea {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Consistent border radius */
     font-size: 1rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -1458,7 +1485,7 @@ input:focus, select:focus, textarea:focus {
 
 .reminders-section {
     background-color: var(--card-bg);
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Add default border radius */
     padding: 1rem;
     box-shadow: var(--shadow-lg);
 }
@@ -1551,6 +1578,7 @@ input:focus, select:focus, textarea:focus {
     justify-content: center;
     background: none;
     color: var(--text-secondary);
+    border-radius: 10px; /* Add consistent border-radius */
 }
 
 .reminder-actions .btn:hover {
@@ -1596,6 +1624,10 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Toast Notifications */
+#toast {
+    display: none;
+}
+
 .toast-container {
     position: fixed;
     bottom: 2rem;
@@ -1633,13 +1665,14 @@ input:focus, select:focus, textarea:focus {
     flex-wrap: wrap;
     gap: 1.5rem;
     margin-bottom: 2rem;
+    padding: 1.5rem; /* Ensure equal padding */
 }
 
 .time-filter, .category-filter, .source-filter {
     flex: 1;
     background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
+    border-radius: 10px; /* Consistent border radius */
+    padding: 1.5rem; /* Ensure equal padding */
     box-shadow: var(--shadow-lg);
 }
 
@@ -1660,7 +1693,7 @@ input:focus, select:focus, textarea:focus {
 .filter-btn {
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Add consistent border-radius */
     background-color: var(--primary-light);
     color: var(--primary-color);
     cursor: pointer;
@@ -1809,7 +1842,7 @@ input:focus, select:focus, textarea:focus {
 /* Source filter styles */
 .source-filter {
     background-color: var(--card-bg);
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Consistent border radius */
     padding: 1.5rem; /* Increased padding for better spacing */
     box-shadow: var(--shadow-lg);
 }
@@ -1881,7 +1914,7 @@ input:focus, select:focus, textarea:focus {
 
 .chart-container {
     background: rgba(0, 0, 0, 0.05); /* Subtle transparent background */
-    border-radius: var(--border-radius);
+    border-radius: 10px; /* Add default border radius */
     padding: 1rem; /* Reduced padding for a more compact layout */
     margin: 0 0 1rem 0; /* Reduced margin for better spacing */
     box-shadow: var(--shadow-lg);
@@ -2305,11 +2338,13 @@ mark {
     color: white;
     box-shadow: var(--shadow-lg);
     border-bottom: 1px solid var(--border-color);
+    border-radius: 10px; /* Consistent border radius */
 }
 
 .nav-links li {
     color: white;
     transition: var(--transition);
+    border-radius: 10px; /* Consistent border radius */
 }
 
 .nav-links li:hover {

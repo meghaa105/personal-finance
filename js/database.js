@@ -3,6 +3,23 @@
  * Uses localStorage for persistent storage between sessions
  */
 const Database = (function() {
+    const defaultCategories = [
+        'Food & Dining',
+        'Groceries',
+        'Shopping',
+        'Transportation',
+        'Entertainment',
+        'Housing',
+        'Utilities',
+        'Health',
+        'Education',
+        'Personal',
+        'Travel',
+        'Income',
+        'Banking & Finance',
+        'Sports & Fitness',
+        'Other'
+    ];
     // Private storage
     let transactions = [];
     let categories = [
@@ -19,8 +36,14 @@ const Database = (function() {
         'Travel',
         'Income',
         'Banking & Finance',
-        'Other',
         'Sports & Fitness',
+        'Other',
+    ];
+    const categoryIcons = [
+        '🍔', '🛒', '🛍️', '🚗', '🎬', '🏠', '💡', '💊', '📚', '👤', '✈️', '💰', '🏦', '🏋️‍♂️', '🎾'
+    ];
+    const defaultCategoryIcons = [
+        '🍔', '🛒', '🛍️', '🚗', '🎬', '🏠', '💡', '💊', '📚', '👤', '✈️', '💰', '🏦', '🏋️‍♂️', '🎾'
     ];
     
     // Credit card reminders storage
@@ -307,6 +330,11 @@ const Database = (function() {
     function getCategories() {
         return [...categories]; // Return a copy of the categories array
     }
+
+    // Get all category icons
+    function getCategoryIcons() {
+        return [...categoryIcons]; // Return a copy of the category icons array
+    }
     
     // Add a new category
     function addCategory(categoryName) {
@@ -557,22 +585,8 @@ const Database = (function() {
     // Clear all data
     function clearData() {
         transactions = [];
-        categories = [
-            'Food & Dining',
-            'Groceries',
-            'Shopping',
-            'Transportation',
-            'Entertainment',
-            'Housing',
-            'Utilities',
-            'Health',
-            'Education',
-            'Personal',
-            'Travel',
-            'Income',
-            'Banking & Finance',
-            'Other'
-        ];
+        categories = defaultCategories;
+        categoryIcons = defaultCategoryIcons;
         creditCardReminders = [];
         
         // Remove from localStorage
@@ -636,6 +650,7 @@ const Database = (function() {
         getTransaction,
         getSummary,
         getCategories,
+        getCategoryIcons,
         addCategory,
         deleteCategory,
         exportData,

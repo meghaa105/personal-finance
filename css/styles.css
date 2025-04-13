@@ -1,35 +1,17 @@
 /* Base Styles */
 :root {
-    --primary-color: #7c3aed;
-    --primary-light: #a78bfa;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --text-color: #e5e7eb;
-        --text-secondary: #9ca3af;
-        --background-color: #111827;
-        --card-bg: #1f2937;
-        --border-color: #374151;
-        --glass-bg: rgba(31, 41, 55, 0.8);
-    }
-    --primary-dark: #6d28d9;
-    --accent-color: #f59e0b;
-    --text-color: #111827;
-    --text-secondary: #4b5563;
-    --background-color: #f3f4f6;
+    --primary-color: #6c63ff;
+    --primary-light: #9a8cff;
+    --primary-dark: #5a54d1;
+    --background-color: #f9f9fc;
     --card-bg: #ffffff;
-    --border-color: #e5e7eb;
+    --text-color: #333333;
+    --text-secondary: #666666;
     --success-color: #059669;
-    --warning-color: #d97706;
     --danger-color: #dc2626;
-    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    --border-radius: 16px;
-    --border-radius-lg: 20px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.15);
+    --border-color: #e0e0e0;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -136,13 +118,17 @@ main {
     margin-bottom: 1.5rem;
     box-shadow: var(--shadow-lg);
     transition: var(--transition);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
     backdrop-filter: blur(8px);
 }
 
 .card:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.card p {
+    font-size: 1.8rem;
 }
 
 .floating-btn {
@@ -167,7 +153,7 @@ main {
 .summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    gap: 2rem;
     margin-bottom: 1.5rem;
 }
 
@@ -210,7 +196,7 @@ main {
     border-radius: var(--border-radius);
     padding: 1rem; /* Reduced padding for a more compact layout */
     margin: 0 0 1rem 0; /* Reduced margin for better spacing */
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -228,7 +214,7 @@ main {
 .transactions-list {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     overflow: hidden;
 }
 
@@ -242,7 +228,7 @@ main {
     align-items: center;
     transition: var(--transition);
     background: var(--card-bg);
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 .transaction-item:hover {
@@ -292,7 +278,7 @@ main {
     margin: 0.5rem 0;
     background: var(--card-bg);
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 .budget-input {
@@ -479,7 +465,7 @@ main {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 1.5rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     max-height: unset; /* Remove height restriction */
     overflow: unset; /* Disable individual scrolling */
 }
@@ -672,7 +658,7 @@ main {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 1.5rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     transition: transform 0.2s ease;
 }
 
@@ -779,7 +765,7 @@ main {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 1rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 .import-preview h3 {
@@ -979,7 +965,7 @@ main {
     border-radius: var(--border-radius);
     padding: 1rem;
     margin-bottom: 1.5rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 .settings-group h3 {
@@ -1011,7 +997,7 @@ main {
     background: white;
     padding: 1rem;
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 .category-input input {
@@ -1043,7 +1029,7 @@ main {
     border-radius: var(--border-radius);
     background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     color: white;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -1442,7 +1428,7 @@ input:focus, select:focus, textarea:focus {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 1rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 .reminders-section h4 {
@@ -1592,7 +1578,7 @@ input:focus, select:focus, textarea:focus {
     padding: 0.75rem 1.5rem;
     border-radius: var(--border-radius);
     margin-bottom: 0.5rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     animation: slideUp 0.3s ease forwards;
 }
 
@@ -1620,7 +1606,7 @@ input:focus, select:focus, textarea:focus {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 1.5rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 .time-filter h3, .category-filter h3, .source-filter h3 {
@@ -1791,7 +1777,7 @@ input:focus, select:focus, textarea:focus {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 1.5rem; /* Increased padding for better spacing */
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 .source-filter h3 {
@@ -1855,7 +1841,7 @@ input:focus, select:focus, textarea:focus {
 .summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    gap: 2rem;
     margin-bottom: 1.5rem;
 }
 
@@ -1864,7 +1850,7 @@ input:focus, select:focus, textarea:focus {
     border-radius: var(--border-radius);
     padding: 1rem; /* Reduced padding for a more compact layout */
     margin: 0 0 1rem 0; /* Reduced margin for better spacing */
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -1883,7 +1869,7 @@ input:focus, select:focus, textarea:focus {
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     padding: 1rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
     margin-top: 1rem;
 }
 
@@ -2105,7 +2091,7 @@ input:focus, select:focus, textarea:focus {
     border-radius: var(--border-radius);
     font-size: 1.2rem;
     font-weight: 600;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--shadow-lg);
 }
 
 /* Apply Filters Button */
@@ -2277,4 +2263,41 @@ mark {
         opacity: 1;
         transform: scale(1);
     }
+}
+
+/* Apply updated colors */
+.navbar {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+    color: white;
+}
+
+.nav-links li {
+    color: white;
+}
+
+.nav-links li:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.transactions, .data-management {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.export-btn {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+    color: white;
+}
+
+.export-btn:hover {
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
+}
+
+/* Update text colors for positive and negative values */
+.positive {
+    color: var(--success-color);
+}
+
+.negative {
+    color: var(--danger-color);
 }

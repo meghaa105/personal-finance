@@ -669,7 +669,7 @@ const UIController = (function () {
         DOM.transactionDate.value = today;
 
         // Show modal
-        DOM.transactionModal.style.display = "block";
+        DOM.transactionModal.style.display = "flex";
     }
 
     // Show edit transaction modal
@@ -696,7 +696,7 @@ const UIController = (function () {
             "Edit Transaction";
 
         // Show modal
-        DOM.transactionModal.style.display = "block";
+        DOM.transactionModal.style.display = "flex";
     }
 
     // Hide transaction modal
@@ -711,7 +711,7 @@ const UIController = (function () {
             console.error("Delete confirmation modal not found.");
             return;
         }
-        DOM.confirmationModal.style.display = "block";
+        DOM.confirmationModal.style.display = "flex";
     }
 
     // Confirm delete transaction
@@ -1568,7 +1568,7 @@ const UIController = (function () {
     function showErrorDialog(message) {
         if (DOM.errorModal && DOM.errorMessage) {
             DOM.errorMessage.textContent = message;
-            DOM.errorModal.style.display = "block";
+            DOM.errorModal.style.display = "flex";
         }
     }
 

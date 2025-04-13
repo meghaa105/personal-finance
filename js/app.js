@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById("clear-data").addEventListener("click", () => {
     const clearDataModal = document.getElementById("clear-data-confirmation");
     if (clearDataModal) {
-        clearDataModal.style.display = "block";
+        clearDataModal.style.display = "flex";
     }
 });
 

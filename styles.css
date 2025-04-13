@@ -1,0 +1,54 @@
+body {
+    background-color: #f9f9fc; /* Updated background color */
+}
+
+.navbar {
+    background-color: #6c63ff; /* Updated navbar color */
+    background: linear-gradient(90deg, #6c63ff, #9a8cff); /* Gradient for navbar */
+}
+
+.nav-links li {
+    color: white; /* Updated text color for navbar links */
+}
+
+.nav-links li:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Hover effect for navbar links */
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.summary-cards {
+    gap: 2rem; /* Adjusted spacing between cards */
+}
+
+.card {
+    border: 1px solid #e0e0e0; /* Added subtle border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Softer shadow */
+}
+
+.card p {
+    font-size: 1.8rem; /* Slightly larger font size */
+}
+
+.transactions, .data-management {
+    background-color: #ffffff; /* Updated background color */
+    border: 1px solid #e0e0e0; /* Added subtle border */
+}
+
+.transactions {
+    padding: 1.5rem; /* Adjusted padding */
+}
+
+.data-management {
+    padding: 1.5rem; /* Adjusted padding */
+}
+
+.export-btn {
+    background-color: #6c63ff; /* Updated button color */
+    background: linear-gradient(90deg, #6c63ff, #9a8cff); /* Gradient for button */
+}
+
+.export-btn:hover {
+    background-color: #5a54d1; /* Updated hover color */
+    background: linear-gradient(90deg, #5a54d1, #8377f7); /* Gradient for hover */
+}

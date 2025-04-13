@@ -1323,12 +1323,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 .modal-content .btn.cancel {
-    background-color: #e5e7eb; /* Light gray */
-    color: #374151; /* Dark gray text */
-}
-
-.modal-content .btn.cancel:hover {
-    background-color: #d1d5db; /* Darker gray */
+    background: #ef4444; /* Light gray */
+    color: white; /* Dark gray text */
 }
 
 .modal-content .btn.danger {

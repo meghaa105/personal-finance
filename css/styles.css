@@ -12,6 +12,9 @@
     --border-color: #e0e0e0;
     --shadow-color: rgba(0, 0, 0, 0.05);
     --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --hover-bg: rgba(255, 255, 255, 0.2);
+    --hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease;
 }
 
 * {
@@ -106,13 +109,13 @@ main {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Cards */
 .card {
-    background-color: var(--card-bg);
+    background: rgba(0, 0, 0, 0.05); /* Subtle transparent background */
     border-radius: var(--border-radius-lg);
     padding: 1.75rem;
     margin-bottom: 1.5rem;
@@ -120,11 +123,12 @@ main {
     transition: var(--transition);
     border: 1px solid var(--border-color);
     backdrop-filter: blur(8px);
+    animation: fadeIn 0.5s ease;
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
 }
 
 .card p {
@@ -192,7 +196,7 @@ main {
 
 /* Chart */
 .chart-container {
-    background: var(--card-bg);
+    background: rgba(0, 0, 0, 0.05); /* Subtle transparent background */
     border-radius: var(--border-radius);
     padding: 1rem; /* Reduced padding for a more compact layout */
     margin: 0 0 1rem 0; /* Reduced margin for better spacing */
@@ -212,28 +216,28 @@ main {
 
 /* Transaction Lists */
 .transactions-list {
-    background-color: var(--card-bg);
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
+    /* box-shadow: var(--shadow-lg); */
     overflow: hidden;
 }
 
 .transaction-item {
-    padding: 1.5rem;
+    padding: 1rem;
     margin: 0.75rem 0;
-    border-radius: var(--border-radius);
+    border-radius: 8px;
     display: grid;
     grid-template-columns: 1fr auto auto;
     gap: 1rem;
     align-items: center;
     transition: var(--transition);
-    background: var(--card-bg);
-    box-shadow: var(--shadow-lg);
+    background: transparent; /* Remove white background */
+    box-shadow: var(--shadow-color);
+    border: 1px solid var(--border-color);
 }
 
 .transaction-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-3px);
+    box-shadow: var(--hover-shadow);
 }
 
 /* Category color coding */
@@ -428,7 +432,7 @@ main {
     text-align: center;
     color: var(--text-secondary);
     font-style: italic;
-    background-color: rgba(76, 110, 245, 0.05);
+    background: rgba(0, 0, 0, 0.03); /* Subtle transparent background */
     border-radius: var(--border-radius);
 }
 
@@ -452,12 +456,18 @@ main {
 
 /* Filters Wrapper */
 .filters-wrapper {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 1rem;
     max-height: 400px; /* Limit height for the entire filter section */
     overflow-y: auto; /* Enable scrolling for the entire section */
     padding-right: 0.5rem; /* Add padding for scrollbar spacing */
+}
+
+@media (min-width: 768px) {
+    .filters-wrapper {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
 }
 
 /* Individual Filter Boxes */
@@ -587,6 +597,7 @@ main {
     transition: all 0.2s ease;
     border: 1px solid #eee;
     cursor: pointer;
+    flex-direction: row-reverse; /* Reverse the order to place text before checkbox */
 }
 
 .source-checkbox label {
@@ -642,6 +653,15 @@ main {
 
     .category-checkbox, .source-checkbox {
         gap: 0.75rem; /* Adjust gap for smaller screens */
+    }
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .transactions, .data-management {
+        padding: 1rem;
     }
 }
 
@@ -762,7 +782,7 @@ main {
 }
 
 .import-preview {
-    background-color: var(--card-bg);
+    background: rgba(0, 0, 0, 0.05); /* Subtle transparent background */
     border-radius: var(--border-radius);
     padding: 1rem;
     box-shadow: var(--shadow-lg);
@@ -1153,6 +1173,18 @@ main {
 
 .btn.danger:hover {
     background-color: #e03131;
+}
+
+.export-btn {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+    color: white;
+    transition: var(--transition);
+    box-shadow: var(--shadow-lg);
+}
+
+.export-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--hover-shadow);
 }
 
 .floating-btn {
@@ -1570,6 +1602,8 @@ input:focus, select:focus, textarea:focus {
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
+    border-radius: 8px;
+    box-shadow: var(--hover-shadow);
 }
 
 .toast {
@@ -1846,7 +1880,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .chart-container {
-    background: var(--card-bg);
+    background: rgba(0, 0, 0, 0.05); /* Subtle transparent background */
     border-radius: var(--border-radius);
     padding: 1rem; /* Reduced padding for a more compact layout */
     margin: 0 0 1rem 0; /* Reduced margin for better spacing */
@@ -2269,28 +2303,26 @@ mark {
 .navbar {
     background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
     color: white;
+    box-shadow: var(--shadow-lg);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .nav-links li {
     color: white;
+    transition: var(--transition);
 }
 
 .nav-links li:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: var(--hover-bg);
+    box-shadow: var(--hover-shadow);
 }
 
 .transactions, .data-management {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-}
-
-.export-btn {
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    color: white;
-}
-
-.export-btn:hover {
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
+    border-radius: 12px;
+    padding: 2rem;
+    animation: fadeIn 0.5s ease;
 }
 
 /* Update text colors for positive and negative values */

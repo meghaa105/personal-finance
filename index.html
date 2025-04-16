@@ -59,11 +59,15 @@
                     <canvas id="expense-chart"></canvas>
                 </div>
 
-                <div class="budget-progress">
-                    <h3>Budget Progress</h3>
-                    <div id="budget-progress-list">
-                        <!-- Budget progress bars will be dynamically populated here -->
+                <div class="budget-progress-section">
+                    <h2>Budget Progress</h2>
+                    <div class="date-filters">
+                        <label for="budget-start-date">Start Date:</label>
+                        <input type="date" id="budget-start-date">
+                        <label for="budget-end-date">End Date:</label>
+                        <input type="date" id="budget-end-date">
                     </div>
+                    <div id="budget-progress-list"></div>
                 </div>
 
                 <div class="recent-transactions">
@@ -333,7 +337,6 @@
                         <div id="overdue-reminders" class="reminders-list"> 
                             <div class="empty-state">No overdue credit card payments</div> 
                         </div> 
-                    </div> 
 
                     <!-- Completed Payments --> 
                     <div class="reminders-section"> 

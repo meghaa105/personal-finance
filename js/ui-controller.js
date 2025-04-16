@@ -288,6 +288,17 @@ const UIController = (function () {
         updateBudgetsList();
         populateBudgetCategoryDropdown();
 
+        // Initialize budget progress date range filters
+        const startDateInput = document.getElementById("budget-start-date");
+        const endDateInput = document.getElementById("budget-end-date");
+
+        if (startDateInput && endDateInput) {
+            startDateInput.addEventListener("change", updateBudgetProgress);
+            endDateInput.addEventListener("change", updateBudgetProgress);
+        }
+
+        updateBudgetProgress(); // Ensure the budget progress is updated on page load
+
         console.log("UI Controller initialized");
     }
 
@@ -456,11 +467,21 @@ const UIController = (function () {
 
     // Update budget progress
     function updateBudgetProgress() {
+        const startDateInput = document.getElementById("budget-start-date");
+        const endDateInput = document.getElementById("budget-end-date");
+
+        let startDate = startDateInput ? new Date(startDateInput.value) : null;
+        let endDate = endDateInput ? new Date(endDateInput.value) : null;
+
+        if (!startDate || isNaN(startDate)) {
+            startDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1); // Default to start of the current month
+        }
+        if (!endDate || isNaN(endDate)) {
+            endDate = new Date(); // Default to today
+        }
+
         const budgets = Database.getAllBudgets();
-        const transactions = Database.getTransactions({
-            startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-            endDate: new Date(),
-        });
+        const transactions = Database.getTransactions({ startDate, endDate });
 
         const spendingByCategory = transactions.reduce((acc, transaction) => {
             if (transaction.type === "expense") {

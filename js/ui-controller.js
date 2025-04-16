@@ -532,7 +532,10 @@ const UIController = (function () {
         if (startDate) filters.startDate = startDate;
         if (endDate) filters.endDate = endDate;
 
-        const transactions = Database.getTransactions(filters);
+        let transactions = Database.getTransactions(filters);
+
+        // Sort transactions by date in descending order
+        transactions = transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         if (transactions.length === 0) {
             DOM.transactionsList.innerHTML = '<div class="empty-state">No transactions match your filters</div>';
@@ -1575,6 +1578,24 @@ const UIController = (function () {
         });
     }
 
+    // Populate category filter dropdown
+    function populateCategoryFilter() {
+        const categories = Database.getCategories(); // Retrieve categories from the database
+        console.log("Categories retrieved:", categories); // Debug log to verify categories
+        const categoryFilter = document.getElementById("filter-category");
+
+        if (!categoryFilter) return;
+
+        categoryFilter.innerHTML = '<option value="all">All Categories</option>'; // Default option
+
+        categories.forEach(category => {
+            const option = document.createElement("option");
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
+        });
+    }
+
     // Create and show toast notification
     function showToast(message) {
         const toast = document.getElementById('toast');
@@ -1727,13 +1748,5 @@ const UIController = (function () {
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!DOM.addCategoryBtn) {
-        console.error("Add Category button not found.");
-    }
-
-    if (!DOM.newCategoryInput) {
-        console.error("New Category input not found.");
-    }
-
-    updateBudgetProgress();
+    UIController.init(); // Call the init method of UIController
 });

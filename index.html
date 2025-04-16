@@ -84,7 +84,11 @@
                         <option value="income">Income</option>
                         <option value="expense">Expense</option>
                     </select>
-                    <input type="month" id="filter-month">
+                    <select id="filter-category">
+                        <option value="all">All Categories</option>
+                        <!-- Categories will be dynamically populated -->
+                    </select>
+                    <input type="month" id="filter-month" placeholder="YYYY-MM">
                 </div>
 
                 <div id="transactions-list" class="transactions-list">

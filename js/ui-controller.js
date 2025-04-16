@@ -1726,16 +1726,21 @@ const UIController = (function () {
         });
     }
 
-
     // Populate budget category dropdown
     function populateBudgetCategoryDropdown() {
         const categories = Database.getCategories();
         DOM.budgetCategory.innerHTML = ''; // Clear existing options
+
         categories.forEach(category => {
             const option = document.createElement('option');
             option.value = category;
             option.textContent = category;
             DOM.budgetCategory.appendChild(option);
+
+            // Set default budget for the category if not already set
+            if (!Database.getBudget(category)) {
+                Database.setBudget(category, 5000); // Default budget of 5000
+            }
         });
     }
 

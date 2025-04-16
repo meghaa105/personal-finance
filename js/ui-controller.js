@@ -357,6 +357,9 @@ const UIController = (function () {
 
         // Update recent transactions
         updateRecentTransactions();
+
+        // Update budget progress
+        updateBudgetProgress();
     }
 
     // Update expense chart
@@ -449,6 +452,48 @@ const UIController = (function () {
                 },
             });
         }
+    }
+
+    // Update budget progress
+    function updateBudgetProgress() {
+        const budgets = Database.getAllBudgets();
+        const transactions = Database.getTransactions({
+            startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            endDate: new Date(),
+        });
+
+        const spendingByCategory = transactions.reduce((acc, transaction) => {
+            if (transaction.type === "expense") {
+                acc[transaction.category] = (acc[transaction.category] || 0) + transaction.amount;
+            }
+            return acc;
+        }, {});
+
+        const budgetProgressList = document.getElementById("budget-progress-list");
+        if (!budgetProgressList) return;
+
+        budgetProgressList.innerHTML = "";
+
+        Object.keys(budgets).forEach((category) => {
+            const budgetAmount = budgets[category];
+            const spentAmount = spendingByCategory[category] || 0;
+            const percentage = Math.min((spentAmount / budgetAmount) * 100, 100);
+
+            const budgetItem = document.createElement("div");
+            budgetItem.className = "budget-progress-item";
+
+            budgetItem.innerHTML = `
+                <span>
+                    <span>${category}</span>
+                    <span>${TransactionUtils.formatCurrency(spentAmount)} / ${TransactionUtils.formatCurrency(budgetAmount)}</span>
+                </span>
+                <div class="budget-progress-bar">
+                    <div class="budget-progress-bar-inner" style="width: ${percentage}%;"></div>
+                </div>
+            `;
+
+            budgetProgressList.appendChild(budgetItem);
+        });
     }
 
     // Update recent transactions list
@@ -1689,4 +1734,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!DOM.newCategoryInput) {
         console.error("New Category input not found.");
     }
+
+    updateBudgetProgress();
 });

@@ -300,17 +300,54 @@ main {
 }
 
 .budget-progress {
+    margin-top: 2rem;
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+}
+
+.budget-progress h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    color: var(--text-color);
+}
+
+.budget-progress-item {
+    margin-bottom: 1rem;
+}
+
+.budget-progress-item:last-child {
+    margin-bottom: 0;
+}
+
+.budget-progress-item span {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.budget-progress-bar {
+    height: 10px;
+    background: var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    position: relative;
+}
+
+.budget-progress-bar-inner {
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.budget-progress-bar {
     height: 4px;
     background: var(--background-lighter);
     border-radius: 2px;
     margin-top: 0.5rem;
-}
-
-.budget-progress-bar {
-    height: 100%;
-    background: var(--primary-color);
-    border-radius: 2px;
-    transition: width 0.3s ease;
 }
 
 .budget-progress-bar.warning {

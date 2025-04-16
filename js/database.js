@@ -247,46 +247,15 @@ const Database = (function() {
     
     // Get transactions with filters
     function getTransactions(filters = {}) {
-        // If no filters are provided, return all transactions
-        if (Object.keys(filters).length === 0 || 
-            (!filters.startDate && !filters.endDate && !filters.type && !filters.category && !filters.search)) {
-            return [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-        }
-
-        let filteredTransactions = [...transactions];
-        
-        // Apply date range filter if provided
-        if (filters.startDate) {
-            const startDate = new Date(filters.startDate);
-            filteredTransactions = filteredTransactions.filter(t => new Date(t.date) >= startDate);
-        }
-        
-        if (filters.endDate) {
-            const endDate = new Date(filters.endDate);
-            filteredTransactions = filteredTransactions.filter(t => new Date(t.date) <= endDate);
-        }
-        
-        // Apply type filter if provided
-        if (filters.type && filters.type !== 'all') {
-            filteredTransactions = filteredTransactions.filter(t => t.type === filters.type);
-        }
-        
-        // Apply category filter if provided
-        if (filters.category && filters.category !== 'all') {
-            filteredTransactions = filteredTransactions.filter(t => t.category === filters.category);
-        }
-        
-        // Apply search filter if provided
-        if (filters.search) {
-            const searchLower = filters.search.toLowerCase();
-            filteredTransactions = filteredTransactions.filter(t => 
-                t.description.toLowerCase().includes(searchLower) ||
-                (t.category && t.category.toLowerCase().includes(searchLower))
-            );
-        }
-        
-        // Sort by date (newest first)
-        return filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        return transactions.filter((transaction) => {
+            if (filters.startDate && new Date(transaction.date) < filters.startDate) {
+                return false;
+            }
+            if (filters.endDate && new Date(transaction.date) > filters.endDate) {
+                return false;
+            }
+            return true;
+        });
     }
     
     // Get a specific transaction by ID

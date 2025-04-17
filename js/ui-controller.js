@@ -555,21 +555,25 @@ const UIController = (function () {
         if (searchValue) filters.search = searchValue;
         if (typeFilter !== "all") filters.type = typeFilter;
         if (categoryFilter !== "all") filters.category = categoryFilter;
-        if (startDate) filters.startDate = startDate;
-        if (endDate) filters.endDate = endDate;
+        if (startDate) filters.startDate = startDate.toISOString();
+        if (endDate) filters.endDate = endDate.toISOString();
 
         const filteredTransactions = Database.getTransactions(filters);
 
-        // Update the transactions list in the UI
         updateTransactionsList(filteredTransactions);
     }
 
     // Update main transactions list
-    function updateTransactionsList(transactions = []) {
+    function updateTransactionsList(transactions = null) {
         const container = DOM.transactionsList;
 
+        // If no transactions are provided, fetch all transactions from the database
+        if (!transactions) {
+            transactions = Database.getAllTransactions();
+        }
+
         if (transactions.length === 0) {
-            container.innerHTML = '<div class="empty-state">No transactions match your filters</div>';
+            container.innerHTML = '<div class="empty-state">No transactions available</div>';
             return;
         }
 

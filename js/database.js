@@ -254,6 +254,12 @@ const Database = (function() {
             if (filters.endDate && new Date(transaction.date) > filters.endDate) {
                 return false;
             }
+            if (filters.type && transaction.type !== filters.type) {
+                return false;
+            }
+            if (filters.search && !transaction.description.toLowerCase().includes(filters.search)) {
+                return false;
+            }
             return true;
         });
     }

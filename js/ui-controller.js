@@ -232,6 +232,9 @@ const UIController = (function () {
         // Populate transaction category dropdown
         populateCategoryDropdown();
 
+        // Populate category filter dropdown
+        populateCategoryFilter();
+
         // Set up confirmation modal events
         DOM.confirmDeleteBtn.addEventListener(
             "click",
@@ -535,10 +538,11 @@ const UIController = (function () {
         });
     }
 
-    // Update main transactions list
-    function updateTransactionsList() {
+    // Apply transaction filters
+    function applyTransactionFilters() {
         const searchValue = DOM.searchTransactions.value.trim().toLowerCase();
         const typeFilter = DOM.filterType.value;
+        const categoryFilter = document.getElementById("filter-category").value;
 
         let startDate, endDate;
         if (DOM.filterMonth.value) {
@@ -550,39 +554,30 @@ const UIController = (function () {
         const filters = {};
         if (searchValue) filters.search = searchValue;
         if (typeFilter !== "all") filters.type = typeFilter;
+        if (categoryFilter !== "all") filters.category = categoryFilter;
         if (startDate) filters.startDate = startDate;
         if (endDate) filters.endDate = endDate;
 
-        let transactions = Database.getTransactions(filters);
+        const filteredTransactions = Database.getTransactions(filters);
 
-        // Sort transactions by date in descending order
-        transactions = transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Update the transactions list in the UI
+        updateTransactionsList(filteredTransactions);
+    }
+
+    // Update main transactions list
+    function updateTransactionsList(transactions = []) {
+        const container = DOM.transactionsList;
 
         if (transactions.length === 0) {
-            DOM.transactionsList.innerHTML = '<div class="empty-state">No transactions match your filters</div>';
+            container.innerHTML = '<div class="empty-state">No transactions match your filters</div>';
             return;
         }
 
-        DOM.transactionsList.innerHTML = "";
+        container.innerHTML = ""; // Clear existing transactions
 
         transactions.forEach((transaction) => {
             const transactionEl = createTransactionElement(transaction, true);
-            if (searchValue) {
-                highlightSearchMatch(transactionEl, searchValue);
-            }
-            DOM.transactionsList.appendChild(transactionEl);
-        });
-    }
-
-    // Highlight matching text in search results
-    function highlightSearchMatch(element, searchValue) {
-        const fieldsToHighlight = ["transaction-title", "transaction-category", "transaction-amount"];
-        fieldsToHighlight.forEach((className) => {
-            const field = element.querySelector(`.${className}`);
-            if (field) {
-                const regex = new RegExp(`(${searchValue})`, "gi");
-                field.innerHTML = field.textContent.replace(regex, "<mark>$1</mark>");
-            }
+            container.appendChild(transactionEl);
         });
     }
 
@@ -718,11 +713,6 @@ const UIController = (function () {
             default:
                 return "help_outline"; // Help icon for unknown categories
         }
-    }
-
-    // Apply transaction filters
-    function applyTransactionFilters() {
-        updateTransactionsList();
     }
 
     // Show add transaction modal
@@ -1542,6 +1532,7 @@ const UIController = (function () {
                         categoryEl.remove();
                         updateCategoriesList();
                         populateCategoryDropdown();
+                        populateCategoryFilter();
                         if (typeof AnalyticsController !== 'undefined') {
                             AnalyticsController.updateCategoryFilters();
                             AnalyticsController.refreshAnalytics();
@@ -1556,6 +1547,9 @@ const UIController = (function () {
 
             DOM.categoriesList.appendChild(categoryEl);
         });
+
+        populateCategoryDropdown(); // Refresh dropdown after updating categories
+        populateCategoryFilter(); // Refresh filter dropdown after updating categories
     }
 
     // Add new category
@@ -1578,6 +1572,7 @@ const UIController = (function () {
 
             // Update category dropdown
             populateCategoryDropdown();
+            populateCategoryFilter();
         } else {
             alert("Error adding category: " + result.error);
         }
@@ -1587,10 +1582,21 @@ const UIController = (function () {
     function populateCategoryDropdown() {
         const categories = Database.getCategories();
 
+        if (!DOM.transactionCategory) {
+            console.error("Transaction category dropdown not found.");
+            return;
+        }
+
         // Clear existing options
         DOM.transactionCategory.innerHTML = "";
 
-        // Add options
+        // Add default option
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "Select a category";
+        DOM.transactionCategory.appendChild(defaultOption);
+
+        // Add categories
         categories.forEach((category) => {
             const option = document.createElement("option");
             option.value = category;
@@ -1602,13 +1608,17 @@ const UIController = (function () {
     // Populate category filter dropdown
     function populateCategoryFilter() {
         const categories = Database.getCategories(); // Retrieve categories from the database
-        console.log("Categories retrieved:", categories); // Debug log to verify categories
         const categoryFilter = document.getElementById("filter-category");
 
-        if (!categoryFilter) return;
+        if (!categoryFilter) {
+            console.error("Filter category dropdown not found.");
+            return;
+        }
 
+        // Clear existing options
         categoryFilter.innerHTML = '<option value="all">All Categories</option>'; // Default option
 
+        // Add categories
         categories.forEach(category => {
             const option = document.createElement("option");
             option.value = category;
@@ -1709,6 +1719,7 @@ const UIController = (function () {
                     updateDashboard();
                     updateCategoriesList();
                     populateCategoryDropdown();
+                    populateCategoryFilter();
                 } else {
                     alert("Error clearing data: " + result.error);
                 }
@@ -1775,4 +1786,6 @@ const UIController = (function () {
 
 document.addEventListener('DOMContentLoaded', () => {
     UIController.init(); // Call the init method of UIController
+    populateCategoryDropdown(); // Populate categories on page load
+    populateCategoryFilter(); // Populate filter categories on page load
 });

@@ -244,6 +244,7 @@ const AnalyticsController = (function() {
         updatePaymentMethodChart(filteredTransactions);
         AdvancedAnalytics.updateSavingsRateChart(filteredTransactions);
         AdvancedAnalytics.updateBudgetComparisonChart(filteredTransactions);
+        updateFilteredTransactionsList(filteredTransactions);
     }
 
     /**

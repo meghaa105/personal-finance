@@ -61,13 +61,17 @@
 
                 <div class="budget-progress-section">
                     <h2>Budget Progress</h2>
-                    <div class="date-filters">
-                        <label for="budget-start-date">Start Date:</label>
-                        <input type="date" id="budget-start-date">
-                        <label for="budget-end-date">End Date:</label>
-                        <input type="date" id="budget-end-date">
+                    <div class="date-filters" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                        <label for="budget-start-date" style="font-weight: bold;">Start Date:</label>
+                        <input type="date" id="budget-start-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc;">
+                        <label for="budget-end-date" style="font-weight: bold;">End Date:</label>
+                        <input type="date" id="budget-end-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc;">
+                        <button id="apply-budget-filter" class="btn" style="padding: 0.5rem 1rem; font-weight: bold;">Apply Filter</button>
+                        <button id="clear-budget-filter" class="btn secondary" style="padding: 0.5rem 1rem; font-weight: bold;">Clear Filters</button>
                     </div>
-                    <div id="budget-progress-list"></div>
+                    <div id="budget-progress-list" style="margin-top: 1rem; font-size: 0.95rem; line-height: 1.5;">
+                        <!-- Budget progress items will be dynamically populated here -->
+                    </div>
                 </div>
 
                 <div class="recent-transactions">

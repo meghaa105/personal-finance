@@ -366,8 +366,26 @@ const UIController = (function () {
             summary.totalExpenses,
         );
 
-        // Update expense chart
-        updateExpenseChart(summary.categories);
+        // Filter categories with non-zero values
+        const filteredCategories = Object.entries(summary.categories).filter(
+            ([, amount]) => amount > 0
+        );
+
+        // Update expense chart with filtered categories
+        const filteredCategoryData = Object.fromEntries(filteredCategories);
+        updateExpenseChart(filteredCategoryData);
+
+        // Update category filter dropdown with filtered categories
+        const categoryFilter = document.getElementById("filter-category");
+        if (categoryFilter) {
+            categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+            filteredCategories.forEach(([category]) => {
+                const option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
+        }
 
         // Update recent transactions
         updateRecentTransactions();
@@ -498,7 +516,16 @@ const UIController = (function () {
 
         budgetProgressList.innerHTML = "";
 
-        Object.keys(budgets).forEach((category) => {
+        // Sort budgets by percentage spent in descending order
+        const sortedBudgets = Object.keys(budgets).sort((a, b) => {
+            const spentA = spendingByCategory[a] || 0;
+            const spentB = spendingByCategory[b] || 0;
+            const percentageA = spentA / budgets[a];
+            const percentageB = spentB / budgets[b];
+            return percentageB - percentageA;
+        });
+
+        sortedBudgets.forEach((category) => {
             const budgetAmount = budgets[category];
             const spentAmount = spendingByCategory[category] || 0;
             const percentage = Math.min((spentAmount / budgetAmount) * 100, 100);
@@ -518,7 +545,14 @@ const UIController = (function () {
 
             budgetProgressList.appendChild(budgetItem);
         });
+
+        // Make the list scrollable
+        budgetProgressList.style.maxHeight = "300px";
+        budgetProgressList.style.overflowY = "auto";
     }
+
+    // Add event listener for the Apply Filter button
+    document.getElementById("apply-budget-filter").addEventListener("click", updateBudgetProgress);
 
     // Update recent transactions list
     function updateRecentTransactions() {

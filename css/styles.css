@@ -663,6 +663,23 @@ main {
     color: var(--primary-color);
 }
 
+/* ...existing code... */
+.category-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 200px; /* Limit height for scrollable section */
+    overflow-y: auto; /* Enable scrolling for categories without values */
+}
+
+.category-checkbox.has-value {
+    display: flex; /* Ensure categories with values are always visible */
+}
+
+.category-checkbox:not(.has-value) {
+    display: none; /* Hide categories without values */
+}
+/* ...existing code... */
 
 /* Scrollbar Styling */
 .category-checkboxes::-webkit-scrollbar,
@@ -1199,7 +1216,7 @@ main {
     color: white;
     border: none;
     padding: 0.875rem 1.75rem;
-    border-radius: 10px; /* Add consistent border-radius */
+    border-radius: 10px; /* Consistent border radius */
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     font-size: 0.95rem;
@@ -1299,31 +1316,24 @@ input:focus, select:focus, textarea:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.5); /* Dimmed background */
     z-index: 1000;
-    overflow: auto;
-    align-items: center;
     justify-content: center;
-    padding: 1rem;
-    backdrop-filter: blur(4px);
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
 }
 
 .modal.show {
     display: flex;
-}
-
-.modal-content {
-    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    text-align: center;
-    max-width: 450px;
-    width: 95%;
-    position: relative;
-    transform: translateY(0);
-    transition: transform 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .modal.show .modal-content {

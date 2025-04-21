@@ -48,6 +48,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Analytics Controller module not loaded');
     }
     
+    // Ensure category dropdown is populated on page load
+    if (typeof populateCategoryDropdown === "function") {
+        populateCategoryDropdown();
+    } else {
+        console.error("populateCategoryDropdown is not defined.");
+    }
+    
     // Check for PDF.js availability for PDF parsing
     if (typeof pdfjsLib === 'undefined') {
         console.warn('PDF.js library not loaded. PDF import may not work properly.');
@@ -115,6 +122,16 @@ document.getElementById("cancel-rename").addEventListener("click", () => {
     const renameFileModal = document.getElementById("rename-file-modal");
     if (renameFileModal) {
         renameFileModal.style.display = "none";
+    }
+});
+
+// Apply filters button in the transactions page
+document.getElementById("apply-transaction-filters").addEventListener("click", () => {
+    if (typeof TransactionsPage.applyTransactionFilters === "function") {
+        TransactionsPage.applyTransactionFilters();
+        console.log("Transaction filters applied.");
+    } else {
+        console.error("TransactionsPage.applyTransactionFilters is not defined.");
     }
 });
 

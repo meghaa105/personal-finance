@@ -87,6 +87,7 @@
             <section id="transactions" class="tab-content">
                 <div class="filters">
                     <input type="text" id="search-transactions" placeholder="Search by description, category, or amount...">
+                    <div id="search-suggestions" class="suggestions-list" style="display: none; position: absolute; background: white; border: 1px solid #ccc; border-radius: 5px; z-index: 1000;"></div>
                     <select id="filter-type">
                         <option value="all">All Types</option>
                         <option value="income">Income</option>
@@ -97,6 +98,7 @@
                         <!-- Categories will be dynamically populated -->
                     </select>
                     <input type="month" id="filter-month" placeholder="YYYY-MM">
+                    <button id="apply-transaction-filters" class="btn primary" style="margin-top: 1rem;">Apply Filters</button>
                 </div>
 
                 <div id="transactions-list" class="transactions-list">
@@ -572,6 +574,7 @@
     <script src="js/analytics-controller.js"></script>
     <script src="js/advanced-analytics.js"></script>
     <script src="js/ui-controller.js"></script>
+    <script src="js/transactions-page.js"></script>
     <script src="js/pdf-parser.js"></script>
     <script src="js/csv-parser.js"></script>
     <script src="js/splitwise-parser.js"></script>

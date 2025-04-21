@@ -123,7 +123,6 @@ const UIController = (function () {
         // Handle result
         if (result.success) {
             hideTransactionModal();
-            updateTransactionsList();
             updateDashboard();
         } else {
             alert("Error saving transaction: " + result.error);
@@ -171,9 +170,6 @@ const UIController = (function () {
         // Initialize the dashboard
         updateDashboard();
 
-        // Initialize transactions list
-        updateTransactionsList();
-
         // Set up transaction form events
         const transactionForm = document.getElementById("transaction-form");
         if (transactionForm) {
@@ -189,8 +185,6 @@ const UIController = (function () {
 
         // Set up transaction filters
         DOM.searchTransactions.addEventListener("input", function(e) {
-            applyTransactionFilters();
-            
             // Show search suggestions
             const searchTerm = e.target.value.toLowerCase().trim();
             if (searchTerm.length >= 2) {
@@ -203,15 +197,6 @@ const UIController = (function () {
                 showSearchSuggestions(suggestions);
             }
         });
-        DOM.filterType.addEventListener("change", applyTransactionFilters);
-        DOM.filterMonth.addEventListener("change", applyTransactionFilters);
-
-        // Add event listener for real-time search
-        DOM.searchTransactions.addEventListener("input", updateTransactionsList);
-
-        // Set current month as default for month filter
-        // const now = new Date();
-        // DOM.filterMonth.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
         // Set up import handlers
         DOM.pdfUpload.addEventListener('change', handlePDFUpload);
@@ -324,8 +309,6 @@ const UIController = (function () {
                 // Refresh content for specific tabs
                 if (tabId === "dashboard") {
                     updateDashboard();
-                } else if (tabId === "transactions") {
-                    updateTransactionsList();
                 } else if (
                     tabId === "analytics" &&
                     typeof AnalyticsController !== "undefined"
@@ -572,53 +555,6 @@ const UIController = (function () {
         });
     }
 
-    // Apply transaction filters
-    function applyTransactionFilters() {
-        const searchValue = DOM.searchTransactions.value.trim().toLowerCase();
-        const typeFilter = DOM.filterType.value;
-        const categoryFilter = document.getElementById("filter-category").value;
-
-        let startDate, endDate;
-        if (DOM.filterMonth.value) {
-            const [year, month] = DOM.filterMonth.value.split("-");
-            startDate = new Date(year, month - 1, 1);
-            endDate = new Date(year, month, 0);
-        }
-
-        const filters = {};
-        if (searchValue) filters.search = searchValue;
-        if (typeFilter !== "all") filters.type = typeFilter;
-        if (categoryFilter !== "all") filters.category = categoryFilter;
-        if (startDate) filters.startDate = startDate.toISOString();
-        if (endDate) filters.endDate = endDate.toISOString();
-
-        const filteredTransactions = Database.getTransactions(filters);
-
-        updateTransactionsList(filteredTransactions);
-    }
-
-    // Update main transactions list
-    function updateTransactionsList(transactions = null) {
-        const container = DOM.transactionsList;
-
-        // If no transactions are provided, fetch all transactions from the database
-        if (!transactions) {
-            transactions = Database.getAllTransactions();
-        }
-
-        if (transactions.length === 0) {
-            container.innerHTML = '<div class="empty-state">No transactions available</div>';
-            return;
-        }
-
-        container.innerHTML = ""; // Clear existing transactions
-
-        transactions.forEach((transaction) => {
-            const transactionEl = createTransactionElement(transaction, true);
-            container.appendChild(transactionEl);
-        });
-    }
-
     // Create transaction element
     function createTransactionElement(transaction, showActions = false) {
         const transactionEl = document.createElement("div");
@@ -821,7 +757,6 @@ const UIController = (function () {
         const result = Database.deleteTransaction(transactionToDelete);
 
         if (result.success) {
-            updateTransactionsList(); // Refresh the transactions list
             updateDashboard(); // Update the dashboard summary
             showToast("Transaction deleted successfully."); // Optional: Show a success message
         } else {
@@ -879,7 +814,6 @@ const UIController = (function () {
         // Handle result
         if (result.success) {
             hideTransactionModal();
-            updateTransactionsList();
             updateDashboard();
         } else {
             alert("Error saving transaction: " + result.error);
@@ -906,7 +840,6 @@ const UIController = (function () {
         const progressBar = document.createElement("div");
         progressBar.className = "progress-bar";
         const progress = document.createElement("div");
-        progress.className = "progress";
         progressBar.appendChild(progress);
         DOM.pdfUploadStatus.innerHTML = "";
         DOM.pdfUploadStatus.appendChild(progressBar);
@@ -1814,11 +1747,46 @@ const UIController = (function () {
         });
     }
 
+    /**
+     * Show search suggestions in the UI
+     * @param {Array} suggestions - List of suggestion strings
+     */
+    function showSearchSuggestions(suggestions) {
+        const suggestionsContainer = document.getElementById("search-suggestions");
+        if (!suggestionsContainer) {
+            console.error("Search suggestions container not found.");
+            return;
+        }
+
+        // Clear existing suggestions
+        suggestionsContainer.innerHTML = "";
+
+        if (suggestions.length === 0) {
+            suggestionsContainer.style.display = "none";
+            return;
+        }
+
+        // Populate suggestions
+        suggestions.forEach((suggestion) => {
+            const suggestionItem = document.createElement("div");
+            suggestionItem.className = "suggestion-item";
+            suggestionItem.textContent = suggestion;
+            suggestionItem.addEventListener("click", () => {
+                DOM.searchTransactions.value = suggestion;
+                suggestionsContainer.style.display = "none";
+            });
+            suggestionsContainer.appendChild(suggestionItem);
+        });
+
+        suggestionsContainer.style.display = "block";
+    }
+
     // Return public API
     return {
         init,
         showToast,
         switchTab,
+        createTransactionElement, // Expose this function
     };
 })();
 
@@ -1826,4 +1794,35 @@ document.addEventListener('DOMContentLoaded', () => {
     UIController.init(); // Call the init method of UIController
     populateCategoryDropdown(); // Populate categories on page load
     populateCategoryFilter(); // Populate filter categories on page load
+});
+
+/**
+ * Populate the category dropdown with available categories
+ */
+function populateCategoryDropdown() {
+    const categoryDropdown = document.getElementById("filter-category");
+    if (!categoryDropdown) {
+        console.error("Category dropdown not found.");
+        return;
+    }
+
+    // Clear existing options
+    categoryDropdown.innerHTML = '<option value="all">All Categories</option>';
+
+    // Fetch categories from the database
+    const categories = Database.getCategories();
+    categories.forEach((category) => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryDropdown.appendChild(option);
+    });
+}
+
+// Ensure the function is globally accessible
+window.populateCategoryDropdown = populateCategoryDropdown;
+
+// Call the function on page load to ensure the dropdown is populated
+document.addEventListener("DOMContentLoaded", () => {
+    populateCategoryDropdown();
 });

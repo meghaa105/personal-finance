@@ -257,6 +257,9 @@ const Database = (function() {
             if (filters.type && transaction.type !== filters.type) {
                 return false;
             }
+            if (filters.category && transaction.category !== filters.category) {
+                return false;
+            }
             if (filters.search && !transaction.description.toLowerCase().includes(filters.search)) {
                 return false;
             }

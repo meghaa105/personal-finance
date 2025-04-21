@@ -7,6 +7,8 @@ const TransactionsPage = (function () {
         filterCategory: document.getElementById("filter-category"),
         filterMonth: document.getElementById("filter-month"),
         applyFiltersBtn: document.getElementById("apply-transaction-filters"),
+        startDate: document.getElementById("start-date"), // Add start date input
+        endDate: document.getElementById("end-date"),     // Add end date input
     };
 
     /**
@@ -42,12 +44,14 @@ const TransactionsPage = (function () {
         const typeFilter = DOM.filterType.value;
         const categoryFilter = DOM.filterCategory.value;
         const filterMonth = DOM.filterMonth.value;
+        const startDate = DOM.startDate.value ? new Date(DOM.startDate.value) : null;
+        const endDate = DOM.endDate.value ? new Date(DOM.endDate.value) : null;
 
-        let startDate, endDate;
+        let monthStartDate, monthEndDate;
         if (filterMonth) {
             const [year, month] = filterMonth.split("-");
-            startDate = new Date(year, month - 1, 1);
-            endDate = new Date(year, month, 0);
+            monthStartDate = new Date(year, month - 1, 1);
+            monthEndDate = new Date(year, month, 0);
         }
 
         const filters = {};
@@ -56,6 +60,8 @@ const TransactionsPage = (function () {
         if (categoryFilter !== "all") filters.category = categoryFilter;
         if (startDate) filters.startDate = startDate;
         if (endDate) filters.endDate = endDate;
+        if (monthStartDate) filters.startDate = monthStartDate;
+        if (monthEndDate) filters.endDate = monthEndDate;
 
         console.log("Filters applied:", filters); // Log the filters being applied
 
@@ -75,6 +81,8 @@ const TransactionsPage = (function () {
         DOM.filterMonth.addEventListener("change", applyTransactionFilters);
         DOM.filterCategory.addEventListener("change", applyTransactionFilters);
         DOM.applyFiltersBtn.addEventListener("click", applyTransactionFilters);
+        DOM.startDate.addEventListener("change", applyTransactionFilters);
+        DOM.endDate.addEventListener("change", applyTransactionFilters);
     }
 
     // Initialize the transactions page

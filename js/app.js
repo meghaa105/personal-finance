@@ -93,6 +93,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Log successful initialization
     console.log('Application initialized successfully!');
+
+    // Initialize custom mappings feature
+    if (typeof UIController !== 'undefined' && typeof UIController.populateCustomMappings === 'function') {
+        UIController.populateCustomMappings();
+    } else {
+        console.error('UIController.populateCustomMappings is not defined.');
+    }
+
+    // Add event listener for adding custom mappings
+    const addMappingBtn = document.getElementById('add-mapping-btn');
+    if (addMappingBtn) {
+        addMappingBtn.addEventListener('click', function() {
+            if (typeof UIController !== 'undefined' && typeof UIController.handleAddCustomMapping === 'function') {
+                UIController.handleAddCustomMapping();
+            } else {
+                console.error('UIController.handleAddCustomMapping is not defined.');
+            }
+        });
+    } else {
+        console.error('Add Mapping button not found.');
+    }
 });
 
 // Trigger Clear Data Modal

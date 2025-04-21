@@ -1781,12 +1781,71 @@ const UIController = (function () {
         suggestionsContainer.style.display = "block";
     }
 
+    /**
+     * Populate the custom mappings list in the UI
+     */
+    function populateCustomMappings() {
+        const mappingsList = document.getElementById('custom-mappings-list');
+        if (!mappingsList) {
+            console.error('Custom mappings list container not found.');
+            return;
+        }
+
+        const mappings = Database.getCustomMappings();
+        mappingsList.innerHTML = '';
+
+        Object.entries(mappings).forEach(([keyword, category]) => {
+            const mappingEl = document.createElement('div');
+            mappingEl.className = 'mapping-item';
+
+            mappingEl.innerHTML = `
+                <span class="mapping-keyword">${keyword}</span>
+                <span class="mapping-category">${category}</span>
+                <button class="delete-mapping-btn" data-keyword="${keyword}">Delete</button>
+            `;
+
+            mappingsList.appendChild(mappingEl);
+        });
+
+        // Add event listeners for delete buttons
+        document.querySelectorAll('.delete-mapping-btn').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                const keyword = e.target.getAttribute('data-keyword');
+                Database.deleteCustomMapping(keyword);
+                populateCustomMappings();
+            });
+        });
+    }
+
+    /**
+     * Handle adding a new custom mapping
+     */
+    function handleAddCustomMapping() {
+        const keywordInput = document.getElementById('mapping-keyword');
+        const categoryInput = document.getElementById('mapping-category');
+
+        const keyword = keywordInput.value.trim();
+        const category = categoryInput.value.trim();
+
+        if (!keyword || !category) {
+            alert('Please enter both a keyword and a category.');
+            return;
+        }
+
+        Database.addCustomMapping(keyword, category);
+        keywordInput.value = '';
+        categoryInput.value = '';
+        populateCustomMappings();
+    }
+
     // Return public API
     return {
         init,
         showToast,
         switchTab,
         createTransactionElement, // Expose this function
+        populateCustomMappings,
+        handleAddCustomMapping,
     };
 })();
 

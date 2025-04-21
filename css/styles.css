@@ -2492,3 +2492,47 @@ mark {
 .btn.primary:hover {
     background-color: #3b5bdb;
 }
+
+/* ...existing code... */
+
+#custom-mappings {
+    margin: 1rem 0;
+}
+
+.mappings-list {
+    margin-top: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f9f9f9;
+}
+
+.mapping-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.mapping-item:last-child {
+    border-bottom: none;
+}
+
+.mapping-keyword {
+    font-weight: bold;
+    color: #333;
+}
+
+.mapping-category {
+    color: #555;
+}
+
+.delete-mapping-btn {
+    background: none;
+    border: none;
+    color: #f44336;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: underline;
+}

@@ -277,6 +277,25 @@ const TransactionUtils = (function() {
         }
     }
 
+    /**
+     * Guess category based on transaction description
+     * @param {string} description - The transaction description
+     * @returns {string} - The guessed category
+     */
+    function guessCategory(description) {
+        const customMappings = Database.getCustomMappings();
+        const descriptionLower = description.toLowerCase();
+
+        // Check custom mappings first
+        for (const [keyword, category] of Object.entries(customMappings)) {
+            if (descriptionLower.includes(keyword)) {
+                return category;
+            }
+        }
+
+        /*...existing logic for guessing category...*/
+    }
+
     // Return public API
     return {
         formatCurrency,
@@ -291,6 +310,7 @@ const TransactionUtils = (function() {
         exportToCSV,
         generateCSVDownload,
         exportToJSON,
-        getCategoryIcon
+        getCategoryIcon,
+        guessCategory
     };
 })();

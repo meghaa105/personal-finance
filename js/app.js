@@ -114,6 +114,19 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('Add Mapping button not found.');
     }
+
+    // Add event listeners for navigation tabs
+    document.querySelectorAll('.tab-btn').forEach((tab) => {
+        tab.addEventListener('click', () => {
+            const tabId = tab.dataset.tab;
+            UIController.switchTab(tabId);
+
+            // Populate custom mappings when the tab is clicked
+            if (tabId === 'custom-mappings') {
+                UIController.populateCustomMappings();
+            }
+        });
+    });
 });
 
 // Trigger Clear Data Modal

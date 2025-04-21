@@ -648,7 +648,7 @@ main {
 .source-checkbox label {
     font-size: 1rem;
     font-weight: 500;
-    color: var(--text-color);
+    color: var (--text-color);
     flex-grow: 1;
     margin-left: 0.75rem;
 }
@@ -2405,11 +2405,11 @@ mark {
 
 /* Update text colors for positive and negative values */
 .positive {
-    color: var(--success-color);
+    color: var (--success-color);
 }
 
 .negative {
-    color: var(--danger-color);
+    color: var (--danger-color);
 }
 
 /* Confirm Clear All Data Modal */
@@ -2535,4 +2535,45 @@ mark {
     cursor: pointer;
     font-size: 0.9rem;
     text-decoration: underline;
+}
+
+/* Tabs */
+.tab-btn {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.tab-btn.active {
+    background-color: #4c6ef5;
+    border-radius: 4px;
+}
+
+.tab-content {
+    display: none;
+    padding: 1rem;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Active tab styles */
+.tab-btn.active {
+    background-color: #4c6ef5;
+    color: #fff;
+}
+
+/* Custom Mappings Section */
+#custom-mappings {
+    display: none;
+    padding: 1rem;
+}
+
+#custom-mappings.active {
+    display: block;
 }

@@ -5,10 +5,10 @@ const TransactionsPage = (function () {
         searchTransactions: document.getElementById("search-transactions"),
         filterType: document.getElementById("filter-type"),
         filterCategory: document.getElementById("filter-category"),
-        filterMonth: document.getElementById("filter-month"),
         applyFiltersBtn: document.getElementById("apply-transaction-filters"),
         startDate: document.getElementById("start-date"), // Add start date input
         endDate: document.getElementById("end-date"),     // Add end date input
+        sourceFilters: document.querySelectorAll("#source-filters input[type='checkbox']"), // Add source filter checkboxes
     };
 
     /**
@@ -43,16 +43,13 @@ const TransactionsPage = (function () {
         const searchValue = DOM.searchTransactions.value.trim().toLowerCase();
         const typeFilter = DOM.filterType.value;
         const categoryFilter = DOM.filterCategory.value;
-        const filterMonth = DOM.filterMonth.value;
         const startDate = DOM.startDate.value ? new Date(DOM.startDate.value) : null;
         const endDate = DOM.endDate.value ? new Date(DOM.endDate.value) : null;
 
-        let monthStartDate, monthEndDate;
-        if (filterMonth) {
-            const [year, month] = filterMonth.split("-");
-            monthStartDate = new Date(year, month - 1, 1);
-            monthEndDate = new Date(year, month, 0);
-        }
+        // Get selected sources
+        const selectedSources = Array.from(DOM.sourceFilters)
+            .filter((checkbox) => checkbox.checked)
+            .map((checkbox) => checkbox.value);
 
         const filters = {};
         if (searchValue) filters.search = searchValue;
@@ -60,8 +57,7 @@ const TransactionsPage = (function () {
         if (categoryFilter !== "all") filters.category = categoryFilter;
         if (startDate) filters.startDate = startDate;
         if (endDate) filters.endDate = endDate;
-        if (monthStartDate) filters.startDate = monthStartDate;
-        if (monthEndDate) filters.endDate = monthEndDate;
+        if (selectedSources.length > 0) filters.sources = selectedSources;
 
         console.log("Filters applied:", filters); // Log the filters being applied
 
@@ -78,11 +74,13 @@ const TransactionsPage = (function () {
     function setupEventListeners() {
         DOM.searchTransactions.addEventListener("input", applyTransactionFilters);
         DOM.filterType.addEventListener("change", applyTransactionFilters);
-        DOM.filterMonth.addEventListener("change", applyTransactionFilters);
         DOM.filterCategory.addEventListener("change", applyTransactionFilters);
         DOM.applyFiltersBtn.addEventListener("click", applyTransactionFilters);
         DOM.startDate.addEventListener("change", applyTransactionFilters);
         DOM.endDate.addEventListener("change", applyTransactionFilters);
+        DOM.sourceFilters.forEach((checkbox) =>
+            checkbox.addEventListener("change", applyTransactionFilters)
+        );
     }
 
     // Initialize the transactions page

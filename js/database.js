@@ -263,6 +263,9 @@ const Database = (function() {
             if (filters.search && !transaction.description.toLowerCase().includes(filters.search)) {
                 return false;
             }
+            if (filters.sources && !filters.sources.includes(transaction.source || "manual")) {
+                return false;
+            }
             return true;
         });
     }

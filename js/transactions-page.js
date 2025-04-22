@@ -87,6 +87,20 @@ const TransactionsPage = (function () {
     function init() {
         setupEventListeners();
         updateTransactionsList(); // Load all transactions initially
+
+        // Populate category dropdown in custom mappings
+        const categoryDropdown = document.getElementById("mapping-category-dropdown");
+        if (categoryDropdown) {
+            const categories = Database.getCategories(); // Fetch categories from the database
+            categoryDropdown.innerHTML = '<option value="" disabled selected>Select a category</option>'; // Default option
+
+            categories.forEach((category) => {
+                const option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                categoryDropdown.appendChild(option);
+            });
+        }
     }
 
     // Return public API

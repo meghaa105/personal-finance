@@ -1822,19 +1822,19 @@ const UIController = (function () {
      */
     function handleAddCustomMapping() {
         const keywordInput = document.getElementById('mapping-keyword');
-        const categoryInput = document.getElementById('mapping-category');
+        const categoryDropdown = document.getElementById('mapping-category-dropdown');
 
         const keyword = keywordInput.value.trim();
-        const category = categoryInput.value.trim();
+        const category = categoryDropdown.value;
 
         if (!keyword || !category) {
-            alert('Please enter both a keyword and a category.');
+            alert('Please enter a keyword and select a category.');
             return;
         }
 
         Database.addCustomMapping(keyword, category);
         keywordInput.value = '';
-        categoryInput.value = '';
+        categoryDropdown.value = '';
         populateCustomMappings();
     }
 

@@ -88,6 +88,19 @@ const TransactionsPage = (function () {
         setupEventListeners();
         updateTransactionsList(); // Load all transactions initially
 
+        // Populate category dropdown in transaction filters
+        if (DOM.filterCategory) {
+            const categories = Database.getCategories(); // Fetch categories from the database
+            DOM.filterCategory.innerHTML = '<option value="all">All Categories</option>'; // Default option
+
+            categories.forEach((category) => {
+                const option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                DOM.filterCategory.appendChild(option);
+            });
+        }
+
         // Populate category dropdown in custom mappings
         const categoryDropdown = document.getElementById("mapping-category-dropdown");
         if (categoryDropdown) {

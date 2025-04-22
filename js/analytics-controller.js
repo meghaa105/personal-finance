@@ -150,15 +150,17 @@ const AnalyticsController = (function() {
      * Update category filter checkboxes based on available categories
      */
     function updateCategoryFilters() {
-        const categories = Database.getCategories(); // Fetch categories from the database
-
+        const categoryFiltersContainer = document.getElementById("category-filters");
         if (!categoryFiltersContainer) {
             console.error("Category filters container not found.");
             return;
         }
 
+        // Fetch categories from the database
+        const categories = Database.getCategories();
+
         // Clear existing filters
-        categoryFiltersContainer.innerHTML = ""; // Clear the container
+        categoryFiltersContainer.innerHTML = "";
 
         if (categories.length === 0) {
             categoryFiltersContainer.innerHTML = '<div class="empty-state">No categories available</div>';
@@ -167,10 +169,9 @@ const AnalyticsController = (function() {
 
         // Populate the category filters
         categories.forEach((category) => {
-            const isChecked = selectedCategories.length === 0 || selectedCategories.includes(category);
             const filterHTML = `
                 <div class="category-checkbox">
-                    <input type="checkbox" id="cat-${category}" data-category="${category}" ${isChecked ? "checked" : ""}>
+                    <input type="checkbox" id="cat-${category}" data-category="${category}" checked>
                     <label for="cat-${category}">${category}</label>
                 </div>
             `;
@@ -180,11 +181,12 @@ const AnalyticsController = (function() {
         // Add event listeners to checkboxes
         document.querySelectorAll(".category-checkbox input").forEach((checkbox) => {
             checkbox.addEventListener("change", function () {
-                selectedCategories = Array.from(
+                const selectedCategories = Array.from(
                     document.querySelectorAll(".category-checkbox input:checked")
                 ).map((input) => input.getAttribute("data-category"));
 
-                refreshAnalytics(); // Refresh analytics and update graphs
+                // Refresh analytics with selected categories
+                refreshAnalytics(selectedCategories);
             });
         });
     }

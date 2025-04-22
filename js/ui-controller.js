@@ -287,6 +287,8 @@ const UIController = (function () {
 
         updateBudgetProgress(); // Ensure the budget progress is updated on page load
 
+        updateCategoriesList(); // Ensure categories are populated on page load
+
         console.log("UI Controller initialized");
     }
 

@@ -378,13 +378,17 @@
             <section id="custom-mappings" class="tab-content">
                 <h3>Custom Mappings</h3>
                 <div class="form-group">
-                    <input type="text" id="mapping-keyword" placeholder="Enter keyword">
-                    <select id="mapping-category-dropdown">
+                    <label for="mapping-keyword">Keyword</label>
+                    <input type="text" id="mapping-keyword" placeholder="Enter keyword" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="mapping-category-dropdown">Category</label>
+                    <select id="mapping-category-dropdown" class="input-field">
                         <option value="" disabled selected>Select a category</option>
                         <!-- Categories will be dynamically populated -->
                     </select>
-                    <button id="add-mapping-btn" class="btn">Add Mapping</button>
                 </div>
+                <button id="add-mapping-btn" class="btn primary">Add Mapping</button>
                 <div id="custom-mappings-list" class="mappings-list">
                     <!-- Custom mappings will be populated here -->
                 </div>

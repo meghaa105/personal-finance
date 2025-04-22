@@ -1107,110 +1107,32 @@ const PDFParser = (function () {
 
     // Guess category based on transaction description
     function guessCategory(description) {
-        if (!description) return "Other";
-
+        const customMappings = Database.getCustomMappings(); // Fetch custom mappings
         const descriptionLower = description.toLowerCase();
 
-        // First check exact keywords for Indian merchants (which are more specific)
-        for (const [keyword, category] of Object.entries(MERCHANT_CATEGORIES)) {
-            // Use word boundary for more accurate matching (to avoid partial matches)
-            if (descriptionLower.includes(keyword.toLowerCase())) {
+        // Check custom mappings first
+        for (const [keyword, category] of Object.entries(customMappings)) {
+            if (descriptionLower.includes(keyword)) {
+                return category; // Return category from custom mappings
+            }
+        }
+
+        // Fall back to existing categorization logic
+        const categoryPatterns = {
+            // ...existing patterns...
+            'Food & Dining': [/(?:restaurant|cafe|food|dining|eatery|bistro|zomato|swiggy)/i],
+            'Groceries': [/(?:grocery|supermarket|dmart|kirana|bigbasket)/i],
+            'Shopping': [/(?:amazon|flipkart|myntra|ajio|store|mall|bazaar)/i],
+            // ...existing patterns...
+        };
+
+        for (const [category, patterns] of Object.entries(categoryPatterns)) {
+            if (patterns.some((pattern) => pattern.test(descriptionLower))) {
                 return category;
             }
         }
 
-        // Indian transaction patterns
-        if (descriptionLower.includes("upi")) return "Banking & Finance";
-        if (descriptionLower.includes("imps")) return "Banking & Finance";
-        if (descriptionLower.includes("neft")) return "Banking & Finance";
-        if (descriptionLower.includes("rtgs")) return "Banking & Finance";
-        if (descriptionLower.includes("emi")) return "Banking & Finance";
-        if (descriptionLower.includes("loan")) return "Banking & Finance";
-        if (descriptionLower.includes("credit card"))
-            return "Banking & Finance";
-        if (descriptionLower.includes("atm")) return "Banking & Finance";
-
-        // More payment contexts
-        if (descriptionLower.includes("payment")) {
-            if (
-                descriptionLower.includes("electricity") ||
-                descriptionLower.includes("water") ||
-                descriptionLower.includes("gas") ||
-                descriptionLower.includes("bill")
-            ) {
-                return "Utilities";
-            }
-            if (descriptionLower.includes("rent")) return "Housing";
-            if (
-                descriptionLower.includes("school") ||
-                descriptionLower.includes("college") ||
-                descriptionLower.includes("university")
-            ) {
-                return "Education";
-            }
-        }
-
-        // Analyze transaction patterns for Indian banks (eg: "POS XYZ MERCHANT")
-        if (descriptionLower.includes("pos ")) {
-            // POS transactions - try to extract merchant name
-            const posWords = descriptionLower.split(" ");
-            const posIndex = posWords.indexOf("pos");
-            if (posIndex >= 0 && posIndex < posWords.length - 1) {
-                // Try to categorize based on the merchant after "POS"
-                const merchantName = posWords.slice(posIndex + 1).join(" ");
-                return categorizeMerchant(merchantName);
-            }
-        }
-
-        // Try UPI reference patterns (common in Indian transactions)
-        if (descriptionLower.includes("upi-")) {
-            // Extract UPI reference (after UPI-)
-            const upiParts = descriptionLower.split("upi-");
-            if (upiParts.length > 1) {
-                return categorizeMerchant(upiParts[1]);
-            }
-        }
-
-        // Common expense indicators
-        if (descriptionLower.includes("recharge")) return "Utilities";
-        if (descriptionLower.includes("dth")) return "Entertainment";
-        if (descriptionLower.includes("broadband")) return "Utilities";
-        if (descriptionLower.includes("mobile")) return "Utilities";
-        if (descriptionLower.includes("insurance")) return "Insurance";
-        if (descriptionLower.includes("mutual fund")) return "Investments";
-        if (descriptionLower.includes("investment")) return "Investments";
-
-        // Additional helper function for analyzing merchant names
-        function categorizeMerchant(merchant) {
-            if (!merchant) return "Other";
-            const merchantLower = merchant.toLowerCase();
-
-            // Re-check against our merchant database
-            for (const [keyword, category] of Object.entries(
-                MERCHANT_CATEGORIES,
-            )) {
-                if (merchantLower.includes(keyword.toLowerCase())) {
-                    return category;
-                }
-            }
-
-            // Common patterns
-            if (/rest|food|cafe|hotel/i.test(merchantLower))
-                return "Food & Dining";
-            if (/mart|super|grocer|fresh|kirana/i.test(merchantLower))
-                return "Groceries";
-            if (/med|pharm|hosp|clinic|doctor/i.test(merchantLower))
-                return "Health";
-            if (/cloth|wear|apparel|mart|shop/i.test(merchantLower))
-                return "Shopping";
-            if (/air|flight|train|bus|taxi|uber|ola/i.test(merchantLower))
-                return "Travel";
-
-            return "Other";
-        }
-
-        // Default category if no match found
-        return "Other";
+        return 'Other'; // Default category if no match is found
     }
 
     // Return public API

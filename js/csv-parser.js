@@ -83,35 +83,24 @@ const CSVParser = (function() {
                 skipEmptyLines: true,
                 complete: function(results) {
                     try {
-                        console.log('CSV parsing complete. Rows:', results.data.length);
-                        console.log('Headers:', results.meta.fields);
-
-                        if (results.errors.length > 0) {
-                            console.warn('CSV parse warnings:', results.errors);
-                        }
-
-                        // No data found
-                        if (results.data.length === 0) {
-                            reject(new Error('No data found in the CSV file'));
-                            return;
-                        }
-
-                        // Map headers to standard format
-                        const mappedData = mapHeaders(results.data, results.meta.fields);
-
-                        resolve({
-                            success: true,
-                            transactions: mappedData,
-                            rawData: results.data,
-                            headers: results.meta.fields
+                        const transactions = results.data.map(row => {
+                            return {
+                                date: parseDate(row['Date']),
+                                description: row['Description'],
+                                amount: parseFloat(row['Amount']),
+                                type: determineTransactionType(row['Description'], parseFloat(row['Amount'])),
+                                category: guessCategory(row['Description'])
+                            };
                         });
+
+                        // Add transactions to the database
+                        const result = Database.addTransactions(transactions, 'CSV');
+                        resolve({ success: true, addedCount: result.addedCount });
                     } catch (error) {
-                        console.error('Error processing CSV data:', error);
                         reject(error);
                     }
                 },
                 error: function(error) {
-                    console.error('Error parsing CSV:', error);
                     reject(error);
                 }
             });

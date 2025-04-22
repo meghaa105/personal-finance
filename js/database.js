@@ -162,37 +162,35 @@ const Database = (function() {
     
     // Bulk add transactions (for imports)
     function addTransactions(transactionsArray, source = 'manual') {
-        if (!Array.isArray(transactionsArray) || transactionsArray.length === 0) {
-            return { error: 'No valid transactions to add.' };
-        }
-        
-        const newTransactions = transactionsArray.map(transaction => {
-            return {
-                id: generateUniqueId(),
-                date: new Date(transaction.date),
-                amount: parseFloat(transaction.amount),
-                description: transaction.description,
-                category: transaction.category || 'Other',
-                type: transaction.type || 'expense',
-                source: transaction.source || source, // Store the source
-                createdAt: new Date()
-            };
+        const addedTransactions = [];
+        const existingTransactionIds = new Set(transactions.map(t => t.id)); // Track existing transaction IDs
+
+        transactionsArray.forEach(transaction => {
+            // Generate a unique ID for the transaction based on its content
+            const transactionId = generateTransactionId(transaction);
+
+            // Skip if the transaction already exists
+            if (existingTransactionIds.has(transactionId)) {
+                console.log(`Duplicate transaction skipped: ${transactionId}`);
+                return;
+            }
+
+            // Add source and ID to the transaction
+            transaction.source = source;
+            transaction.id = transactionId;
+
+            transactions.push(transaction);
+            addedTransactions.push(transaction);
         });
-        
-        // Add to transactions array
-        transactions = [...transactions, ...newTransactions];
-        
-        // Save to localStorage
-        const saveResult = saveTransactions();
-        if (saveResult.error) {
-            return saveResult;
-        }
-        
-        return { 
-            success: true, 
-            count: newTransactions.length,
-            transactions: newTransactions
-        };
+
+        saveTransactions(); // Save updated transactions to localStorage
+        return { success: true, addedCount: addedTransactions.length };
+    }
+
+    // Generate a unique ID for a transaction
+    function generateTransactionId(transaction) {
+        const content = `${transaction.date}-${transaction.description}-${transaction.amount}`;
+        return btoa(unescape(encodeURIComponent(content))); // Base64-encoded hash
     }
     
     // Update an existing transaction

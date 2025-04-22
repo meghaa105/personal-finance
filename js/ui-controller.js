@@ -1790,32 +1790,37 @@ const UIController = (function () {
             console.error('Custom mappings list container not found.');
             return;
         }
-
+    
         const mappings = Database.getCustomMappings();
         mappingsList.innerHTML = '';
-
+    
         Object.entries(mappings).forEach(([keyword, category]) => {
             const mappingEl = document.createElement('div');
             mappingEl.className = 'mapping-item';
-
+    
             mappingEl.innerHTML = `
                 <span class="mapping-keyword">${keyword}</span>
-                <span class="mapping-category">${category}</span>
-                <button class="delete-mapping-btn" data-keyword="${keyword}">Delete</button>
+                <span class="mapping-category">
+                    <i class="material-icons">category</i>${category}
+                </span>
+                <button class="delete-mapping-btn" data-keyword="${keyword}">
+                    <i class="material-icons">delete</i>
+                </button>
             `;
-
+    
             mappingsList.appendChild(mappingEl);
         });
-
+    
         // Add event listeners for delete buttons
         document.querySelectorAll('.delete-mapping-btn').forEach((btn) => {
             btn.addEventListener('click', (e) => {
-                const keyword = e.target.getAttribute('data-keyword');
+                const keyword = e.target.closest('button').getAttribute('data-keyword');
                 Database.deleteCustomMapping(keyword);
                 populateCustomMappings();
             });
         });
     }
+    
 
     /**
      * Handle adding a new custom mapping

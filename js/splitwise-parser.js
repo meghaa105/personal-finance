@@ -169,22 +169,20 @@ const SplitwiseParser = (function() {
 
     // Map Splitwise categories to standard categories
     function mapSplitwiseCategory(category, description = '') {
-        if (!category && !description) return 'Other';
-        
+        const customMappings = Database.getCustomMappings(); // Fetch custom mappings
         const descriptionLower = description.toLowerCase();
-        
-        // Check for income keywords - Enhanced for Indian banks
-        const incomeKeywords = ['salary', 'deposit', 'payment received', 'refund', 'transfer from', 'credit', 'cr', 'trf from', 'imps', 'neft', 'rtgs', 'upi', 'inward', 'by transfer', 'paid'];
-        for (const keyword of incomeKeywords) {
+
+        // Check custom mappings first
+        for (const [keyword, mappedCategory] of Object.entries(customMappings)) {
             if (descriptionLower.includes(keyword)) {
-                return 'Income';
+                return mappedCategory; // Return category from custom mappings
             }
         }
-        
-        // Check for common expense categories - Optimized for Indian merchants and categories
+
+        // Fall back to existing categorization logic
         const categoryKeywords = {
-            'Food & Dining': ['restaurant', 'cafe', 'coffee', 'diner', 'food', 'pizza', 'burger', 'mcdonalds', 'subway', 'swiggy', 'zomato', 'dominos', 'dosa', 'biryani', 'dhaba', 'thali', 'udupi', 'saravana', 'chaayos', 'barista', 'chai', 'eat', 'kitchen', 'sweet', 'mithai'],
-            'Groceries': ['grocery', 'supermarket', 'market', 'big basket', 'bigbasket', 'dmart', 'reliance fresh', 'more', 'grofers', 'jiomart', 'blinkit', 'kirana', 'nature basket', 'spencers', 'star bazaar', 'vegetables', 'fruits', 'milk', 'provision'],
+            'Food & Dining': ['restaurant', 'cafe', 'swiggy', 'zomato'],
+            'Groceries': ['grocery', 'supermarket', 'dmart', 'kirana'],
             'Shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'snapdeal', 'lenskart', 'croma', 'reliance digital', 'vijay sales', 'lifestyle', 'pantaloons', 'westside', 'mall', 'bazaar'],
             'Transportation': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'transit', 'train', 'irctc', 'railway', 'metro', 'bus', 'red bus', 'redbus', 'petrol', 'diesel', 'fuel', 'indian oil', 'hp', 'bharat petroleum', 'bpcl', 'toll', 'fastag'],
             'Entertainment': ['movie', 'cinema', 'pvr', 'inox', 'bookmyshow', 'theater', 'netflix', 'hotstar', 'disney+', 'amazon prime', 'sony liv', 'zee5', 'jio cinema', 'game', 'gaming', 'concert', 'event'],
@@ -197,16 +195,14 @@ const SplitwiseParser = (function() {
             'Investments': ['investment', 'mutual fund', 'stocks', 'shares', 'demat', 'zerodha', 'groww', 'upstox', 'kuvera', 'uti', 'sbi', 'hdfc', 'icici', 'axis', 'kotak', 'sip', 'nps', 'ppf', 'fixed deposit', 'fd', 'nifty', 'sensex'],
             'Sports': ['badminton', 'nvk', 'pullela', 'shuttles', 'baddy']
         };
-        
-        for (const [category1, keywords] of Object.entries(categoryKeywords)) {
-            for (const keyword of keywords) {
-                if (descriptionLower.includes(keyword)) {
-                    return category1;
-                }
+
+        for (const [category, keywords] of Object.entries(categoryKeywords)) {
+            if (keywords.some((keyword) => descriptionLower.includes(keyword))) {
+                return category;
             }
         }
-        
-        return 'Other';
+
+        return 'Other'; // Default category if no match is found
     }
 
     return {

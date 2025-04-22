@@ -296,6 +296,15 @@ const TransactionUtils = (function() {
         /*...existing logic for guessing category...*/
     }
 
+    function processImportedTransactions(transactions) {
+        return transactions.map((transaction) => {
+            if (!transaction.category) {
+                transaction.category = guessCategory(transaction.description); // Apply custom mappings and fallback logic
+            }
+            return transaction;
+        });
+    }
+
     // Return public API
     return {
         formatCurrency,
@@ -311,6 +320,7 @@ const TransactionUtils = (function() {
         generateCSVDownload,
         exportToJSON,
         getCategoryIcon,
-        guessCategory
+        guessCategory,
+        processImportedTransactions
     };
 })();

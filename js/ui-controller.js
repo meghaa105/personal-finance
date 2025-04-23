@@ -518,6 +518,16 @@ const UIController = (function () {
             const budgetItem = document.createElement("div");
             budgetItem.className = "budget-progress-item";
 
+            // Determine GIF based on budget progress percentage
+            let gifUrl = "";
+            if (percentage < 50) {
+                gifUrl = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif"; // Happy GIF
+            } else if (percentage < 100) {
+                gifUrl = "https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif"; // Nervous GIF
+            } else {
+                gifUrl = "https://media.giphy.com/media/3o6ZsYm5P38NvUWrDi/giphy.gif"; // Panic GIF
+            }
+
             budgetItem.innerHTML = `
                 <span>
                     <span>${category}</span>
@@ -526,6 +536,7 @@ const UIController = (function () {
                 <div class="budget-progress-bar">
                     <div class="budget-progress-bar-inner" style="width: ${percentage}%;"></div>
                 </div>
+                <img src="${gifUrl}" alt="Budget Progress GIF" class="budget-progress-gif">
             `;
 
             budgetProgressList.appendChild(budgetItem);

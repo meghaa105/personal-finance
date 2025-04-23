@@ -529,14 +529,16 @@ const UIController = (function () {
             }
 
             budgetItem.innerHTML = `
-                <span>
+                <div class="budget-progress-header">
                     <span>${category}</span>
                     <span>${TransactionUtils.formatCurrency(spentAmount)} / ${TransactionUtils.formatCurrency(budgetAmount)}</span>
-                </span>
+                </div>
                 <div class="budget-progress-bar">
                     <div class="budget-progress-bar-inner" style="width: ${percentage}%;"></div>
                 </div>
-                <img src="${gifUrl}" alt="Budget Progress GIF" class="budget-progress-gif">
+                <div class="budget-progress-footer">
+                    <img src="${gifUrl}" alt="Budget Progress GIF" class="budget-progress-gif">
+                </div>
             `;
 
             budgetProgressList.appendChild(budgetItem);

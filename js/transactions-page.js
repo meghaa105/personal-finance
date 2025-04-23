@@ -12,28 +12,49 @@ const TransactionsPage = (function () {
     };
 
     /**
+     * Show a loading spinner in the transactions list
+     */
+    function showLoadingSpinner() {
+        DOM.transactionsList.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading transactions...</p>
+            </div>
+        `;
+    }
+
+    /**
      * Update the transactions list in the UI
      * @param {Array} transactions - Array of transactions to display
      */
     function updateTransactionsList(transactions = null) {
-        const container = DOM.transactionsList;
+        showLoadingSpinner(); // Show spinner while fetching data
 
-        // If no transactions are provided, fetch all transactions from the database
-        if (!transactions) {
-            transactions = Database.getAllTransactions();
-        }
+        setTimeout(() => {
+            const container = DOM.transactionsList;
 
-        if (transactions.length === 0) {
-            container.innerHTML = '<div class="empty-state">No transactions available</div>';
-            return;
-        }
+            // If no transactions are provided, fetch all transactions from the database
+            if (!transactions) {
+                transactions = Database.getAllTransactions();
+            }
 
-        container.innerHTML = ""; // Clear existing transactions
+            if (transactions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">search_off</span>
+                        <p>No transactions available. Try adjusting your filters.</p>
+                    </div>
+                `;
+                return;
+            }
 
-        transactions.forEach((transaction) => {
-            const transactionEl = UIController.createTransactionElement(transaction, true); // Use UIController's function
-            container.appendChild(transactionEl);
-        });
+            container.innerHTML = ""; // Clear existing transactions
+
+            transactions.forEach((transaction) => {
+                const transactionEl = UIController.createTransactionElement(transaction, true); // Use UIController's function
+                container.appendChild(transactionEl);
+            });
+        }, 500); // Simulate a delay for better UX
     }
 
     /**

@@ -1269,7 +1269,7 @@ main {
     padding: 0.875rem 1.75rem;
     border-radius: 10px; /* Consistent border radius */
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.4s ease, box-shadow 0.2s ease, background 0.4s;
     font-size: 0.95rem;
     font-weight: 600;
     display: inline-flex;
@@ -1289,13 +1289,13 @@ main {
 }
 
 .btn.secondary {
-    background-color: transparent;
+    background: transparent;
     color: var(--primary-color);
     border: 1px solid var(--primary-color);
 }
 
 .btn.secondary:hover {
-    background-color: var(--primary-light);
+    background-color: var(--primary-dark);
     color: white;
 }
 

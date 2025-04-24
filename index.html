@@ -62,13 +62,21 @@
 
                 <div class="budget-progress-section">
                     <h2>Budget Progress</h2>
-                    <div class="date-filters" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-                        <label for="budget-start-date" style="font-weight: bold;">Start Date:</label>
-                        <input type="date" id="budget-start-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc;">
-                        <label for="budget-end-date" style="font-weight: bold;">End Date:</label>
-                        <input type="date" id="budget-end-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc;">
-                        <button id="apply-budget-filter" class="btn" style="padding: 0.5rem 1rem; font-weight: bold;">Apply Filter</button>
-                        <button id="clear-budget-filter" class="btn secondary" style="padding: 0.5rem 1rem; font-weight: bold;">Clear Filters</button>
+                    <div class="date-filters" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; width: 100%; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                                <label for="budget-start-date" style="font-weight: bold; white-space: nowrap;">Start Date:</label>
+                                <input type="date" id="budget-start-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc; flex: 1;">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                                <label for="budget-end-date" style="font-weight: bold; white-space: nowrap;">End Date:</label>
+                                <input type="date" id="budget-end-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc; flex: 1;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button id="apply-budget-filter" class="btn" style="padding: 0.5rem 1rem; font-weight: bold; white-space: nowrap;">Apply</button>
+                            <button id="clear-budget-filter" class="btn secondary" style="padding: 0.5rem 1rem; font-weight: bold; white-space: nowrap;">Clear</button>
+                        </div>
                     </div>
                     <div id="budget-progress-list" style="margin-top: 1rem; font-size: 0.95rem; line-height: 1.5;">
                         <!-- Budget progress items will be dynamically populated here -->

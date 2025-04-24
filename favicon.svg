@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Wallet base -->
+  <rect x="2" y="8" width="28" height="20" rx="2" fill="#2196F3" />
+  
+  <!-- Wallet fold -->
+  <path d="M2 12 L30 12 L30 10 Q30 8 28 8 L4 8 Q2 8 2 10 Z" fill="#1976D2" />
+  
+  <!-- Rupee symbol -->
+  <text x="16" y="22" font-family="Arial" font-size="14" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">₹</text>
+  
+  <!-- Card slot -->
+  <rect x="20" y="14" width="8" height="2" rx="1" fill="#1565C0" />
+</svg>

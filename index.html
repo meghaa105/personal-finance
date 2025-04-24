@@ -108,25 +108,14 @@
                     </select>
                     <input type="date" id="start-date" placeholder="Start Date">
                     <input type="date" id="end-date" placeholder="End Date">
-                    <div id="source-filters" class="source-checkboxes">
-                        <div class="source-checkbox">
-                            <input type="checkbox" id="source-manual" value="manual" checked>
-                            <label for="source-manual">Manual Entry</label>
-                        </div>
-                        <div class="source-checkbox">
-                            <input type="checkbox" id="source-csv" value="csv" checked>
-                            <label for="source-csv">CSV Import</label>
-                        </div>
-                        <div class="source-checkbox">
-                            <input type="checkbox" id="source-pdf" value="pdf" checked>
-                            <label for="source-pdf">PDF Import</label>
-                        </div>
-                        <div class="source-checkbox">
-                            <input type="checkbox" id="source-splitwise" value="splitwise" checked>
-                            <label for="source-splitwise">Splitwise Import</label>
-                        </div>
-                    </div>
-                    <button id="apply-transaction-filters" class="btn primary" style="margin-top: 1rem;">Apply Filters</button>
+                    <select id="source-filters">
+                        <option class="source-checkbox" value="all">All Sources</option>
+                        <option class="source-checkbox" value="manual">Manual Entry</option>
+                        <option class="source-checkbox" value="csv">CSV Import</option>
+                        <option class="source-checkbox" value="pdf">PDF Import</option>
+                        <option class="source-checkbox" value="splitwise">Splitwise Import</option>
+                    </select>
+                    <button id="apply-transaction-filters" class="btn primary">Apply Filters</button>
                 </div>
 
                 <div id="transactions-list" class="transactions-list">

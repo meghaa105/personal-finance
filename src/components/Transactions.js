@@ -3,22 +3,21 @@
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../utils/formatters';
 import { useTransactions } from '../contexts/TransactionContext';
-import { AiOutlinePlus, AiOutlineClose, AiOutlineEdit, AiOutlineDelete, AiOutlineCalendar, AiOutlineFilter } from 'react-icons/ai';
-import { FaArrowTrendDown, FaArrowTrendUp } from "react-icons/fa6";
+import { AiOutlinePlus, AiOutlineClose, AiOutlineFilter } from 'react-icons/ai';
 import FilterModal from './FilterModal';
+import Transaction from './Transaction';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newTransaction, setNewTransaction] = useState({
     description: '',
     amount: '',
     type: 'expense',
-    category: '',
-    paymentMethod: 'cash',
+    category: 'food',
+    source: 'cash',
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -56,9 +55,9 @@ export default function Transactions() {
       description: '',
       amount: '',
       type: 'expense',
-      date: new Date().toLocaleDateString('en-IN'),
-      category: '',
-      paymentMethod: 'cash'
+      date: new Date().toISOString().split('T')[0],
+      category: 'food',
+      source: 'cash'
     });
     setShowAddForm(false);
     setIsEditing(false);
@@ -71,7 +70,10 @@ export default function Transactions() {
   const handleEdit = (transaction) => {
     setNewTransaction({
       ...transaction,
-      amount: transaction.amount.toString()
+      date: new Date(transaction.date).toISOString().split('T')[0],
+      amount: transaction.amount.toString(),
+      category: transaction.category || 'food',
+      source: transaction.paymentMethod || 'cash'
     });
     setIsEditing(true);
     setShowAddForm(true);
@@ -111,7 +113,7 @@ export default function Transactions() {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filters.type === 'all' || transaction.type === filters.type;
     const matchesCategory = filters.category === 'all' || transaction.category === filters.category;
-    const matchesPaymentMethod = filters.paymentMethod === 'all' || transaction.paymentMethod === filters.paymentMethod;
+    const matchesPaymentMethod = filters.paymentMethod === 'all' || transaction.source === filters.paymentMethod;
     
     const transactionDate = new Date(transaction.date);
     const matchesStartDate = !filters.startDate || transactionDate >= new Date(filters.startDate);
@@ -193,10 +195,10 @@ export default function Transactions() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Payment Method *</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Source *</label>
                   <select
-                    name="paymentMethod"
-                    value={newTransaction.paymentMethod}
+                    name="source"
+                    value={newTransaction.source}
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     required
@@ -247,7 +249,7 @@ export default function Transactions() {
             <input
               type="text"
               placeholder="Search transactions..."
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -281,67 +283,24 @@ export default function Transactions() {
         }}
         onClose={() => setShowFilters(false)}
       />
-      <div className="transactions-list bg-white rounded-lg shadow-sm p-4">
+      <div className="transactions-list bg-white rounded-lg shadow-sm p-4 max-h-[calc(100vh-16rem)] overflow-y-auto">
         {filteredTransactions.length === 0 ? (
           <p className="text-gray-500 text-center py-8">No transactions found 😢</p>
         ) : (
           <div className="space-y-4">
             {filteredTransactions.map((transaction) => (
-              <div
+              <Transaction
                 key={transaction.id}
-                className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md border border-gray-300 hover:border-gray-400 group"
-              >
-                <div className="flex-grow flex items-center gap-4">
-                  {transaction.type === 'income' ?
-                    <FaArrowTrendUp size={24} className="text-green-500 flex-shrink-0" /> :
-                    <FaArrowTrendDown size={24} className="text-red-500 flex-shrink-0" />
-                  }
-                  <div className="flex-grow">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-gray-800">{transaction.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                        <AiOutlineCalendar className="text-gray-500" />
-                        {new Date(transaction.date).toLocaleDateString('en-IN')}
-                      </span>
-                      {transaction.category && (
-                        <span className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
-                          {transaction.category}
-                        </span>
-                      )}
-                      {transaction.paymentMethod && (
-                        <span className="px-2 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-full">
-                          {transaction.paymentMethod}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <p className={`text-lg font-semibold px-4 py-2 rounded-lg ${transaction.type === 'income' ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}`}>
-                    {formatCurrency(transaction.amount)}
-                  </p>
-                  <div className="flex gap-2 transition-opacity duration-200">
-                    <button
-                      onClick={() => handleEdit(transaction)}
-                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors"
-                    >
-                      <AiOutlineEdit size={25} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(transaction.id)}
-                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors"
-                    >
-                      <AiOutlineDelete size={25} />
-                    </button>
-                  </div>
-                </div>
-              </div>
+                transaction={transaction}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}
       </div>
       <button
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark transition-colors flex items-center justify-center"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark hover:scale-110 hover:shadow-xl transition-all duration-300 ease-in-out flex items-center justify-center"
         onClick={() => setShowAddForm(!showAddForm)}
       >
         {showAddForm ? <AiOutlineClose size={24} /> : <AiOutlinePlus size={24} />}

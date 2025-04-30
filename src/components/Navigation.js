@@ -16,7 +16,7 @@ export default function Navigation() {
   ];
 
   return (
-    <header className="bg-primary shadow-md" role="banner">
+    <header className="bg-primary shadow-md fixed top-0 left-0 right-0 z-50" role="banner">
       <nav className="container mx-auto px-6" role="navigation" aria-label="Main navigation">
         <Link href="/dashboard" className="block">
           <h1 className="text-2xl font-bold text-white text-center py-4">Personal Finance Manager (₹)</h1>

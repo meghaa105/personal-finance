@@ -10,7 +10,7 @@ export default function ClientLayout({ children }) {
       <TransactionProvider>
         <div className="app-container">
           <Navigation />
-          <main className="p-6">
+          <main className="p-6 pt-0 mt-32">
             {children}
           </main>
         </div>

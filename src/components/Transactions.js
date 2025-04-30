@@ -19,7 +19,7 @@ export default function Transactions() {
     date: new Date().toISOString().split('T')[0],
   });
 
-  const { transactions: contextTransactions } = useTransactions();
+  const { transactions: contextTransactions, addTransactions, deleteTransaction } = useTransactions();
 
   useEffect(() => {
     setTransactions(contextTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)));
@@ -39,13 +39,11 @@ export default function Transactions() {
 
     const transaction = {
       ...newTransaction,
-      amount: parseFloat(newTransaction.amount),
-      id: Date.now().toString()
+      amount: parseFloat(newTransaction.amount)
     };
 
-    const updatedTransactions = [transaction, ...transactions];
-    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-    setTransactions(updatedTransactions);
+    // Add transaction using context which handles storage
+    addTransactions([transaction]);
 
     // Reset form
     setNewTransaction({
@@ -57,16 +55,10 @@ export default function Transactions() {
       paymentMethod: 'cash'
     });
     setShowAddForm(false);
-
-    // Trigger storage event for other components
-    window.dispatchEvent(new Event('storage'));
   };
 
   const handleDelete = (id) => {
-    const updatedTransactions = transactions.filter(t => t.id !== id);
-    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-    setTransactions(updatedTransactions);
-    window.dispatchEvent(new Event('storage'));
+    deleteTransaction(id);
   };
 
   const filteredTransactions = transactions.filter(transaction => {

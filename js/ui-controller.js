@@ -402,8 +402,16 @@ const UIController = (function () {
                 expenseChartInstance = null;
             }
 
-            DOM.expenseChart.parentNode.innerHTML =
-                '<div class="empty-state">No expense data to display</div>';
+            if (DOM.expenseChart?.parentNode) {
+                DOM.expenseChart.parentNode.innerHTML =
+                    '<div class="empty-state">No expense data to display</div>';
+            }
+            return;
+        }
+
+        // Ensure DOM.expenseChart exists
+        if (!DOM.expenseChart || !DOM.expenseChart.parentNode) {
+            console.error("Expense chart element or its parent node is missing.");
             return;
         }
 
@@ -423,7 +431,12 @@ const UIController = (function () {
 
             const ctx = document
                 .getElementById("expense-chart")
-                .getContext("2d");
+                ?.getContext("2d");
+
+            if (!ctx) {
+                console.error("Failed to get context for expense chart.");
+                return;
+            }
 
             expenseChartInstance = new Chart(ctx, {
                 type: "doughnut",
@@ -931,7 +944,12 @@ const UIController = (function () {
             // Parse CSV
             const result = await CSVParser.parseCSV(file);
 
-            if (result.success && result.transactions.length > 0) {
+            // Validate result structure
+            if (!result || !Array.isArray(result.transactions)) {
+                throw new Error("Invalid CSV format: No transactions found.");
+            }
+
+            if (result.transactions.length > 0) {
                 // Update status
                 DOM.csvUploadStatus.textContent = `Successfully parsed ${result.transactions.length} transactions.`;
                 DOM.csvUploadStatus.className = "upload-status success";
@@ -945,16 +963,11 @@ const UIController = (function () {
                 // Enable import button
                 DOM.confirmImportBtn.disabled = false;
             } else {
-                DOM.csvUploadStatus.textContent =
-                    "Error: No transactions found in the CSV.";
-                DOM.csvUploadStatus.className = "upload-status error";
-
-                // Disable import button
-                DOM.confirmImportBtn.disabled = true;
+                throw new Error("No transactions found in the CSV.");
             }
         } catch (error) {
             console.error('Error parsing CSV:', error);
-            DOM.csvUploadStatus.textContent = 'Error parsing CSV: ' + error.message;
+            DOM.csvUploadStatus.textContent = `Error parsing CSV: ${error.message}`;
             DOM.csvUploadStatus.className = 'upload-status error';
 
             // Disable import button
@@ -1461,6 +1474,8 @@ const UIController = (function () {
                     updateDashboard();
                     updateCategoriesList();
                     populateCategoryDropdown();
+                    populateCategoryFilter();
+                    updateTransactionsList(); // Clear transactions from the UI
 
                     // Switch to dashboard tab
                     switchTab("dashboard");
@@ -1468,6 +1483,13 @@ const UIController = (function () {
                     alert("Error clearing data: " + result.error);
                 }
             }
+        }
+    }
+
+    function updateTransactionsList() {
+        const transactionsContainer = DOM.transactionsList;
+        if (transactionsContainer) {
+            transactionsContainer.innerHTML = ''; // Clear all transactions from the UI
         }
     }
 

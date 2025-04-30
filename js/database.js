@@ -565,11 +565,13 @@ const Database = (function() {
     function clearData() {
         transactions = [];
         categories = defaultCategories;
-        categoryIcons = defaultCategoryIcons;
+        categoryIcons.length = 0; // Clear the array
+        categoryIcons.push(...defaultCategoryIcons); // Repopulate with default icons
         creditCardReminders = [];
         
         // Remove from localStorage
         localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
+        localStorage.removeItem(STORAGE_KEYS.CATEGORIES); // Remove categories from localStorage
         localStorage.removeItem(STORAGE_KEYS.CREDIT_CARD_REMINDERS);
         
         // Save default categories

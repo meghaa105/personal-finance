@@ -67,10 +67,12 @@ const TransactionsPage = (function () {
         const startDate = DOM.startDate.value ? new Date(DOM.startDate.value) : null;
         const endDate = DOM.endDate.value ? new Date(DOM.endDate.value) : null;
 
-        // Get selected sources
-        const selectedSources = Array.from(DOM.sourceFilters)
-            .filter((checkbox) => checkbox.checked)
-            .map((checkbox) => checkbox.value);
+        // Get selected sources and ensure uniqueness
+        const selectedSources = Array.from(new Set(
+            Array.from(DOM.sourceFilters)
+                .filter((checkbox) => checkbox.checked)
+                .map((checkbox) => checkbox.value)
+        ));
 
         const filters = {};
         if (searchValue) filters.search = searchValue;

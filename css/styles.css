@@ -564,28 +564,6 @@ main {
     margin-top: 1rem; /* Add spacing above the buttons */
 }
 
-.filter-btn {
-    padding: 0.5rem 1.25rem; /* Adjust padding for better button size */
-    border: none;
-    border-radius: 10px; /* Add consistent border-radius */
-    background-color: #d0bfff;
-    color: #5f3dc4;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.9rem; /* Slightly smaller font size for compactness */
-}
-
-.filter-btn.active {
-    background-color: #5f3dc4;
-    color: #fff;
-}
-
-.filter-btn:hover {
-    background-color: #9775fa;
-    color: #fff;
-}
-
 /* Filter Titles */
 .time-filter h3, .category-filter h3, .source-filter h3 {
     margin-bottom: 1rem;
@@ -1269,7 +1247,7 @@ main {
     padding: 0.875rem 1.75rem;
     border-radius: 10px; /* Consistent border radius */
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.4s ease, box-shadow 0.2s ease, background 0.4s;
     font-size: 0.95rem;
     font-weight: 600;
     display: inline-flex;
@@ -1289,13 +1267,13 @@ main {
 }
 
 .btn.secondary {
-    background-color: transparent;
+    background: transparent;
     color: var(--primary-color);
     border: 1px solid var(--primary-color);
 }
 
 .btn.secondary:hover {
-    background-color: var(--primary-light);
+    background-color: var(--primary-dark);
     color: white;
 }
 
@@ -1786,9 +1764,9 @@ input:focus, select:focus, textarea:focus {
 
 .filter-btn {
     padding: 0.5rem 1rem;
-    border: none;
+    border: 1px solid var(--primary-color);
     border-radius: 10px; /* Add consistent border-radius */
-    background-color: var(--primary-light);
+    background-color: transparent;
     color: var(--primary-color);
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -2529,7 +2507,6 @@ mark {
 
 /* Apply Filters Button */
 .btn.primary {
-    padding: 0.4rem 1rem;
     font-size: 0.85rem;
     color: #fff;
     background-color: #4c6ef5;

@@ -11,7 +11,7 @@
     <meta property="og:description" content="Track your expenses, analyze spending patterns, and manage your personal finances efficiently with our comprehensive finance manager.">
     <meta property="og:type" content="website">
     <title>Personal Finance Manager - Track Expenses, Income & Budget in INR</title>
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADHElEQVR4nO2XT2gTQRTGv5ndTbKbpGmTNKlN0qS1tWpVrCAiHsSDFw8i4kHx4EXEkyAIggjSkyB48SAJCD148CKIiCAI4kEQxIMgIh4EEUREREREpGhrkzS72U3W2YRQm4YYG8GDH+zAzr6d7833ZvYN8F9/u4RyOxZXzs1Gh8+XjXwwQqF2hdJuRul+ACeY4BsAywBeEOAPAHIAWwHsA3AUQBOA90zwRwS4JwAvwyi+nEwOZktBIBlGnAm+AuAKE3ymVKytra0hn88jnU5XmabZ3dfXF+/p6WFra2sl0zQ3AzgN4JhpmrsZpfsA7GaCX5YkCcViEYVCgTHBZwBcbWpqeiVWg1xeOzsXHT4P4DiAEwAGmOCDTHDGBGdCCFiWhWw2i0wmA8uyoOs6NE2DaZoGgAiAgwCGARySZbmfUtoF4BCA40zwESb4gBCCMcEZE5wxwVkxn7/DBJ8FMAPgXaFQKFqWtVgsFp+Zpvmm3Mh/W3d390R/f//5wcHBi11dXVf6+vpudHZ2TgI4zSg9QAhpB7ADQA8TfDcT/JwkSXsA7GaCH2GC72OCn5YkaYQQMsEYmyCETDDGJgD0SJK0mwl+hAm+jwm+nQneQQhpJ4RMEkLGALQRQvoIIeNlAVzXheM4yOVyyOfz0HUdmqrC0DX09/cnEokEdF2Hruswbdu2HMe1Xdd1Xdd1HMdxHcfJO46Tdl03nUql0qZpZm3bztm2nXMcJ+84jgvAcV3XcV3XBmAxxizLsizLshzHcRzHcWzbdkzTtCrNwMrKCpaXl5HNZpFOp6FpGnRdh2EYMAzDMAzDtG3bdl3XcRzHcV3XBVACUPrxlQCUfvYBQKkEoFQqlUqO4ziO4ziWZVmGYRiGYRiaptmappmVBiguLWFpaQlLS0vI5/PQNA26rkPTNBiGYdi2bTuO4wAo/SRcAmADsADYAGwADgAbQKlUKtmO49i2bduGYei6rmuapmmqaqqqqlaagdTCAhYWFpDL5WCaJkzThKZp0DQNpmnatm07v3nnfgKUAJQAlBzHcWzbti3LMg3DMHRd11RVVSvNwNzcHObm5pDLZGAYBgzDgGmajm3bjuu6bk34f/2R+g7UOaPRzd5+3QAAAABJRU5ErkJggg==">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="css/styles.css">
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -62,13 +62,21 @@
 
                 <div class="budget-progress-section">
                     <h2>Budget Progress</h2>
-                    <div class="date-filters" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-                        <label for="budget-start-date" style="font-weight: bold;">Start Date:</label>
-                        <input type="date" id="budget-start-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc;">
-                        <label for="budget-end-date" style="font-weight: bold;">End Date:</label>
-                        <input type="date" id="budget-end-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc;">
-                        <button id="apply-budget-filter" class="btn" style="padding: 0.5rem 1rem; font-weight: bold;">Apply Filter</button>
-                        <button id="clear-budget-filter" class="btn secondary" style="padding: 0.5rem 1rem; font-weight: bold;">Clear Filters</button>
+                    <div class="date-filters" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; width: 100%; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                                <label for="budget-start-date" style="font-weight: bold; white-space: nowrap;">Start Date:</label>
+                                <input type="date" id="budget-start-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc; flex: 1;">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                                <label for="budget-end-date" style="font-weight: bold; white-space: nowrap;">End Date:</label>
+                                <input type="date" id="budget-end-date" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc; flex: 1;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button id="apply-budget-filter" class="btn" style="padding: 0.5rem 1rem; font-weight: bold; white-space: nowrap;">Apply</button>
+                            <button id="clear-budget-filter" class="btn secondary" style="padding: 0.5rem 1rem; font-weight: bold; white-space: nowrap;">Clear</button>
+                        </div>
                     </div>
                     <div id="budget-progress-list" style="margin-top: 1rem; font-size: 0.95rem; line-height: 1.5;">
                         <!-- Budget progress items will be dynamically populated here -->
@@ -100,25 +108,14 @@
                     </select>
                     <input type="date" id="start-date" placeholder="Start Date">
                     <input type="date" id="end-date" placeholder="End Date">
-                    <div id="source-filters" class="source-checkboxes">
-                        <div class="source-checkbox">
-                            <input type="checkbox" id="source-manual" value="manual" checked>
-                            <label for="source-manual">Manual Entry</label>
-                        </div>
-                        <div class="source-checkbox">
-                            <input type="checkbox" id="source-csv" value="csv" checked>
-                            <label for="source-csv">CSV Import</label>
-                        </div>
-                        <div class="source-checkbox">
-                            <input type="checkbox" id="source-pdf" value="pdf" checked>
-                            <label for="source-pdf">PDF Import</label>
-                        </div>
-                        <div class="source-checkbox">
-                            <input type="checkbox" id="source-splitwise" value="splitwise" checked>
-                            <label for="source-splitwise">Splitwise Import</label>
-                        </div>
-                    </div>
-                    <button id="apply-transaction-filters" class="btn primary" style="margin-top: 1rem;">Apply Filters</button>
+                    <select id="source-filters">
+                        <option class="source-checkbox" value="all">All Sources</option>
+                        <option class="source-checkbox" value="manual">Manual Entry</option>
+                        <option class="source-checkbox" value="csv">CSV Import</option>
+                        <option class="source-checkbox" value="pdf">PDF Import</option>
+                        <option class="source-checkbox" value="splitwise">Splitwise Import</option>
+                    </select>
+                    <button id="apply-transaction-filters" class="btn primary">Apply Filters</button>
                 </div>
 
                 <div id="transactions-list" class="transactions-list">

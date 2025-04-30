@@ -10,6 +10,7 @@ export default function Transactions() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [newTransaction, setNewTransaction] = useState({
     description: '',
     amount: '',
@@ -19,7 +20,7 @@ export default function Transactions() {
     date: new Date().toISOString().split('T')[0],
   });
 
-  const { transactions: contextTransactions, addTransactions, deleteTransaction } = useTransactions();
+  const { transactions: contextTransactions, addTransactions, deleteTransaction, updateTransaction } = useTransactions();
 
   useEffect(() => {
     setTransactions(contextTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)));
@@ -42,8 +43,11 @@ export default function Transactions() {
       amount: parseFloat(newTransaction.amount)
     };
 
-    // Add transaction using context which handles storage
-    addTransactions([transaction]);
+    if (isEditing) {
+      updateTransaction(transaction.id, transaction);
+    } else {
+      addTransactions([transaction]);
+    }
 
     // Reset form
     setNewTransaction({
@@ -55,10 +59,20 @@ export default function Transactions() {
       paymentMethod: 'cash'
     });
     setShowAddForm(false);
+    setIsEditing(false);
   };
 
   const handleDelete = (id) => {
     deleteTransaction(id);
+  };
+
+  const handleEdit = (transaction) => {
+    setNewTransaction({
+      ...transaction,
+      amount: transaction.amount.toString()
+    });
+    setIsEditing(true);
+    setShowAddForm(true);
   };
 
   const filteredTransactions = transactions.filter(transaction => {
@@ -72,7 +86,7 @@ export default function Transactions() {
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-[fadeIn_0.2s_ease-in-out]">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg mx-4 relative animate-[slideUp_0.3s_ease-out]">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">Add Transaction</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-6">{isEditing ? 'Edit Transaction' : 'Add Transaction'}</h3>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex flex-col gap-4">
               <div>
@@ -170,6 +184,7 @@ export default function Transactions() {
                     paymentMethod: 'cash'
                   });
                   setShowAddForm(false);
+                  setIsEditing(false);
                 }}
                 className="px-6 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200 ease-in-out"
               >
@@ -237,12 +252,20 @@ export default function Transactions() {
                         <span className="px-2 py-1 bg-gray-200 rounded-full">{transaction.paymentMethod}</span>
                       )}
                     </div>
-                    <button
-                      onClick={() => handleDelete(transaction.id)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => handleEdit(transaction)}
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(transaction.id)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

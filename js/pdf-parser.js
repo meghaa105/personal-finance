@@ -125,7 +125,7 @@ const PDFParser = (function () {
         bigbasket: "Groceries",
         dmart: "Groceries",
         blinkit: "Groceries",
-        grofers: "Groceries",
+        zepto: "Groceries",
         "nature basket": "Groceries",
         spencers: "Groceries",
         "more retail": "Groceries",
@@ -177,8 +177,8 @@ const PDFParser = (function () {
         kptcl: "Utilities",
         "reliance energy": "Utilities",
         "tata sky": "Entertainment",
-        "dish tv": "Entertainment",
-        "sun direct": "Entertainment",
+        "bookmyshow": "Entertainment",
+        "movie": "Entertainment",
         d2h: "Entertainment",
         "airtel dth": "Entertainment",
 
@@ -377,6 +377,7 @@ const PDFParser = (function () {
         vacation: "Travel",
         trip: "Travel",
         resort: "Travel",
+        airbnb: "Travel",
 
         payment: "Income",
         deposit: "Income",

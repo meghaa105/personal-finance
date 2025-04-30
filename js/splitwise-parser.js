@@ -114,8 +114,8 @@ const SplitwiseParser = (function() {
                                             // Determine transaction type
                                             const incomeCategories = ['Income', 'Investments', 'Refunds'];
                                             const isIncomeCategory = incomeCategories.includes(category);
-                                            const isIncome = isIncomeCategory || /received|refund|credit/i.test(description);
-                                            const isExpense = /paid|spent|debit|expense|upi|transfer to/i.test(description);
+                                            const isIncome = isIncomeCategory || /received|refund|credit|paid/i.test(description); // Include "paid" as income
+                                            const isExpense = /spent|debit|expense|upi|transfer to/i.test(description);
                                             const type = isIncome ? "income" : isExpense ? "expense" : "expense"; // Default to expense
 
                                             return {
@@ -179,30 +179,33 @@ const SplitwiseParser = (function() {
             }
         }
 
-        // Fall back to existing categorization logic
+        // Enhanced category mappings
         const categoryKeywords = {
-            'Food & Dining': ['restaurant', 'cafe', 'swiggy', 'zomato'],
-            'Groceries': ['grocery', 'supermarket', 'dmart', 'kirana'],
-            'Shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'snapdeal', 'lenskart', 'croma', 'reliance digital', 'vijay sales', 'lifestyle', 'pantaloons', 'westside', 'mall', 'bazaar'],
-            'Transportation': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'transit', 'train', 'irctc', 'railway', 'metro', 'bus', 'red bus', 'redbus', 'petrol', 'diesel', 'fuel', 'indian oil', 'hp', 'bharat petroleum', 'bpcl', 'toll', 'fastag'],
-            'Entertainment': ['movie', 'cinema', 'pvr', 'inox', 'bookmyshow', 'theater', 'netflix', 'hotstar', 'disney+', 'amazon prime', 'sony liv', 'zee5', 'jio cinema', 'game', 'gaming', 'concert', 'event'],
-            'Housing': ['rent', 'lease', 'maintenance', 'society', 'apartment', 'flat', 'property', 'home', 'housing', 'accommodation', 'builder', 'construction', 'repair', 'renovation'],
-            'Utilities': ['electric', 'electricity', 'bill', 'water', 'internet', 'broadband', 'jio', 'airtel', 'bsnl', 'vi', 'vodafone', 'idea', 'tata sky', 'dth', 'gas', 'lpg', 'indane', 'utility', 'pipeline'],
-            'Health': ['doctor', 'hospital', 'medical', 'apollo', 'fortis', 'max', 'medanta', 'medplus', 'pharmacy', 'pharmeasy', 'netmeds', 'tata 1mg', 'dental', 'vision', 'healthcare', 'clinic', 'diagnostic', 'lab', 'test', 'medicine', 'ayurvedic'],
-            'Education': ['tuition', 'school', 'college', 'university', 'education', 'book', 'course', 'byjus', 'unacademy', 'vedantu', 'whitehat', 'cuemath', 'coaching', 'institute', 'academy', 'library', 'learning'],
-            'Travel': ['travel', 'hotel', 'oyo', 'makemytrip', 'goibibo', 'booking.com', 'cleartrip', 'ixigo', 'trivago', 'airline', 'indigo', 'spicejet', 'vistara', 'air india', 'flight', 'vacation', 'trip', 'tourism', 'resort', 'package', 'goa', 'manali', 'kerala'],
-            'Insurance': ['insurance', 'policy', 'premium', 'lic', 'health insurance', 'vehicle insurance', 'hdfc ergo', 'bajaj allianz', 'icici lombard', 'max bupa', 'star health', 'new india', 'mutual', 'term', 'life'],
-            'Investments': ['investment', 'mutual fund', 'stocks', 'shares', 'demat', 'zerodha', 'groww', 'upstox', 'kuvera', 'uti', 'sbi', 'hdfc', 'icici', 'axis', 'kotak', 'sip', 'nps', 'ppf', 'fixed deposit', 'fd', 'nifty', 'sensex'],
-            'Sports': ['badminton', 'nvk', 'pullela', 'shuttles', 'baddy']
+            'Food & Dining': ['restaurant', 'cafe', 'swiggy', 'zomato', 'dining', 'food', 'eatery', 'biryani', 'pizza', 'burger', 'snacks', 'beverages', 'coffee', 'tea', 'feast', 'meal', 'lunch', 'dinner', 'breakfast','cake'],
+            'Groceries': ['grocery', 'supermarket', 'dmart', 'kirana', 'provisions', 'vegetables', 'fruits', 'daily needs', 'milk', 'bread', 'eggs'],
+            'Shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'electronics', 'gadgets', 'accessories', 'mall', 'bazaar'],
+            'Transportation': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'train', 'bus', 'metro', 'fuel', 'petrol', 'diesel', 'toll', 'fastag', 'parking', 'cab'],
+            'Entertainment': ['movie', 'cinema', 'pvr', 'inox', 'netflix', 'hotstar', 'prime', 'gaming', 'concert', 'event', 'bookmyshow', 'theater', 'recreation'],
+            'Housing': ['rent', 'lease', 'maintenance', 'society', 'apartment', 'flat', 'property', 'home', 'housing', 'repair', 'renovation'],
+            'Utilities': ['electricity', 'water', 'gas', 'internet', 'broadband', 'mobile', 'recharge', 'bill', 'dth', 'wifi', 'power', 'phone'],
+            'Health': ['doctor', 'hospital', 'pharmacy', 'medicine', 'clinic', 'diagnostic', 'lab', 'test', 'healthcare', 'treatment', 'wellness'],
+            'Education': ['tuition', 'school', 'college', 'university', 'course', 'coaching', 'learning', 'books', 'training', 'exam', 'certification'],
+            'Travel': ['hotel', 'flight', 'travel', 'trip', 'vacation', 'tour', 'booking', 'resort', 'airbnb', 'holiday', 'tourism'],
+            'Insurance': ['insurance', 'policy', 'premium', 'lic', 'health insurance', 'vehicle insurance', 'life insurance', 'term plan'],
+            'Investments': ['investment', 'mutual fund', 'stocks', 'shares', 'demat', 'zerodha', 'groww', 'sip', 'nps', 'ppf', 'fd', 'rd'],
+            'Banking & Finance': ['emi', 'loan', 'credit card', 'bank', 'transfer', 'neft', 'rtgs', 'imps', 'upi', 'interest', 'charges', 'fees'],
+            'Miscellaneous': ['gift', 'donation', 'charity', 'misc', 'other', 'unknown']
         };
 
-        for (const [category, keywords] of Object.entries(categoryKeywords)) {
-            if (keywords.some((keyword) => descriptionLower.includes(keyword))) {
-                return category;
+        // Match description against keywords
+        for (const [mappedCategory, keywords] of Object.entries(categoryKeywords)) {
+            if (keywords.some(keyword => descriptionLower.includes(keyword))) {
+                return mappedCategory;
             }
         }
 
-        return 'Other'; // Default category if no match is found
+        // Default category if no match is found
+        return 'Other';
     }
 
     return {

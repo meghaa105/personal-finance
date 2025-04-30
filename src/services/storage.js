@@ -20,15 +20,15 @@ class StorageService {
     }
 
     if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
-      const defaultCategories = [
-        'Food',
-        'Transportation',
-        'Shopping',
-        'Bills',
-        'Entertainment',
-        'Health',
-        'Education',
-        'Other'
+      const defaultCategories =[
+        { id: 'food', label: 'Food', icon: '🍽️' },
+        { id: 'transport', label: 'Transportation', icon: '🚌' },
+        { id: 'shopping', label: 'Shopping', icon: '🛍️' },
+        { id: 'bills', label: 'Bills', icon: '📄' },
+        { id: 'entertainment', label: 'Entertainment', icon: '🎬' },
+        { id: 'health', label: 'Health', icon: '🏥' },
+        { id: 'education', label: 'Education', icon: '🎓' },
+        { id: 'other', label: 'Other', icon: '⛓️' }
       ];
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(defaultCategories));
     }
@@ -144,7 +144,7 @@ class StorageService {
    */
   static addCategory(category) {
     const categories = this.getCategories();
-    if (!categories.includes(category)) {
+    if (!categories.map(cat => cat.id).includes(category.id)) {
       categories.push(category);
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
     }

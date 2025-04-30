@@ -1,10 +1,13 @@
 'use client';
 
 import { formatCurrency } from '../utils/formatters';
+import { useCategories } from '../contexts/CategoryContext';
 import { AiOutlineCalendar, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { FaArrowTrendDown, FaArrowTrendUp } from 'react-icons/fa6';
 
 export default function Transaction({ transaction, onEdit, onDelete }) {
+  const { categories } = useCategories();
+  const category = categories.find(cat => cat.id === transaction.category) || categories.find(cat => cat.id === 'other');
   return (
     <div className="flex justify-between items-center p-4 bg-white rounded-lg shadow-md border border-gray-300 hover:border-gray-400 group">
       <div className="flex-grow flex items-center gap-4">
@@ -21,9 +24,10 @@ export default function Transaction({ transaction, onEdit, onDelete }) {
               <AiOutlineCalendar className="text-gray-500" />
               {new Date(transaction.date).toLocaleDateString('en-IN')}
             </span>
-            {transaction.category && (
-              <span className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
-                {transaction.category}
+            {category && (
+              <span className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full flex items-center gap-1">
+                <span className="text-base">{category?.icon || '⛓️'}</span>
+                {category?.label || 'Other'}
               </span>
             )}
             {transaction.source && (

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../utils/formatters';
 import { useTransactions } from '../contexts/TransactionContext';
+import { useCategories } from '../contexts/CategoryContext';
 import { AiOutlinePlus, AiOutlineClose, AiOutlineFilter } from 'react-icons/ai';
 import FilterModal from './FilterModal';
 import Transaction from './Transaction';
@@ -12,6 +13,7 @@ export default function Transactions() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const { categories } = useCategories();
   const [newTransaction, setNewTransaction] = useState({
     description: '',
     amount: '',
@@ -177,11 +179,11 @@ export default function Transactions() {
                     required
                   >
                     <option value="" disabled>Select a category</option>
-                    <option value="food">Food</option>
-                    <option value="transport">Transport</option>
-                    <option value="utilities">Utilities</option>
-                    <option value="entertainment">Entertainment</option>
-                    <option value="others">Others</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.icon} {category.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>

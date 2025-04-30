@@ -6,6 +6,7 @@ import { FaFileCsv, FaUsers, FaEdit, FaTrash } from 'react-icons/fa';
 import { MdPictureAsPdf, MdAutoAwesome } from 'react-icons/md';
 import { importTransactions } from '../utils/import';
 import { formatDate } from '../utils/formatters';
+import { useTransactions } from '../contexts/TransactionContext';
 
 const IMPORT_OPTIONS = [
   {
@@ -56,12 +57,14 @@ export default function Import() {
   const [error, setError] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
 
+  const { addTransactions } = useTransactions();
+
   const onImport = async () => {
     if (!previewData) return;
 
     try {
-      // Here you would typically send the data to your backend
-      // For now, we'll just simulate a successful import
+      // Add transactions to storage through context
+      addTransactions(previewData);
       setImportStatus('success');
       alert('Transactions imported successfully!');
       setPreviewData(null); // Clear the preview after successful import

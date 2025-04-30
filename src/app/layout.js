@@ -1,5 +1,6 @@
 import './globals.css';
 import ThemeProvider from './ThemeProvider';
+import Navigation from '@/components/Navigation';
 
 export const metadata = {
   title: 'Personal Finance Manager (₹)',
@@ -13,7 +14,14 @@ export default function RootLayout({ children }) {
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
       </head>
       <body className="min-h-screen bg-white dark:bg-gray-900">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <div className="app-container">
+            <Navigation />
+            <main className="p-6">
+              {children}
+            </main>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

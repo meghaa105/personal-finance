@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../utils/formatters';
 import { useTransactions } from '../contexts/TransactionContext';
-import { AiOutlinePlus, AiOutlineClose, AiOutlineEdit, AiOutlineDelete, AiOutlineCalendar } from 'react-icons/ai';
+import { AiOutlinePlus, AiOutlineClose, AiOutlineEdit, AiOutlineDelete, AiOutlineCalendar, AiOutlineFilter } from 'react-icons/ai';
 import { FaArrowTrendDown, FaArrowTrendUp } from "react-icons/fa6";
+import FilterModal from './FilterModal';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
@@ -76,10 +77,47 @@ export default function Transactions() {
     setShowAddForm(true);
   };
 
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    type: 'all',
+    category: 'all',
+    startDate: '',
+    endDate: '',
+    paymentMethod: 'all'
+  });
+  
+  const [tempFilters, setTempFilters] = useState({
+    type: 'all',
+    category: 'all',
+    startDate: '',
+    endDate: '',
+    paymentMethod: 'all'
+  });
+  
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setTempFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const applyFilters = () => {
+    setFilters(tempFilters);
+    setShowFilters(false);
+  };
+  
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || transaction.category === filterCategory;
-    return matchesSearch && matchesCategory;
+    const matchesType = filters.type === 'all' || transaction.type === filters.type;
+    const matchesCategory = filters.category === 'all' || transaction.category === filters.category;
+    const matchesPaymentMethod = filters.paymentMethod === 'all' || transaction.paymentMethod === filters.paymentMethod;
+    
+    const transactionDate = new Date(transaction.date);
+    const matchesStartDate = !filters.startDate || transactionDate >= new Date(filters.startDate);
+    const matchesEndDate = !filters.endDate || transactionDate <= new Date(filters.endDate);
+  
+    return matchesSearch && matchesType && matchesCategory && matchesPaymentMethod && matchesStartDate && matchesEndDate;
   });
 
   return (
@@ -203,8 +241,8 @@ export default function Transactions() {
         </div>
       )}
 
-      <div className="filters bg-white rounded-lg p-4 shadow-sm">
-        <div className="flex gap-4">
+      <div className="filters bg-white rounded-lg p-4 shadow-sm mb-4">
+        <div className="flex gap-4 items-center">
           <div className="flex-1">
             <input
               type="text"
@@ -214,21 +252,35 @@ export default function Transactions() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
+          <button
+            onClick={() => setShowFilters(true)}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
           >
-            <option value="all">All Categories</option>
-            <option value="food">Food</option>
-            <option value="transport">Transport</option>
-            <option value="utilities">Utilities</option>
-            <option value="entertainment">Entertainment</option>
-            <option value="others">Others</option>
-          </select>
+            <AiOutlineFilter size={20} />
+            Filters
+          </button>
         </div>
       </div>
 
+      <FilterModal
+        show={showFilters}
+        filters={tempFilters}
+        onFilterChange={handleFilterChange}
+        onApply={applyFilters}
+        onReset={() => {
+          const defaultFilters = {
+            type: 'all',
+            category: 'all',
+            startDate: '',
+            endDate: '',
+            paymentMethod: 'all'
+          };
+          setFilters(defaultFilters);
+          setTempFilters(defaultFilters);
+          setShowFilters(false);
+        }}
+        onClose={() => setShowFilters(false)}
+      />
       <div className="transactions-list bg-white rounded-lg shadow-sm p-4">
         {filteredTransactions.length === 0 ? (
           <p className="text-gray-500 text-center py-8">No transactions found 😢</p>

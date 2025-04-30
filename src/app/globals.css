@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 255, 255;
+}
+
+[data-theme='dark'] {
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 17, 24, 39;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Add smooth transitions for theme changes */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Ensure proper dark mode styles for form elements */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: rgb(55, 65, 81);
+  border-color: rgb(75, 85, 99);
+  color: rgb(229, 231, 235);
+}
+
+.dark input::placeholder {
+  color: rgb(156, 163, 175);
+}
+
+/* Dark mode button styles */
+.dark button {
+  background-color: rgb(79, 70, 229);
+  color: white;
+}
+
+.dark button:hover {
+  background-color: rgb(67, 56, 202);
+}
+
+@layer base {
+  body {
+    @apply bg-background;
+  }
+}
+
+@layer components {
+  .navbar {
+    @apply bg-primary bg-gradient-to-r from-primary to-primary-hover;
+  }
+
+  .nav-links li {
+    @apply text-white;
+  }
+
+  .nav-links li:hover {
+    @apply bg-white/20 rounded-lg p-2;
+  }
+
+  .summary-cards {
+    @apply gap-8;
+  }
+
+  .card {
+    @apply border border-gray-200 shadow-sm;
+  }
+
+  .card p {
+    @apply text-3xl;
+  }
+
+  .transactions,
+  .data-management {
+    @apply bg-white border border-gray-200 p-6;
+  }
+
+  .export-btn {
+    @apply bg-primary bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary;
+  }
+
+  .loading-spinner {
+    @apply flex flex-col items-center justify-center p-8;
+  }
+
+  .spinner {
+    @apply w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin;
+  }
+
+  .empty-state {
+    @apply flex flex-col items-center justify-center p-8 text-gray-500;
+  }
+}

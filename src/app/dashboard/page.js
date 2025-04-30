@@ -1,7 +1,12 @@
 'use client';
 
 import Dashboard from '@/components/Dashboard';
+import PageTransition from '@/components/PageTransition';
 
 export default function DashboardPage() {
-  return <Dashboard />;
+  return (
+    <PageTransition>
+      <Dashboard />
+    </PageTransition>
+  );
 }

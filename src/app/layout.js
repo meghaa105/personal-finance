@@ -1,6 +1,8 @@
 import './globals.css';
-import ThemeProvider from './ThemeProvider';
-import Navigation from '@/components/Navigation';
+import dynamic from 'next/dynamic';
+
+const ThemeProvider = dynamic(() => import('./ThemeProvider'), { ssr: true });
+const Navigation = dynamic(() => import('@/components/Navigation'), { ssr: true });
 
 export const metadata = {
   title: 'Personal Finance Manager (₹)',
@@ -11,7 +13,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <link 
+          href="https://fonts.googleapis.com/icon?family=Material+Icons" 
+          rel="stylesheet" 
+          media="print" 
+          onLoad="this.media='all'" 
+        />
       </head>
       <body className="min-h-screen bg-white dark:bg-gray-900">
         <ThemeProvider>

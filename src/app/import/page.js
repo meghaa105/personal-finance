@@ -1,7 +1,12 @@
 'use client';
 
 import Import from '@/components/Import';
+import PageTransition from '@/components/PageTransition';
 
 export default function ImportPage() {
-  return <Import />;
+  return (
+    <PageTransition>
+      <Import />
+    </PageTransition>
+  );
 }

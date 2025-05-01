@@ -1,12 +1,20 @@
 'use client';
 
-import Reminders from '@/components/Reminders';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import PageTransition from '@/components/PageTransition';
+import LoadingSpinner from '@/components/LoadingSpinner';
+
+const Reminders = dynamic(() => import('@/components/Reminders'), {
+  loading: () => <LoadingSpinner />
+});
 
 export default function RemindersPage() {
   return (
     <PageTransition>
-      <Reminders />
+      <Suspense fallback={<LoadingSpinner />}>
+        <Reminders />
+      </Suspense>
     </PageTransition>
   );
 }

@@ -1,5 +1,4 @@
 import './globals.css';
-import { metadata } from './metadata';
 import ClientLayout from './ClientLayout';
 
 export default function RootLayout({ children }) {

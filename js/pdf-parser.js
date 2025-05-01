@@ -73,7 +73,7 @@ const PDFParser = (function () {
 
         // ICICI Bank statement pattern
         ICICI_BANK_STATEMENT:
-            /(\d{2}-\d{2}-\d{4})\s+(.+?)\s+(?:(?:CR|DR)\s+)?(\d+(?:,\d{3})*\.\d{2})/gi,
+            /(\d{2}-[A-Z]{3}-\d{2,4})\s+([\dA-Za-z0-9]+)\s+(.+?)\s+[\d.,]+\s+([\d.,]+)/g,
     };
 
     // Common merchant keywords to help with category identification
@@ -390,7 +390,7 @@ const PDFParser = (function () {
     // Parse the PDF file
     async function parsePDF(file) {
         try {
-            if (!pdfjsLib) {
+            if (typeof pdfjsLib === "undefined") { // Fixed error: Check if pdfjsLib is undefined
                 throw new Error("PDF.js library not loaded");
             }
 
@@ -487,75 +487,16 @@ const PDFParser = (function () {
     function extractTransactions(text) {
         const transactions = [];
         const lines = text.split("\n");
-
-        // Add support for ICICI Bank credit card statement format
-        const iciciPattern = /(\d{2}-[A-Z]{3}-\d{2,4})\s+([\dA-Za-z0-9]+)\s+(.+?)\s+[\d.,]+\s+([\d.,]+)/g;
-
-        let match;
-        while ((match = iciciPattern.exec(text)) !== null) {
-            const dateStr = match[1]; // Date in DD-MMM-YYYY format
-            const refNumber = match[2].trim(); // Ref Number
-            const transactionDetails = match[3].trim(); // Transaction Details
-            const description = `${transactionDetails} (Ref: ${refNumber})`; // Combine Transaction Details and Ref Number
-            const amountStr = match[4].replace(/,/g, ""); // Amount field, cleaned of commas
-
-            const date = parseDate(dateStr);
-            const amount = parseFloat(amountStr); // Parse the cleaned amount string
-
-            if (date && !isNaN(amount)) {
-                const isCreditTransaction = transactionDetails.toLowerCase().includes("refund") || transactionDetails.toLowerCase().includes("credit");
-                const transactionType = isCreditTransaction ? "income" : "expense";
-
-                transactions.push({
-                    date,
-                    description,
-                    amount,
-                    type: transactionType,
-                    category: transactionType === "income" ? "Income" : guessCategory(transactionDetails),
-                    source: "PDF"
-                });
-            } else {
-                console.warn(`Skipped ICICI transaction: Date=${dateStr}, RefNumber=${refNumber}, TransactionDetails=${transactionDetails}, Amount=${amountStr}`);
-            }
-        }
-
-        // Fallback for ICICI transactions not matching the primary pattern
-        const iciciFallbackPattern = /(\d{2}-[A-Z]{3}-\d{2,4})\s+(.+?)\s+([\d.,]+)/g;
-        while ((match = iciciFallbackPattern.exec(text)) !== null) {
-            const dateStr = match[1];
-            const description = match[2].trim();
-            const amountStr = match[3].replace(/,/g, ""); // Use correct group for amount and remove commas
-
-            const date = parseDate(dateStr);
-            const amount = parseFloat(amountStr); // Parse the cleaned amount string
-
-            if (date && !isNaN(amount)) {
-                const isCreditTransaction = description.toLowerCase().includes("refund") || description.toLowerCase().includes("credit");
-                const transactionType = isCreditTransaction ? "income" : "expense";
-
-                transactions.push({
-                    date,
-                    description,
-                    amount,
-                    type: transactionType,
-                    category: transactionType === "income" ? "Income" : guessCategory(description),
-                    source: "PDF"
-                });
-            } else {
-                console.warn(`Skipped fallback ICICI transaction: Date=${dateStr}, Description=${description}, Amount=${amountStr}`);
-            }
-        }
-
         // First, try to extract using SBI statement specific format
-        let sbiMatch;
         const sbiPattern = PATTERNS.SBI_STATEMENT;
-        while ((sbiMatch = sbiPattern.exec(text)) !== null) {
-            const dateStr = sbiMatch[1];
-            const description = sbiMatch[2].trim();
+        let sbimatch; // Declare 'match' outside of the loop to avoid ReferenceError
+        while ((sbimatch = sbiPattern.exec(text)) !== null) {
+            const dateStr = sbimatch[1];
+            const description = sbimatch[2].trim();
             // Clean amount string - remove commas
-            const amountStr = sbiMatch[3].replace(/,/g, "").trim();
+            const amountStr = sbimatch[3].replace(/,/g, "").trim();
             // Get the transaction type (C = Credit/Income, D = Debit/Expense)
-            const typeIndicator = sbiMatch[4].trim();
+            const typeIndicator = sbimatch[4].trim();
 
             const date = parseDate(dateStr);
             const amount = parseFloat(amountStr);
@@ -572,6 +513,7 @@ const PDFParser = (function () {
                         transactionType === "income"
                             ? "Income"
                             : guessCategory(description),
+                    source: "PDF", // Updated source to "PDF"
                 });
             }
         }
@@ -923,6 +865,147 @@ const PDFParser = (function () {
             }
         }
 
+        // Check for ICICI Bank statement pattern
+        if (transactions.length === 0) {
+            const isICICIStatement =
+                text.includes("ICICI BANK") ||
+                text.includes("ICICI Bank") ||
+                text.includes("icici bank") ||
+                text.includes("ICICI CREDIT CARD") ||
+                (text.includes("Date") &&
+                    text.includes("Transaction Details") &&
+                    (text.includes("Debit") || text.includes("Credit")));
+
+            if (isICICIStatement) {
+                console.log("Detected ICICI Bank statement format");
+
+                const iciciPattern = PATTERNS.ICICI_BANK_STATEMENT;
+                let match;
+                while ((match = iciciPattern.exec(text)) !== null) {
+                    const dateStr = match[1]; // Date in DD-MMM-YYYY format
+                    const refNumber = match[2].trim(); // Ref Number
+                    const transactionDetails = match[3].trim(); // Transaction Details
+                    const description = `${transactionDetails} (Ref: ${refNumber})`; // Combine Transaction Details and Ref Number
+                    const amountStr = match[4].replace(/,/g, ""); // Amount field, cleaned of commas
+                    const date = parseDate(dateStr);
+                    const amount = parseFloat(amountStr); // Parse the cleaned amount string
+                    console.warn(`megs ICICI transaction: Date=${dateStr}, RefNumber=${refNumber}, TransactionDetails=${transactionDetails}, Amount=${amountStr}`);
+
+                    if (date && !isNaN(amount)) {
+                        const isCreditTransaction = transactionDetails.toLowerCase().includes("refund") || transactionDetails.toLowerCase().includes("credit");
+                        const transactionType = isCreditTransaction ? "income" : "expense";
+        
+                        transactions.push({
+                            date,
+                            description,
+                            amount,
+                            type: transactionType,
+                            category: transactionType === "income" ? "Income" : guessCategory(transactionDetails),
+                            source: "PDF"
+                        });
+                    } else {
+                        console.warn(`Skipped ICICI transaction: Date=${dateStr}, RefNumber=${refNumber}, TransactionDetails=${transactionDetails}, Amount=${amountStr}`);
+                    }
+                }
+
+                // If no transactions found with primary pattern, try line-by-line analysis
+                if (transactions.length === 0) {
+                    console.log("Trying alternative ICICI parsing method");
+
+                    let currentDate = null;
+                    let currentDescription = null;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        // Look for date pattern DD-MM-YYYY
+                        const dateMatch = /(\d{2}-\d{2}-\d{4})/.exec(line);
+                        if (dateMatch) {
+                            currentDate = parseDate(dateMatch[1]);
+                            // Extract description from the same line
+                            const descriptionMatch = line.substring(
+                                dateMatch[0].length,
+                            ).trim();
+                            if (descriptionMatch) {
+                                currentDescription = descriptionMatch;
+                            }
+                            continue;
+                        }
+
+                        // Look for amount with CR/DR indicator
+                        if (currentDate && currentDescription) {
+                            const amountMatch = /(\d+(?:,\d{3})*\.\d{2})\s*(?:CR|DR)?/.exec(
+                                line,
+                            );
+                            if (amountMatch) {
+                                const amount = parseFloat(
+                                    amountMatch[1].replace(/,/g, ""),
+                                );
+                                const isCreditTransaction =
+                                    line.toLowerCase().includes("cr");
+
+                                if (!isNaN(amount)) {
+                                    transactions.push({
+                                        date: currentDate,
+                                        description: currentDescription,
+                                        amount: amount,
+                                        type: isCreditTransaction
+                                            ? "income"
+                                            : "expense",
+                                        category: isCreditTransaction
+                                            ? "Income"
+                                            : guessCategory(
+                                                  currentDescription,
+                                              ),
+                                    });
+
+                                    // Reset for next transaction
+                                    currentDate = null;
+                                    currentDescription = null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add support for ICICI Bank statement format
+        const iciciPattern = /(\d{2}-[A-Z]{3}-\d{2,4})\s+([\w\s]+)\s+([\w\s]+)\s+\d+\.\d{2}\s+([-+]?\d{1,3}(?:,\d{3})*\.\d{2})/g;
+
+        let match;
+        while ((match = iciciPattern.exec(text)) !== null) {
+            try {
+                const dateStr = match[1]; // Date in DD-MMM-YYYY format
+                const refNumber = match[2].trim(); // Reference Number
+                const transactionDetails = match[3].trim(); // Transaction Details
+                const amountStr = match[4].replace(/,/g, ""); // Amount field, cleaned of commas
+
+                const date = parseDate(dateStr);
+                const amount = parseFloat(amountStr); // Parse the cleaned amount string
+
+                if (date && !isNaN(amount)) {
+                    const isCreditTransaction = amount > 0;
+                    const transactionType = isCreditTransaction ? "income" : "expense";
+
+                    transactions.push({
+                        date,
+                        description: `${transactionDetails} (Ref: ${refNumber})`,
+                        amount: Math.abs(amount), // Use absolute value for amount
+                        type: transactionType,
+                        category: transactionType === "income" ? "Income" : guessCategory(transactionDetails),
+                        source: "PDF"
+                    });
+                } else {
+                    console.warn(`Skipped ICICI transaction: Date=${dateStr}, RefNumber=${refNumber}, TransactionDetails=${transactionDetails}, Amount=${amountStr}`);
+                }
+            } catch (error) {
+                console.error(`Error parsing ICICI transaction: ${error.message}. Skipping and continuing.`);
+                continue; // Skip the problematic transaction and continue parsing
+            }
+        }
+
         // If no transactions found yet, try other transaction patterns
         if (transactions.length === 0) {
             for (const pattern of PATTERNS.TRANSACTION) {
@@ -939,19 +1022,21 @@ const PDFParser = (function () {
                     const amountStr = match[3].replace(/[$₹Rs\.,]/g, "");
                     const amount = parseFloat(amountStr);
 
-                    // Determine transaction type based on description
-                    const isIncome = /payment|deposit|salary|credit|cashback|refund/i.test(description);
-                    const isExpense = /purchase|debit|withdrawal|transfer to|upi|spent|expense/i.test(description);
-
-                    const type = isIncome ? "income" : isExpense ? "expense" : "expense"; // Default to expense
+                    // Guess if this is income or expense based on description
+                    const isIncome =
+                        /payment|deposit|salary|credit|cashback|refund/i.test(
+                            description,
+                        );
 
                     if (parseDate(dateStr) && !isNaN(amount)) {
                         transactions.push({
                             date: parseDate(dateStr),
                             description: description,
                             amount: amount,
-                            type: type,
-                            category: type === "income" ? "Income" : guessCategory(description),
+                            type: isIncome ? "income" : "expense",
+                            category: isIncome
+                                ? "Income"
+                                : guessCategory(description),
                         });
                     }
                 }
@@ -1011,19 +1096,12 @@ const PDFParser = (function () {
                             category: isIncome
                                 ? "Income"
                                 : guessCategory(description),
+                            source: "PDF", // Ensure source is set to "PDF"
                         });
                     }
                 }
             }
         }
-
-        transactions.forEach(transaction => {
-            transaction.source = "PDF"; // Ensure the source is set to "PDF"
-        });
-
-        console.log(`Total transactions parsed: ${transactions.length}`);
-        const successfulTransactions = transactions.filter(t => t.date && t.amount && t.description).length;
-        console.log(`Successful transactions: ${successfulTransactions}`);
 
         return transactions;
     }
@@ -1170,39 +1248,110 @@ const PDFParser = (function () {
 
     // Guess category based on transaction description
     function guessCategory(description) {
-        const customMappings = Database.getCustomMappings(); // Fetch custom mappings
+        if (!description) return "Other";
+
         const descriptionLower = description.toLowerCase();
 
-        // Check custom mappings first
-        for (const [keyword, category] of Object.entries(customMappings)) {
-            if (descriptionLower.includes(keyword)) {
-                return category; // Return category from custom mappings
-            }
-        }
-
-        // Fall back to existing categorization logic
-        const categoryPatterns = {
-            'Food & Dining': [/(?:swiggy|zomato|uber\s*eats|dominos|pizza|restaurant|cafe|food|dining|eat|kitchen|dhaba|biryani|curry|bakery|sweet|mithai|hotel.*rest|tea|chai|coffee|cafeteria|canteen|bistro|deli|eatery|foodhall|mess)/i],
-            'Groceries': [/(?:bigbasket|grofers|blinkit|dmart|market|grocery|kirana|fresh|provision|fruits|vegetables|super\s*marketsupermart|general\s*store|departmental|mart.*retail|retail.*mart|dairy|organic|nature.*basket|reliance\s*fresh|more\s*retail|nilgiris|spencers)/i],
-            'Shopping': [/(?:amazon|flipkart|myntra|ajio|snapdeal|retail|mart(?!\s*grocery)|store|shop|mall|bazaar|lifestyle|westside|shoppersstop|trends|max|clothing|fashion|apparel|footwear|accessories|electronics|gadget|home.*decor|furnish)/i],
-            'Transportation': [/(?:uber|ola|rapido|metro|bus|train|taxi|auto|petrol|diesel|fuel|fastag|parking|toll|fare|railway|irctc|redbus|ticket|travel.*transport|cab|rickshaw)/i],
-            'Utilities': [/(?:electricity|water|gas|broadband|mobile|bill\s*pay|recharge|dth|utility|wifi|internet|phone|cellular|power|maintenance|society|mtnl|bsnl|airtel|jio|vi|vodafone)/i],
-            'Health': [/(?:hospital|clinic|medical|pharmacy|medicine|doctor|apollo|fortis|diagnostic|lab|test|wellness|dental|health|treatment|consultation|physician|specialist|medplus|netmeds|1mg|pharmeasy)/i],
-            'Education': [/(?:school|college|university|course|tuition|education|coaching|institute|academy|class|training|workshop|seminar|learning|study|tutorial|skill|certification|exam|fee)/i],
-            'Travel': [/(?:hotel(?!.*restaurant)|flight|travel|trip|tour|vacation|holiday|booking|oyo|mmt|makemytrip|goibibo|easemytrip|airbnb|resort|lodge|stay|accommodation|tourism|cleartrip|yatra)/i],
-            'Entertainment': [/(?:movie|cinema|pvr|inox|netflix|prime|hotstar|entertainment|game|gaming|theatr|show|concert|event|ticket.*show|sport|recreation|amusement|fun|leisure|subscription|streaming)/i],
-            'Insurance': [/(?:insurance|policy|premium|lic|term|life.*policy|health.*policy|vehicle.*insurance|mediclaim|coverage|protection|assurance|renewal)/i],
-            'Investments': [/(?:mutual\s*fund|stock|share|demat|investment|zerodha|groww|upstox|sip|nps|ppf|trading|portfolio|wealth|asset|equity|bond|etf|gold|deposit|fd|rd)/i],
-            'Banking & Finance': [/(?:emi|loan|credit\s*card|bank(?!.*grocery)|finance|payment|transfer|neft|rtgs|imps|upi|net\s*banking|mobile\s*banking|account|balance|interest|charge|fee|annual|processing|service|cash|atm|cheque|draft)/i]
-        };
-
-        for (const [category, patterns] of Object.entries(categoryPatterns)) {
-            if (patterns.some((pattern) => pattern.test(descriptionLower))) {
+        // First check exact keywords for Indian merchants (which are more specific)
+        for (const [keyword, category] of Object.entries(MERCHANT_CATEGORIES)) {
+            // Use word boundary for more accurate matching (to avoid partial matches)
+            if (descriptionLower.includes(keyword.toLowerCase())) {
                 return category;
             }
         }
 
-        return 'Other'; // Default category if no match is found
+        // Indian transaction patterns
+        if (descriptionLower.includes("upi")) return "Banking & Finance";
+        if (descriptionLower.includes("imps")) return "Banking & Finance";
+        if (descriptionLower.includes("neft")) return "Banking & Finance";
+        if (descriptionLower.includes("rtgs")) return "Banking & Finance";
+        if (descriptionLower.includes("emi")) return "Banking & Finance";
+        if (descriptionLower.includes("loan")) return "Banking & Finance";
+        if (descriptionLower.includes("credit card"))
+            return "Banking & Finance";
+        if (descriptionLower.includes("atm")) return "Banking & Finance";
+
+        // More payment contexts
+        if (descriptionLower.includes("payment")) {
+            if (
+                descriptionLower.includes("electricity") ||
+                descriptionLower.includes("water") ||
+                descriptionLower.includes("gas") ||
+                descriptionLower.includes("bill")
+            ) {
+                return "Utilities";
+            }
+            if (descriptionLower.includes("rent")) return "Housing";
+            if (
+                descriptionLower.includes("school") ||
+                descriptionLower.includes("college") ||
+                descriptionLower.includes("university")
+            ) {
+                return "Education";
+            }
+        }
+
+        // Analyze transaction patterns for Indian banks (eg: "POS XYZ MERCHANT")
+        if (descriptionLower.includes("pos ")) {
+            // POS transactions - try to extract merchant name
+            const posWords = descriptionLower.split(" ");
+            const posIndex = posWords.indexOf("pos");
+            if (posIndex >= 0 && posIndex < posWords.length - 1) {
+                // Try to categorize based on the merchant after "POS"
+                const merchantName = posWords.slice(posIndex + 1).join(" ");
+                return categorizeMerchant(merchantName);
+            }
+        }
+
+        // Try UPI reference patterns (common in Indian transactions)
+        if (descriptionLower.includes("upi-")) {
+            // Extract UPI reference (after UPI-)
+            const upiParts = descriptionLower.split("upi-");
+            if (upiParts.length > 1) {
+                return categorizeMerchant(upiParts[1]);
+            }
+        }
+
+        // Common expense indicators
+        if (descriptionLower.includes("recharge")) return "Utilities";
+        if (descriptionLower.includes("dth")) return "Entertainment";
+        if (descriptionLower.includes("broadband")) return "Utilities";
+        if (descriptionLower.includes("mobile")) return "Utilities";
+        if (descriptionLower.includes("insurance")) return "Insurance";
+        if (descriptionLower.includes("mutual fund")) return "Investments";
+        if (descriptionLower.includes("investment")) return "Investments";
+
+        // Additional helper function for analyzing merchant names
+        function categorizeMerchant(merchant) {
+            if (!merchant) return "Other";
+            const merchantLower = merchant.toLowerCase();
+
+            // Re-check against our merchant database
+            for (const [keyword, category] of Object.entries(
+                MERCHANT_CATEGORIES,
+            )) {
+                if (merchantLower.includes(keyword.toLowerCase())) {
+                    return category;
+                }
+            }
+
+            // Common patterns
+            if (/rest|food|cafe|hotel/i.test(merchantLower))
+                return "Food & Dining";
+            if (/mart|super|grocer|fresh|kirana/i.test(merchantLower))
+                return "Groceries";
+            if (/med|pharm|hosp|clinic|doctor/i.test(merchantLower))
+                return "Health";
+            if (/cloth|wear|apparel|mart|shop/i.test(merchantLower))
+                return "Shopping";
+            if (/air|flight|train|bus|taxi|uber|ola/i.test(merchantLower))
+                return "Travel";
+
+            return "Other";
+        }
+
+        // Default category if no match found
+        return "Other";
     }
 
     // Return public API

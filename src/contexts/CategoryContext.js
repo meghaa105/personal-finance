@@ -3,27 +3,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import StorageService from '../services/storage';
 import { useCustomMappings } from './CustomMappingsContext';
+import { DEFAULT_CATEGORIES } from '../constants/categories';
 
 const CategoryContext = createContext();
-
-const DEFAULT_CATEGORIES = [
-  { id: 'food_dining', label: 'Food & Dining', icon: '🍽️' },
-  { id: 'groceries', label: 'Groceries', icon: '🛒' },
-  { id: 'shopping', label: 'Shopping', icon: '🛍️' },
-  { id: 'transport', label: 'Transportation', icon: '🚌' },
-  { id: 'entertainment', label: 'Entertainment', icon: '🎬' },
-  { id: 'housing', label: 'Housing', icon: '🏠' },
-  { id: 'utilities', label: 'Utilities', icon: '💡' },
-  { id: 'health', label: 'Health', icon: '🏥' },
-  { id: 'education', label: 'Education', icon: '🎓' },
-  { id: 'personal', label: 'Personal', icon: '👤' },
-  { id: 'travel', label: 'Travel', icon: '✈️' },
-  { id: 'income', label: 'Income', icon: '💰' },
-  { id: 'insurance', label: 'Insurance', icon: '🛡️' },
-  { id: 'banking_finance', label: 'Banking & Finance', icon: '🏦' },
-  { id: 'sports_fitness', label: 'Sports & Fitness', icon: '🏃' },
-  { id: 'other', label: 'Other', icon: '⛓️' }
-];
 
 export function CategoryProvider({ children }) {
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);

@@ -2,248 +2,7 @@
  * Parser utilities for handling different file formats (CSV, PDF, Splitwise)
  */
 import Papa from 'papaparse';
-
-// Common merchant categories for transaction categorization
-const MERCHANT_CATEGORIES = {
-    // Food & Dining
-    restaurant: "Food & Dining",
-    cafe: "Food & Dining",
-    swiggy: "Food & Dining",
-    zomato: "Food & Dining",
-
-    // Groceries
-    grocery: "Groceries",
-    supermarket: "Groceries",
-    dmart: "Groceries",
-    kirana: "Groceries",
-
-    // Shopping
-    amazon: "Shopping",
-    flipkart: "Shopping",
-    myntra: "Shopping",
-    ajio: "Shopping",
-    nykaa: "Shopping",
-    meesho: "Shopping",
-    tatacliq: "Shopping",
-    shop: "Shopping",
-    store: "Shopping",
-    retail: "Shopping",
-    clothing: "Shopping",
-    apparel: "Shopping",
-    snapdeal: "Shopping",
-    lenskart: "Shopping",
-    croma: "Shopping",
-    "reliance digital": "Shopping",
-    "vijay sales": "Shopping",
-    lifestyle: "Shopping",
-    pantaloons: "Shopping",
-    westside: "Shopping",
-    mall: "Shopping",
-    bazaar: "Shopping",
-
-    // Transportation
-    uber: "Transportation",
-    ola: "Transportation",
-    rapido: "Transportation",
-    taxi: "Transportation",
-    auto: "Transportation",
-    transit: "Transportation",
-    train: "Transportation",
-    irctc: "Transportation",
-    railway: "Transportation",
-    metro: "Transportation",
-    bus: "Transportation",
-    "red bus": "Transportation",
-    redbus: "Transportation",
-    petrol: "Transportation",
-    diesel: "Transportation",
-    fuel: "Transportation",
-    "indian oil": "Transportation",
-    hp: "Transportation",
-    "bharat petroleum": "Transportation",
-    bpcl: "Transportation",
-    toll: "Transportation",
-    fastag: "Transportation",
-
-    // Entertainment
-    movie: "Entertainment",
-    cinema: "Entertainment",
-    pvr: "Entertainment",
-    inox: "Entertainment",
-    bookmyshow: "Entertainment",
-    theater: "Entertainment",
-    netflix: "Entertainment",
-    hotstar: "Entertainment",
-    "disney+": "Entertainment",
-    "amazon prime": "Entertainment",
-    "sony liv": "Entertainment",
-    zee5: "Entertainment",
-    "jio cinema": "Entertainment",
-    game: "Entertainment",
-    gaming: "Entertainment",
-    concert: "Entertainment",
-    event: "Entertainment",
-
-    // Housing
-    rent: "Housing",
-    lease: "Housing",
-    maintenance: "Housing",
-    society: "Housing",
-    apartment: "Housing",
-    flat: "Housing",
-    property: "Housing",
-    home: "Housing",
-    housing: "Housing",
-    accommodation: "Housing",
-    builder: "Housing",
-    construction: "Housing",
-    repair: "Housing",
-    renovation: "Housing",
-
-    // Utilities
-    electric: "Utilities",
-    electricity: "Utilities",
-    bill: "Utilities",
-    water: "Utilities",
-    internet: "Utilities",
-    broadband: "Utilities",
-    jio: "Utilities",
-    airtel: "Utilities",
-    bsnl: "Utilities",
-    vi: "Utilities",
-    vodafone: "Utilities",
-    idea: "Utilities",
-    "tata sky": "Utilities",
-    dth: "Utilities",
-    gas: "Utilities",
-    lpg: "Utilities",
-    indane: "Utilities",
-    utility: "Utilities",
-    pipeline: "Utilities",
-
-    // Health
-    doctor: "Health",
-    hospital: "Health",
-    medical: "Health",
-    apollo: "Health",
-    fortis: "Health",
-    max: "Health",
-    medanta: "Health",
-    medplus: "Health",
-    pharmacy: "Health",
-    pharmeasy: "Health",
-    netmeds: "Health",
-    "tata 1mg": "Health",
-    dental: "Health",
-    vision: "Health",
-    healthcare: "Health",
-    clinic: "Health",
-    diagnostic: "Health",
-    lab: "Health",
-    test: "Health",
-    medicine: "Health",
-    ayurvedic: "Health",
-
-    // Education
-    tuition: "Education",
-    school: "Education",
-    college: "Education",
-    university: "Education",
-    education: "Education",
-    book: "Education",
-    course: "Education",
-    byjus: "Education",
-    unacademy: "Education",
-    vedantu: "Education",
-    whitehat: "Education",
-    cuemath: "Education",
-    coaching: "Education",
-    institute: "Education",
-    academy: "Education",
-    library: "Education",
-    learning: "Education",
-
-    // Travel
-    travel: "Travel",
-    hotel: "Travel",
-    oyo: "Travel",
-    makemytrip: "Travel",
-    goibibo: "Travel",
-    "booking.com": "Travel",
-    cleartrip: "Travel",
-    ixigo: "Travel",
-    trivago: "Travel",
-    airline: "Travel",
-    indigo: "Travel",
-    spicejet: "Travel",
-    vistara: "Travel",
-    "air india": "Travel",
-    flight: "Travel",
-    vacation: "Travel",
-    trip: "Travel",
-    tourism: "Travel",
-    resort: "Travel",
-    package: "Travel",
-    goa: "Travel",
-    manali: "Travel",
-    kerala: "Travel",
-
-    // Insurance
-    insurance: "Insurance",
-    policy: "Insurance",
-    premium: "Insurance",
-    lic: "Insurance",
-    "health insurance": "Insurance",
-    "vehicle insurance": "Insurance",
-    "hdfc ergo": "Insurance",
-    "bajaj allianz": "Insurance",
-    "icici lombard": "Insurance",
-    "max bupa": "Insurance",
-    "star health": "Insurance",
-    "new india": "Insurance",
-    mutual: "Insurance",
-    term: "Insurance",
-    life: "Insurance",
-
-    // Investments
-    investment: "Investments",
-    "mutual fund": "Investments",
-    stocks: "Investments",
-    shares: "Investments",
-    demat: "Investments",
-    zerodha: "Investments",
-    groww: "Investments",
-    upstox: "Investments",
-    kuvera: "Investments",
-    uti: "Investments",
-    sbi: "Investments",
-    hdfc: "Investments",
-    icici: "Investments",
-    axis: "Investments",
-    kotak: "Investments",
-    sip: "Investments",
-    nps: "Investments",
-    ppf: "Investments",
-    "fixed deposit": "Investments",
-    fd: "Investments",
-    nifty: "Investments",
-    sensex: "Investments",
-
-    // Sports
-    badminton: "Sports",
-    nvk: "Sports",
-    pullela: "Sports",
-    shuttles: "Sports",
-    baddy: "Sports",
-
-    // Income
-    payment: "Income",
-    deposit: "Income",
-    salary: "Income",
-    payroll: "Income",
-    "direct deposit": "Income",
-    cashback: "Income",
-};
+import { OTHER_CATEGORY_ID, INCOME_CATEGORY_ID } from '@/constants/categories';
 
 // Regular expression patterns for different types of bank statements
 const PATTERNS = {
@@ -316,32 +75,24 @@ function parseDate(dateStr) {
  * @param {string} description - Transaction description
  * @returns {string} Guessed category
  */
-function guessCategory(description, customMappings = []) {
-    if (!description) return "Other";
+function guessCategory(description, customMappings = {}) {
+    if (!description) return OTHER_CATEGORY_ID;
 
     const descriptionLower = description.toLowerCase();
 
     // Check for income indicators
     if (/salary|income|credit received|deposit|refund|cashback/i.test(descriptionLower)) {
-        return "Income";
+        return INCOME_CATEGORY_ID;
     }
 
     // Check custom mappings first
-    const customMapping = customMappings.find(mapping =>
-        descriptionLower.includes(mapping.pattern.toLowerCase())
-    );
-    if (customMapping) {
-        return customMapping.category;
-    }
-
-    // Check merchant categories
-    for (const [keyword, category] of Object.entries(MERCHANT_CATEGORIES)) {
-        if (descriptionLower.includes(keyword.toLowerCase())) {
+    for (const [category, patterns] of Object.entries(customMappings)) {
+        if (patterns.some(pattern => descriptionLower.includes(pattern.toLowerCase()))) {
             return category;
         }
     }
 
-    return "Other";
+    return OTHER_CATEGORY_ID;
 }
 
 /**
@@ -486,10 +237,9 @@ export async function parsePDF(file, customMappings = []) {
 /**
  * Parse Splitwise CSV file
  * @param {File} file - Splitwise CSV file
- * @param {string} [filterUser] - Optional username to filter transactions
  * @returns {Promise<Array>} Array of parsed transactions
  */
-export async function parseSplitwise(file, filterUser = null, customMappings = []) {
+export async function parseSplitwise(file, customMappings = []) {
     return new Promise((resolve, reject) => {
         if (!file || !file.name.toLowerCase().endsWith('.csv')) {
             reject(new Error('Invalid file type. Please upload a Splitwise CSV file.'));
@@ -518,9 +268,7 @@ export async function parseSplitwise(file, filterUser = null, customMappings = [
                             .filter(row => {
                                 const meghaShare = parseFloat(row['Megha Agarwal'] || '0');
                                 if (meghaShare === 0) return false;
-                                if (!filterUser) return true;
-                                const userShare = parseFloat(row[filterUser] || '0');
-                                return userShare !== 0;
+                                return true;
                             })
                             .map(row => {
                                 try {
@@ -531,21 +279,23 @@ export async function parseSplitwise(file, filterUser = null, customMappings = [
                                     if (!description) return null;
 
                                     let amount = 0;
-                                    if (filterUser && row[filterUser]) {
-                                        amount = Math.abs(parseFloat(row[filterUser]));
-                                    } else if (row.Cost) {
+                                    if (row.Cost) {
                                         amount = Math.abs(parseFloat(row.Cost));
                                     }
 
                                     if (isNaN(amount) || amount === 0) return null;
 
-                                    const type = 'expense'; // Splitwise transactions are typically expenses
+                                    const category = guessCategory(description, customMappings);
+
+                                    const isIncome = category === "Income" || /received|refund|credit/i.test(description);
+                                    const isExpense = /paid|spent|debit|expense|upi|transfer to/i.test(description);
+                                    const type = isIncome ? "income" : isExpense ? "expense" : "expense";
                                     return {
                                         date,
                                         description,
                                         amount,
                                         type,
-                                        category: guessCategory(description, customMappings),
+                                        category,
                                         source: 'splitwise',
                                         currency: row.Currency || 'INR'
                                     };

@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ImportOption from './ImportOption';
-import { FaFileCsv, FaUsers, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaFileCsv, FaUsers, FaEdit, FaTrash, FaCheck } from 'react-icons/fa';
 import { MdPictureAsPdf, MdAutoAwesome } from 'react-icons/md';
 import { importTransactions } from '../utils/import';
 import { formatDate } from '../utils/formatters';
 import { useTransactions } from '../contexts/TransactionContext';
+import { useCategories } from '../contexts/CategoryContext';
 
 const IMPORT_OPTIONS = [
   {
@@ -15,7 +17,7 @@ const IMPORT_OPTIONS = [
     icon: MdPictureAsPdf,
     accept: '.pdf',
     color: 'red-600',
-    parser: async (file, customMappings) => importTransactions(file, 'pdf', {}, customMappings)
+    parser: async (file, customMappings) => importTransactions(file, 'pdf', customMappings)
   },
   {
     title: 'Import CSV (Bank Statement)',
@@ -23,7 +25,7 @@ const IMPORT_OPTIONS = [
     icon: FaFileCsv,
     accept: '.csv',
     color: 'green-600',
-    parser: async (file, customMappings) => importTransactions(file, 'csv', {}, customMappings)
+    parser: async (file, customMappings) => importTransactions(file, 'csv', customMappings)
   },
   {
     title: 'Import Splitwise CSV',
@@ -31,7 +33,7 @@ const IMPORT_OPTIONS = [
     icon: FaUsers,
     accept: '.csv',
     color: 'teal-500',
-    parser: async (file, customMappings) => importTransactions(file, 'splitwise', {}, customMappings)
+    parser: async (file, customMappings) => importTransactions(file, 'splitwise', customMappings)
   },
   {
     title: 'Smart Import',
@@ -44,12 +46,13 @@ const IMPORT_OPTIONS = [
       if (!['csv', 'pdf', 'xlsx', 'xls'].includes(extension)) {
         throw new Error('Unsupported file format');
       }
-      return importTransactions(file, extension, {}, customMappings);
+      return importTransactions(file, extension, customMappings);
     }
   }
 ];
 
 export default function Import() {
+  const router = useRouter();
   const [previewData, setPreviewData] = useState(null);
   const [isCompactView, setIsCompactView] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -58,6 +61,7 @@ export default function Import() {
   const [uploadStatus, setUploadStatus] = useState('');
 
   const { addTransactions } = useTransactions();
+  const { categories } = useCategories();
 
   const onImport = async () => {
     if (!previewData) return;
@@ -68,6 +72,7 @@ export default function Import() {
       setImportStatus('success');
       alert('Transactions imported successfully!');
       setPreviewData(null); // Clear the preview after successful import
+      router.push('/transactions'); // Navigate to transactions page
     } catch (err) {
       console.error('Error importing transactions:', err);
       setImportStatus('error');
@@ -173,26 +178,28 @@ export default function Import() {
                         />
                       ) : transaction.amount}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {editingId === index ? (
-                        <select
-                          defaultValue={transaction.type || 'expense'}
-                          className="border rounded px-2 py-1"
-                          onChange={(e) => {
-                            const updatedData = [...previewData];
-                            updatedData[index] = { ...updatedData[index], type: e.target.value };
-                            setPreviewData(updatedData);
-                          }}
-                        >
-                          <option value="expense">expense</option>
-                          <option value="income">income</option>
-                        </select>
-                      ) : (transaction.type || 'expense')}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
+                      {
+                        editingId === index ? (
+                          <select
+                            defaultValue={transaction.type || 'expense'}
+                            className="border rounded px-2 py-1"
+                            onChange={(e) => {
+                              const updatedData = [...previewData];
+                              updatedData[index] = { ...updatedData[index], type: e.target.value };
+                              setPreviewData(updatedData);
+                            }}
+                          >
+                            <option value="expense">Expense</option>
+                            <option value="income">Income</option>
+                          </select>
+                        ) : (transaction.type)
+                      }
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {editingId === index ? (
                         <select
-                          defaultValue={transaction.category || 'Other'}
+                          defaultValue={transaction.category || 'other'}
                           className="border rounded px-2 py-1"
                           onChange={(e) => {
                             const updatedData = [...previewData];
@@ -200,14 +207,18 @@ export default function Import() {
                             setPreviewData(updatedData);
                           }}
                         >
-                          <option value="Other">Other</option>
-                          <option value="Food">Food</option>
-                          <option value="Transportation">Transportation</option>
-                          <option value="Shopping">Shopping</option>
-                          <option value="Bills">Bills</option>
-                          <option value="Entertainment">Entertainment</option>
+                          {categories.map(category => (
+                            <option key={category.id} value={category.id}>
+                              {category.icon} {category.label}
+                            </option>
+                          ))}
                         </select>
-                      ) : (transaction.category || 'Other')}
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span>{categories.find(c => c.id === (transaction.category || 'other'))?.icon || '⛓️'}</span>
+                          <span>{categories.find(c => c.id === (transaction.category || 'other'))?.label || 'Other'}</span>
+                        </div>
+                      )}
                     </td>
                     {!isCompactView && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -217,7 +228,7 @@ export default function Import() {
                               onClick={() => setEditingId(null)}
                               className="text-green-600 hover:text-green-800 p-1"
                             >
-                              <FaEdit size={16} />
+                              <FaCheck size={16} />
                             </button>
                           ) : (
                             <button

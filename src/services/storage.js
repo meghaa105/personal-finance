@@ -3,6 +3,8 @@
  * Handles data persistence using browser's localStorage
  */
 
+import { DEFAULT_CATEGORIES, DEFAULT_MAPPINGS } from '../constants/categories';
+
 const STORAGE_KEYS = {
   TRANSACTIONS: 'personalFinance_transactions',
   CATEGORIES: 'personalFinance_categories',
@@ -20,44 +22,11 @@ class StorageService {
     }
 
     if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
-      const defaultCategories = [
-        { id: 'food_dining', label: 'Food & Dining', icon: '🍽️' },
-        { id: 'groceries', label: 'Groceries', icon: '🛒' },
-        { id: 'shopping', label: 'Shopping', icon: '🛍️' },
-        { id: 'transport', label: 'Transportation', icon: '🚌' },
-        { id: 'entertainment', label: 'Entertainment', icon: '🎬' },
-        { id: 'housing', label: 'Housing', icon: '🏠' },
-        { id: 'utilities', label: 'Utilities', icon: '💡' },
-        { id: 'health', label: 'Health', icon: '🏥' },
-        { id: 'education', label: 'Education', icon: '🎓' },
-        { id: 'personal', label: 'Personal', icon: '👤' },
-        { id: 'travel', label: 'Travel', icon: '✈️' },
-        { id: 'income', label: 'Income', icon: '💰' },
-        { id: 'insurance', label: 'Insurance', icon: '🛡️' },
-        { id: 'banking_finance', label: 'Banking & Finance', icon: '🏦' },
-        { id: 'sports_fitness', label: 'Sports & Fitness', icon: '🏃' },
-        { id: 'other', label: 'Other', icon: '⛓️' }
-      ];
-      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(defaultCategories));
+      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
     }
 
     if (!localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS)) {
-      const defaultCustomMappings = {
-        'Food & Dining': ['restaurant', 'cafe', 'swiggy', 'zomato'],
-        'Groceries': ['grocery', 'supermarket', 'dmart', 'kirana'],
-        'Shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'snapdeal', 'lenskart', 'croma', 'reliance digital', 'vijay sales', 'lifestyle', 'pantaloons', 'westside', 'mall', 'bazaar'],
-        'Transportation': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'transit', 'train', 'irctc', 'railway', 'metro', 'bus', 'red bus', 'redbus', 'petrol', 'diesel', 'fuel', 'indian oil', 'hp', 'bharat petroleum', 'bpcl', 'toll', 'fastag'],
-        'Entertainment': ['movie', 'cinema', 'pvr', 'inox', 'bookmyshow', 'theater', 'netflix', 'hotstar', 'disney+', 'amazon prime', 'sony liv', 'zee5', 'jio cinema', 'game', 'gaming', 'concert', 'event'],
-        'Housing': ['rent', 'lease', 'maintenance', 'society', 'apartment', 'flat', 'property', 'home', 'housing', 'accommodation', 'builder', 'construction', 'repair', 'renovation'],
-        'Utilities': ['electric', 'electricity', 'bill', 'water', 'internet', 'broadband', 'jio', 'airtel', 'bsnl', 'vi', 'vodafone', 'idea', 'tata sky', 'dth', 'gas', 'lpg', 'indane', 'utility', 'pipeline'],
-        'Health': ['doctor', 'hospital', 'medical', 'apollo', 'fortis', 'max', 'medanta', 'medplus', 'pharmacy', 'pharmeasy', 'netmeds', 'tata 1mg', 'dental', 'vision', 'healthcare', 'clinic', 'diagnostic', 'lab', 'test', 'medicine', 'ayurvedic'],
-        'Education': ['tuition', 'school', 'college', 'university', 'education', 'book', 'course', 'byjus', 'unacademy', 'vedantu', 'whitehat', 'cuemath', 'coaching', 'institute', 'academy', 'library', 'learning'],
-        'Travel': ['travel', 'hotel', 'oyo', 'makemytrip', 'goibibo', 'booking.com', 'cleartrip', 'ixigo', 'trivago', 'airline', 'indigo', 'spicejet', 'vistara', 'air india', 'flight', 'vacation', 'trip', 'tourism', 'resort', 'package', 'goa', 'manali', 'kerala'],
-        'Insurance': ['insurance', 'policy', 'premium', 'lic', 'health insurance', 'vehicle insurance', 'hdfc ergo', 'bajaj allianz', 'icici lombard', 'max bupa', 'star health', 'new india', 'mutual', 'term', 'life'],
-        'Banking & Finance': ['investment', 'mutual fund', 'stocks', 'shares', 'demat', 'zerodha', 'groww', 'upstox', 'kuvera', 'uti', 'sbi', 'hdfc', 'icici', 'axis', 'kotak', 'sip', 'nps', 'ppf', 'fixed deposit', 'fd', 'nifty', 'sensex'],
-        'Sports & Fitness': ['badminton', 'nvk', 'pullela', 'shuttles', 'baddy']
-      };
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(defaultCustomMappings));
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(DEFAULT_MAPPINGS));
     }
 
     if (!localStorage.getItem(STORAGE_KEYS.REMINDERS)) {

@@ -8,7 +8,7 @@ import { parseCSV, parsePDF, parseSplitwise } from './parsers';
  * @param {Object} options - Additional import options
  * @returns {Promise<Array>} Array of parsed transactions
  */
-export async function importTransactions(file, type, options = {}, customMappings = []) {
+export async function importTransactions(file, type, customMappings = []) {
     try {
         switch (type.toLowerCase()) {
             case 'csv':
@@ -16,7 +16,7 @@ export async function importTransactions(file, type, options = {}, customMapping
             case 'pdf':
                 return await parsePDF(file, customMappings);
             case 'splitwise':
-                return await parseSplitwise(file, options.filterUser, customMappings);
+                return await parseSplitwise(file, customMappings);
             default:
                 throw new Error(`Unsupported file type: ${type}`);
         }

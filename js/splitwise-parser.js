@@ -187,7 +187,7 @@ const SplitwiseParser = (function() {
             'Transportation': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'train', 'bus', 'metro', 'fuel', 'petrol', 'diesel', 'toll', 'fastag', 'parking', 'cab'],
             'Entertainment': ['movie', 'cinema', 'pvr', 'inox', 'netflix', 'hotstar', 'prime', 'gaming', 'concert', 'event', 'bookmyshow', 'theater', 'recreation'],
             'Housing': ['rent', 'lease', 'maintenance', 'society', 'apartment', 'flat', 'property', 'home', 'housing', 'repair', 'renovation'],
-            'Utilities': ['electricity', 'water', 'gas', 'internet', 'broadband', 'mobile', 'recharge', 'bill', 'dth', 'wifi', 'power', 'phone'],
+            'Utilities': ['electricity', 'water', 'gas', 'internet', 'broadband', 'mobile', 'recharge', 'bill', 'dth', 'wifi', 'power', 'phone', 'rent'], // Added "rent" here
             'Health': ['doctor', 'hospital', 'pharmacy', 'medicine', 'clinic', 'diagnostic', 'lab', 'test', 'healthcare', 'treatment', 'wellness'],
             'Education': ['tuition', 'school', 'college', 'university', 'course', 'coaching', 'learning', 'books', 'training', 'exam', 'certification'],
             'Travel': ['hotel', 'flight', 'travel', 'trip', 'vacation', 'tour', 'booking', 'resort', 'airbnb', 'holiday', 'tourism'],

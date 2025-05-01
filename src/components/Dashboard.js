@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../utils/formatters';
+// import { format } from 'date-fns';
 import { useTransactions } from '../contexts/TransactionContext';
 import { useCategories } from '../contexts/CategoryContext';
 import Transaction from './Transaction';
+import BudgetProgress from './BudgetProgress';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
@@ -114,23 +116,23 @@ export default function Dashboard() {
   }, [transactions, categories]);
 
   return (
-    <div className="dashboard">
+    <div className="dashboard pt-2">
       <div className="summary-cards grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div className="card bg-white rounded-lg p-6 shadow-sm">
+        <div className="card bg-gray-100 border border-gray-300 rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-700">Total Balance</h3>
           <p className="total-balance text-3xl font-bold text-primary mt-2">
             {formatCurrency(summary.balance)}
           </p>
         </div>
 
-        <div className="card bg-white rounded-lg p-6 shadow-sm">
+        <div className="card bg-gray-100 border border-gray-300 rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-700">Income</h3>
           <p className="text-3xl font-bold text-green-600 mt-2">
             {formatCurrency(summary.income)}
           </p>
         </div>
 
-        <div className="card bg-white rounded-lg p-6 shadow-sm">
+        <div className="card bg-gray-100 border border-gray-300 rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-700">Expenses</h3>
           <p className="text-3xl font-bold text-red-600 mt-2">
             {formatCurrency(summary.expenses)}
@@ -138,11 +140,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="mt-8 shadow-sm border border-gray-200 p-2">
+      <div className="mt-8 rounded-lg shadow-sm bg-gray-100 border border-gray-300 p-2">
         <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Top Expense Categories</h2>
         <div className="bg-gray-50 rounded-lg">
           {categoryData.labels.length > 0 ? (
-            <div className="w-1/3 mx-auto py-4">
+            <div className="w-1/3 h-[25rem] mx-auto py-4 flex justify-center">
               <Doughnut
                 data={categoryData}
                 options={{
@@ -161,6 +163,11 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      <BudgetProgress
+        transactions={transactions}
+        categories={categories}
+      />
 
       <div className="mt-8">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Transactions</h2>

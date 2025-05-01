@@ -6,22 +6,22 @@ export const OTHER_CATEGORY_ID = 'other';
 export const INCOME_CATEGORY_ID = 'income';
 
 export const DEFAULT_CATEGORIES = [
-  { id: 'food_dining', label: 'Food & Dining', icon: '🍽️' },
-  { id: 'groceries', label: 'Groceries', icon: '🛒' },
-  { id: 'shopping', label: 'Shopping', icon: '🛍️' },
-  { id: 'transport', label: 'Transportation', icon: '🚌' },
-  { id: 'entertainment', label: 'Entertainment', icon: '🎬' },
-  { id: 'housing', label: 'Housing', icon: '🏠' },
-  { id: 'utilities', label: 'Utilities', icon: '💡' },
-  { id: 'health', label: 'Health', icon: '🏥' },
-  { id: 'education', label: 'Education', icon: '🎓' },
-  { id: 'personal', label: 'Personal', icon: '👤' },
-  { id: 'travel', label: 'Travel', icon: '✈️' },
-  { id: 'income', label: 'Income', icon: '💰' },
-  { id: 'insurance', label: 'Insurance', icon: '🛡️' },
-  { id: 'banking_finance', label: 'Banking & Finance', icon: '🏦' },
-  { id: 'sports_fitness', label: 'Sports & Fitness', icon: '🏃' },
-  { id: 'other', label: 'Other', icon: '⛓️' }
+  { id: 'food_dining', label: 'Food & Dining', icon: '🍽️', budget: 5000 },
+  { id: 'groceries', label: 'Groceries', icon: '🛒', budget: 5000 },
+  { id: 'shopping', label: 'Shopping', icon: '🛍️', budget: 5000 },
+  { id: 'transport', label: 'Transportation', icon: '🚌', budget: 5000 },
+  { id: 'entertainment', label: 'Entertainment', icon: '🎬', budget: 5000 },
+  { id: 'housing', label: 'Housing', icon: '🏠', budget: 5000 },
+  { id: 'utilities', label: 'Utilities', icon: '💡', budget: 5000 },
+  { id: 'health', label: 'Health', icon: '🏥', budget: 5000 },
+  { id: 'education', label: 'Education', icon: '🎓', budget: 5000 },
+  { id: 'personal', label: 'Personal', icon: '👤', budget: 5000 },
+  { id: 'travel', label: 'Travel', icon: '✈️', budget: 5000 },
+  { id: 'income', label: 'Income', icon: '💰', budget: 5000 },
+  { id: 'insurance', label: 'Insurance', icon: '🛡️', budget: 5000 },
+  { id: 'banking_finance', label: 'Banking & Finance', icon: '🏦', budget: 5000 },
+  { id: 'sports_fitness', label: 'Sports & Fitness', icon: '🏃', budget: 5000 },
+  { id: 'other', label: 'Other', icon: '⛓️', budget: 5000 }
 ];
 
 export const DEFAULT_MAPPINGS = {

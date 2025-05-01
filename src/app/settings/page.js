@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useCategories } from '@/contexts/CategoryContext';
-import { FaPlus, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit, FaCheck } from 'react-icons/fa';
 import PageTransition from '@/components/PageTransition';
 
 export default function Settings() {
-  const { categories, addCategory, deleteCategory } = useCategories();
+  const { categories, addCategory, deleteCategory, updateCategory } = useCategories();
+  const [editingBudget, setEditingBudget] = useState(null);
+  const [tempBudget, setTempBudget] = useState('');
   const [newCategory, setNewCategory] = useState({ label: '', icon: '⛓️' });
   const [iconError, setIconError] = useState('');
 
@@ -106,9 +108,44 @@ export default function Settings() {
                   <p className="font-medium text-gray-800">{category.icon}</p>
                   <div>
                     <p className="font-medium text-gray-800">{category.label}</p>
+                    {editingBudget === category.id ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="number"
+                          value={tempBudget}
+                          onChange={(e) => setTempBudget(e.target.value)}
+                          className="w-16 p-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                          min="0"
+                        />
+                        <button
+                          onClick={() => {
+                            const budget = parseInt(tempBudget) || 5000;
+                            updateCategory(category.id, { ...category, budget });
+                            setEditingBudget(null);
+                            setTempBudget('');
+                          }}
+                          className="p-1 text-primary hover:text-primary-hover transition-colors duration-300"
+                        >
+                          <FaCheck size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-600 mt-1 flex gap-2 content-center">
+                        <span>Budget: ₹{category.budget?.toLocaleString() || '5,000'}</span>
+                        <button
+                          onClick={() => {
+                            setEditingBudget(category.id);
+                            setTempBudget(category.budget?.toString() || '5000');
+                          }}
+                          className="ml-2 text-primary hover:text-primary-hover transition-colors duration-300"
+                        >
+                          <FaEdit size={14} />
+                        </button>
+                      </p>
+                    )}
                   </div>
                 </div>
-                {category.id !== 'other' && (
+                {category.id !== 'other' && category.id !== "income" && (
                   <button
                     onClick={() => deleteCategory(category.id)}
                     className="p-2 text-red-600 hover:bg-red-100 rounded-full transition-colors duration-300"

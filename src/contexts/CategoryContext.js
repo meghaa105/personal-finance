@@ -35,7 +35,8 @@ export function CategoryProvider({ children }) {
 
     const categoryWithIcon = {
       ...newCategory,
-      icon: newCategory.icon || '⛓️'
+      icon: newCategory.icon || '⛓️',
+      budget: newCategory.budget || 5000
     };
 
     StorageService.addCategory(newCategory.id);

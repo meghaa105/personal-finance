@@ -15,7 +15,7 @@ const IMPORT_OPTIONS = [
     icon: MdPictureAsPdf,
     accept: '.pdf',
     color: 'red-600',
-    parser: async (file) => importTransactions(file, 'pdf')
+    parser: async (file, customMappings) => importTransactions(file, 'pdf', {}, customMappings)
   },
   {
     title: 'Import CSV (Bank Statement)',
@@ -23,7 +23,7 @@ const IMPORT_OPTIONS = [
     icon: FaFileCsv,
     accept: '.csv',
     color: 'green-600',
-    parser: async (file) => importTransactions(file, 'csv')
+    parser: async (file, customMappings) => importTransactions(file, 'csv', {}, customMappings)
   },
   {
     title: 'Import Splitwise CSV',
@@ -31,7 +31,7 @@ const IMPORT_OPTIONS = [
     icon: FaUsers,
     accept: '.csv',
     color: 'teal-500',
-    parser: async (file) => importTransactions(file, 'splitwise')
+    parser: async (file, customMappings) => importTransactions(file, 'splitwise', {}, customMappings)
   },
   {
     title: 'Smart Import',
@@ -44,7 +44,7 @@ const IMPORT_OPTIONS = [
       if (!['csv', 'pdf', 'xlsx', 'xls'].includes(extension)) {
         throw new Error('Unsupported file format');
       }
-      return importTransactions(file, extension);
+      return importTransactions(file, extension, {}, customMappings);
     }
   }
 ];

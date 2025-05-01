@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useCustomMappings } from '../contexts/CustomMappingsContext';
 
 export default function ImportOption({
     title,
@@ -15,6 +16,7 @@ export default function ImportOption({
     uploadStatus,
     setUploadStatus,
 }) {
+    const { customMappings } = useCustomMappings();
     const fileInputRef = useRef();
     const [file, setFile] = useState(null);
     const [transactionCount, setTransactionCount] = useState(0);
@@ -67,7 +69,7 @@ export default function ImportOption({
         let transactions = null;
 
         try {
-            transactions = await parser(selectedFile);
+            transactions = await parser(selectedFile, customMappings);
             setUploadStatus((prev) => ({ ...prev, [type]: 'success' }));
             setTransactionCount(transactions.length);
             setPreviewData(transactions);

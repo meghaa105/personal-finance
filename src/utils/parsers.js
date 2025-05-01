@@ -5,145 +5,146 @@ import Papa from 'papaparse';
 
 // Common merchant categories for transaction categorization
 const MERCHANT_CATEGORIES = {
-    // Indian specific merchants - Shopping
-    nykaa: "Shopping",
-    myntra: "Shopping",
-    "reliance retail": "Shopping",
-    "reliance digital": "Shopping",
-    "reliance trends": "Shopping",
-    "reliance fresh": "Groceries",
-    jiomart: "Groceries",
-    amazon: "Shopping",
-    "amazon pay": "Shopping",
-    flipkart: "Shopping",
-    meesho: "Shopping",
-    ajio: "Shopping",
-    snapdeal: "Shopping",
-    "tata cliq": "Shopping",
-    "shoppers stop": "Shopping",
-    lifestyle: "Shopping",
-    pantaloons: "Shopping",
-    westside: "Shopping",
-    max: "Shopping",
-    croma: "Shopping",
-    "vijay sales": "Shopping",
-
-    // Indian specific merchants - Food & Dining
+    // Food & Dining
+    restaurant: "Food & Dining",
+    cafe: "Food & Dining",
     swiggy: "Food & Dining",
     zomato: "Food & Dining",
-    "food panda": "Food & Dining",
-    fasoos: "Food & Dining",
-    box8: "Food & Dining",
-    dominos: "Food & Dining",
-    "pizza hut": "Food & Dining",
-    mcdonald: "Food & Dining",
-    mcdonalds: "Food & Dining",
-    "burger king": "Food & Dining",
-    kfc: "Food & Dining",
-    subway: "Food & Dining",
-    "cafe coffee day": "Food & Dining",
-    ccd: "Food & Dining",
-    starbucks: "Food & Dining",
-    barista: "Food & Dining",
-    chaayos: "Food & Dining",
-    haldiram: "Food & Dining",
 
-    // Indian specific merchants - Groceries
-    bigbasket: "Groceries",
-    dmart: "Groceries",
-    blinkit: "Groceries",
-    grofers: "Groceries",
-    "nature basket": "Groceries",
-    spencers: "Groceries",
-    "more retail": "Groceries",
-    nilgiris: "Groceries",
-    "smart bazar": "Groceries",
-    "big bazar": "Groceries",
-    "metro cash": "Groceries",
-    easyday: "Groceries",
-
-    // General categories
-    restaurant: "Food & Dining",
-    café: "Food & Dining",
-    cafe: "Food & Dining",
-    coffee: "Food & Dining",
-    bar: "Food & Dining",
-    diner: "Food & Dining",
-    eatery: "Food & Dining",
-    food: "Food & Dining",
-    pizza: "Food & Dining",
-    burger: "Food & Dining",
-    taco: "Food & Dining",
-    sushi: "Food & Dining",
-
+    // Groceries
     grocery: "Groceries",
-    market: "Groceries",
     supermarket: "Groceries",
-    walmart: "Groceries",
-    target: "Groceries",
-    kroger: "Groceries",
-    safeway: "Groceries",
-    "trader joe": "Groceries",
-    "whole foods": "Groceries",
+    dmart: "Groceries",
+    kirana: "Groceries",
 
-    ebay: "Shopping",
-    etsy: "Shopping",
+    // Shopping
+    amazon: "Shopping",
+    flipkart: "Shopping",
+    myntra: "Shopping",
+    ajio: "Shopping",
+    nykaa: "Shopping",
+    meesho: "Shopping",
+    tatacliq: "Shopping",
     shop: "Shopping",
     store: "Shopping",
     retail: "Shopping",
     clothing: "Shopping",
     apparel: "Shopping",
-    designs: "Shopping",
+    snapdeal: "Shopping",
+    lenskart: "Shopping",
+    croma: "Shopping",
+    "reliance digital": "Shopping",
+    "vijay sales": "Shopping",
+    lifestyle: "Shopping",
+    pantaloons: "Shopping",
+    westside: "Shopping",
+    mall: "Shopping",
+    bazaar: "Shopping",
 
-    lyft: "Transportation",
+    // Transportation
+    uber: "Transportation",
+    ola: "Transportation",
+    rapido: "Transportation",
     taxi: "Transportation",
-    cab: "Transportation",
+    auto: "Transportation",
     transit: "Transportation",
     train: "Transportation",
-    subway: "Transportation",
-    bus: "Transportation",
+    irctc: "Transportation",
+    railway: "Transportation",
     metro: "Transportation",
-    gas: "Transportation",
-    parking: "Transportation",
+    bus: "Transportation",
+    "red bus": "Transportation",
+    redbus: "Transportation",
+    petrol: "Transportation",
+    diesel: "Transportation",
+    fuel: "Transportation",
+    "indian oil": "Transportation",
+    hp: "Transportation",
+    "bharat petroleum": "Transportation",
+    bpcl: "Transportation",
+    toll: "Transportation",
+    fastag: "Transportation",
 
+    // Entertainment
     movie: "Entertainment",
     cinema: "Entertainment",
+    pvr: "Entertainment",
+    inox: "Entertainment",
+    bookmyshow: "Entertainment",
     theater: "Entertainment",
     netflix: "Entertainment",
-    spotify: "Entertainment",
-    hulu: "Entertainment",
+    hotstar: "Entertainment",
     "disney+": "Entertainment",
-    hbo: "Entertainment",
-    "prime video": "Entertainment",
+    "amazon prime": "Entertainment",
+    "sony liv": "Entertainment",
+    zee5: "Entertainment",
+    "jio cinema": "Entertainment",
     game: "Entertainment",
+    gaming: "Entertainment",
+    concert: "Entertainment",
+    event: "Entertainment",
 
+    // Housing
     rent: "Housing",
-    mortgage: "Housing",
+    lease: "Housing",
+    maintenance: "Housing",
+    society: "Housing",
     apartment: "Housing",
+    flat: "Housing",
     property: "Housing",
     home: "Housing",
-    hoa: "Housing",
+    housing: "Housing",
+    accommodation: "Housing",
+    builder: "Housing",
+    construction: "Housing",
+    repair: "Housing",
+    renovation: "Housing",
 
+    // Utilities
     electric: "Utilities",
-    "gas bill": "Utilities",
+    electricity: "Utilities",
+    bill: "Utilities",
     water: "Utilities",
     internet: "Utilities",
-    phone: "Utilities",
-    cell: "Utilities",
-    cable: "Utilities",
+    broadband: "Utilities",
+    jio: "Utilities",
+    airtel: "Utilities",
+    bsnl: "Utilities",
+    vi: "Utilities",
+    vodafone: "Utilities",
+    idea: "Utilities",
+    "tata sky": "Utilities",
+    dth: "Utilities",
+    gas: "Utilities",
+    lpg: "Utilities",
+    indane: "Utilities",
     utility: "Utilities",
-    limited: "Utilities",
+    pipeline: "Utilities",
 
+    // Health
     doctor: "Health",
     hospital: "Health",
     medical: "Health",
+    apollo: "Health",
+    fortis: "Health",
+    max: "Health",
+    medanta: "Health",
+    medplus: "Health",
     pharmacy: "Health",
+    pharmeasy: "Health",
+    netmeds: "Health",
+    "tata 1mg": "Health",
     dental: "Health",
     vision: "Health",
     healthcare: "Health",
     clinic: "Health",
-    health: "Health",
+    diagnostic: "Health",
+    lab: "Health",
+    test: "Health",
+    medicine: "Health",
+    ayurvedic: "Health",
 
+    // Education
     tuition: "Education",
     school: "Education",
     college: "Education",
@@ -151,15 +152,91 @@ const MERCHANT_CATEGORIES = {
     education: "Education",
     book: "Education",
     course: "Education",
+    byjus: "Education",
+    unacademy: "Education",
+    vedantu: "Education",
+    whitehat: "Education",
+    cuemath: "Education",
+    coaching: "Education",
+    institute: "Education",
+    academy: "Education",
+    library: "Education",
+    learning: "Education",
 
+    // Travel
+    travel: "Travel",
     hotel: "Travel",
+    oyo: "Travel",
+    makemytrip: "Travel",
+    goibibo: "Travel",
+    "booking.com": "Travel",
+    cleartrip: "Travel",
+    ixigo: "Travel",
+    trivago: "Travel",
     airline: "Travel",
+    indigo: "Travel",
+    spicejet: "Travel",
+    vistara: "Travel",
+    "air india": "Travel",
     flight: "Travel",
-    airbnb: "Travel",
     vacation: "Travel",
     trip: "Travel",
+    tourism: "Travel",
     resort: "Travel",
+    package: "Travel",
+    goa: "Travel",
+    manali: "Travel",
+    kerala: "Travel",
 
+    // Insurance
+    insurance: "Insurance",
+    policy: "Insurance",
+    premium: "Insurance",
+    lic: "Insurance",
+    "health insurance": "Insurance",
+    "vehicle insurance": "Insurance",
+    "hdfc ergo": "Insurance",
+    "bajaj allianz": "Insurance",
+    "icici lombard": "Insurance",
+    "max bupa": "Insurance",
+    "star health": "Insurance",
+    "new india": "Insurance",
+    mutual: "Insurance",
+    term: "Insurance",
+    life: "Insurance",
+
+    // Investments
+    investment: "Investments",
+    "mutual fund": "Investments",
+    stocks: "Investments",
+    shares: "Investments",
+    demat: "Investments",
+    zerodha: "Investments",
+    groww: "Investments",
+    upstox: "Investments",
+    kuvera: "Investments",
+    uti: "Investments",
+    sbi: "Investments",
+    hdfc: "Investments",
+    icici: "Investments",
+    axis: "Investments",
+    kotak: "Investments",
+    sip: "Investments",
+    nps: "Investments",
+    ppf: "Investments",
+    "fixed deposit": "Investments",
+    fd: "Investments",
+    nifty: "Investments",
+    sensex: "Investments",
+
+    // Sports
+    badminton: "Sports",
+    nvk: "Sports",
+    pullela: "Sports",
+    shuttles: "Sports",
+    baddy: "Sports",
+
+    // Income
     payment: "Income",
     deposit: "Income",
     salary: "Income",
@@ -239,7 +316,7 @@ function parseDate(dateStr) {
  * @param {string} description - Transaction description
  * @returns {string} Guessed category
  */
-function guessCategory(description) {
+function guessCategory(description, customMappings = []) {
     if (!description) return "Other";
 
     const descriptionLower = description.toLowerCase();
@@ -247,6 +324,14 @@ function guessCategory(description) {
     // Check for income indicators
     if (/salary|income|credit received|deposit|refund|cashback/i.test(descriptionLower)) {
         return "Income";
+    }
+
+    // Check custom mappings first
+    const customMapping = customMappings.find(mapping =>
+        descriptionLower.includes(mapping.pattern.toLowerCase())
+    );
+    if (customMapping) {
+        return customMapping.category;
     }
 
     // Check merchant categories
@@ -264,7 +349,7 @@ function guessCategory(description) {
  * @param {File} file - CSV file
  * @returns {Promise<Array>} Array of parsed transactions
  */
-export async function parseCSV(file) {
+export async function parseCSV(file, customMappings = []) {
     return new Promise((resolve, reject) => {
         if (!file || !file.name.toLowerCase().endsWith('.csv')) {
             reject(new Error('Invalid file type. Please upload a CSV file.'));
@@ -293,7 +378,7 @@ export async function parseCSV(file) {
                                     description: description.trim(),
                                     amount: Math.abs(amount),
                                     type,
-                                    category: type === 'income' ? 'Income' : guessCategory(description),
+                                    category: type === 'income' ? 'Income' : guessCategory(description, customMappings),
                                     source: 'csv'
                                 };
                             })
@@ -317,7 +402,7 @@ export async function parseCSV(file) {
  * @param {File} file - PDF file
  * @returns {Promise<Array>} Array of parsed transactions
  */
-export async function parsePDF(file) {
+export async function parsePDF(file, customMappings = []) {
     if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
         throw new Error('Invalid file type. Please upload a PDF file.');
     }
@@ -386,7 +471,7 @@ export async function parsePDF(file) {
                     description,
                     amount: Math.abs(amount),
                     type,
-                    category: type === 'income' ? 'Income' : guessCategory(description),
+                    category: type === 'income' ? 'Income' : guessCategory(description, customMappings),
                     source: 'pdf'
                 });
             }
@@ -404,7 +489,7 @@ export async function parsePDF(file) {
  * @param {string} [filterUser] - Optional username to filter transactions
  * @returns {Promise<Array>} Array of parsed transactions
  */
-export async function parseSplitwise(file, filterUser = null) {
+export async function parseSplitwise(file, filterUser = null, customMappings = []) {
     return new Promise((resolve, reject) => {
         if (!file || !file.name.toLowerCase().endsWith('.csv')) {
             reject(new Error('Invalid file type. Please upload a Splitwise CSV file.'));
@@ -460,7 +545,7 @@ export async function parseSplitwise(file, filterUser = null) {
                                         description,
                                         amount,
                                         type,
-                                        category: guessCategory(description),
+                                        category: guessCategory(description, customMappings),
                                         source: 'splitwise',
                                         currency: row.Currency || 'INR'
                                     };

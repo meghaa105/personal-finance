@@ -1,113 +1,217 @@
 'use client';
 
 import { useState } from 'react';
+import { useCustomMappings } from '@/contexts/CustomMappingsContext';
+import { useCategories } from '@/contexts/CategoryContext';
+import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import { AiOutlineClose } from 'react-icons/ai';
 
 export default function CustomMappings() {
-  const [mappings, setMappings] = useState([]);
+  const { customMappings, addCustomMapping, updateCustomMapping, deleteCustomMapping } = useCustomMappings();
+  const { categories } = useCategories();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingMapping, setEditingMapping] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [newMapping, setNewMapping] = useState({
     pattern: '',
     category: '',
     description: ''
   });
 
+  // Convert customMappings object to array for rendering
+  const mappingsList = Object.entries(customMappings).flatMap(([category, patterns]) =>
+    patterns.map(pattern => ({
+      pattern,
+      category,
+      description: '' // Add description if needed
+    }))
+  );
+
   const handleAddMapping = (e) => {
     e.preventDefault();
-    // TODO: Implement add mapping logic
+
+    // Check if pattern already exists in any category
+    const patternExists = Object.entries(customMappings).some(([category, patterns]) =>
+      patterns.includes(newMapping.pattern.toLowerCase())
+    );
+
+    if (patternExists) {
+      alert('This pattern already exists in another category!');
+      return;
+    }
+
+    if (editingMapping) {
+      updateCustomMapping(editingMapping.category, newMapping.category, editingMapping.pattern);
+      setEditingMapping(null);
+    } else {
+      addCustomMapping(newMapping.category, newMapping.pattern.toLowerCase());
+    }
+    setNewMapping({ pattern: '', category: '', description: '' });
     setShowAddForm(false);
+  };
+
+  const handleEdit = (mapping) => {
+    setNewMapping(mapping);
+    setEditingMapping(mapping);
+    setShowAddForm(true);
+  };
+
+  const handleDelete = (category, pattern) => {
+    if (confirm('Are you sure you want to delete this mapping?')) {
+      deleteCustomMapping(category, pattern);
+    }
   };
 
   return (
     <div className="custom-mappings-container">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Custom Mappings</h2>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
-        >
-          Add Mapping
-        </button>
-      </div>
+      {/* Floating Action Button */}
+      <button
+        onClick={() => {
+          setEditingMapping(null);
+          setNewMapping({ pattern: '', category: '', description: '' });
+          setShowAddForm(true);
+        }}
+        className="fixed bottom-6 right-6 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary-dark transition-colors flex items-center justify-center z-40"
+        title="Add New Mapping"
+      >
+        <FaPlus size={24} />
+      </button>
 
       {showAddForm && (
-        <div className="add-mapping-form bg-white rounded-lg p-6 shadow-sm mb-6">
-          <form onSubmit={handleAddMapping}>
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-2xl p-6 shadow-lg relative">
+            <div className="flex justify-between items-center mb-6 border-b pb-4">
+              <h3 className="text-xl font-semibold text-gray-800">{editingMapping ? 'Edit' : 'Add New'} Mapping</h3>
+              <button
+                onClick={() => {
+                  setShowAddForm(false);
+                  setEditingMapping(null);
+                  setNewMapping({ pattern: '', category: '', description: '' });
+                }}
+                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-200 rounded-full transition-all duration-200 ease-in-out"
+              >
+                <AiOutlineClose size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleAddMapping} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Pattern
                 </label>
                 <input
                   type="text"
                   value={newMapping.pattern}
                   onChange={(e) => setNewMapping({ ...newMapping, pattern: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Enter text pattern to match"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Enter text pattern to match (e.g., starbucks, uber)"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category
                 </label>
                 <select
                   value={newMapping.category}
                   onChange={(e) => setNewMapping({ ...newMapping, category: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 >
                   <option value="">Select a category</option>
-                  <option value="food">Food</option>
-                  <option value="transport">Transport</option>
-                  <option value="utilities">Utilities</option>
-                  <option value="entertainment">Entertainment</option>
-                  <option value="others">Others</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.icon} {category.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={newMapping.description}
-                  onChange={(e) => setNewMapping({ ...newMapping, description: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Add a description for this mapping"
-                  rows="3"
-                />
+              <div className="flex justify-end gap-4 mt-8 pt-4 border-t">
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark hover:scale-105 hover:shadow-md transition-all duration-200 ease-in-out"
+                >
+                  {editingMapping ? 'Update' : 'Save'} Mapping
+                </button>
               </div>
-            </div>
-
-            <div className="flex justify-end gap-4 mt-6">
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                Save Mapping
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       )}
 
-      <div className="mappings-list bg-white rounded-lg shadow-sm">
-        {mappings.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No custom mappings found</p>
+      <div className="mappings-list bg-white rounded-lg shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Object.keys(customMappings).length === 0 ? (
+          <p className="text-gray-500 text-center py-8 col-span-full">No custom mappings found</p>
         ) : (
-          <div className="divide-y">
-            {/* Mapping items will be mapped here */}
-          </div>
+          Object.entries(customMappings).map(([categoryId, patterns]) => {
+            const categoryObj = categories.find(c => c.id === categoryId || c.label === categoryId);
+            return (
+              <div key={categoryId} className="category-section rounded-md border border-gray-200 hover:border-gray-300 hover:bg-gray-100 shadow-sm transition-all duration-200 ease-in-out">
+                <button
+                  onClick={() => setSelectedCategory(categoryId)}
+                  className="w-full p-4 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2 flex-grow">
+                    <span className="text-xl">{categoryObj?.icon}</span>
+                    <h3 className="text-lg font-semibold text-gray-800 truncate">{categoryObj?.label}</h3>
+                  </div>
+                  <span className="text-sm text-gray-500 ml-2 whitespace-nowrap">{patterns.length} patterns</span>
+                </button>
+              </div>
+            );
+          })
         )}
       </div>
+
+      {selectedCategory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gray-50 p-4 flex items-center justify-between border-b">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{categories.find(c => c.id === selectedCategory || c.label === selectedCategory)?.icon}</span>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {categories.find(c => c.id === selectedCategory || c.label === selectedCategory)?.label}
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-200 rounded-full transition-all duration-200 ease-in-out"
+              >
+                <AiOutlineClose size={24} />
+              </button>
+            </div>
+            <div className="divide-y">
+              {customMappings[selectedCategory]?.map((pattern, index) => (
+                <div key={index} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex-grow">
+                    <span className="font-medium text-gray-800">{pattern}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        handleEdit({ pattern, category: selectedCategory });
+                        setSelectedCategory(null);
+                      }}
+                      className="p-2 text-gray-600 hover:text-primary rounded-full transition-colors"
+                    >
+                      <FaEdit size={16} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDelete(selectedCategory, pattern);
+                      }}
+                      className="p-2 text-gray-600 hover:text-red-600 rounded-full transition-colors"
+                    >
+                      <FaTrash size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

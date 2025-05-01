@@ -5,6 +5,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.svg" />
         <link 
           href="https://fonts.googleapis.com/icon?family=Material+Icons" 
           rel="stylesheet" 

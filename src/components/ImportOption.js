@@ -70,12 +70,15 @@ export default function ImportOption({
 
         try {
             transactions = await parser(selectedFile, customMappings);
+            if (!transactions || transactions.length === 0) {
+                throw new Error('No valid transactions found in the file');
+            }
             setUploadStatus((prev) => ({ ...prev, [type]: 'success' }));
             setTransactionCount(transactions.length);
             setPreviewData(transactions);
         } catch (err) {
             console.error('Error parsing file:', err);
-            setError((prev) => ({ ...prev, [type]: 'Error parsing file. Please check the file format and try again.' }));
+            setError((prev) => ({ ...prev, [type]: err.message || 'Error parsing file. Please check the file format and try again.' }));
             setUploadStatus((prev) => ({ ...prev, [type]: 'error' }));
             setPreviewData(null);
         } finally {

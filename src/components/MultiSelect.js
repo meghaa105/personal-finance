@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useId } from "react";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { useMultiSelect } from "@/contexts/MultiSelectContext";
 
 export default function MultiSelectDropdown({
   formFieldName,
@@ -8,27 +10,19 @@ export default function MultiSelectDropdown({
   onChange,
   prompt = "Select one or more options",
 }) {
-  const [isJsEnabled, setIsJsEnabled] = useState(false);
+  const { openMultiSelect, closeMultiSelect } = useMultiSelect();
+
+  const dropdownId = useId();
+
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const optionsListRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    setIsJsEnabled(true);
-  }, []);
+  const handleChange = (option) => {
+    const isChecked = selectedOptions?.map(selectionOption => (selectionOption.value ?? selectionOption.id)).includes(option.value ?? option.id);
 
-  const handleChange = (e) => {
-    const isChecked = e.target.checked;
-    const option = e.target.value;
-
-    const selectedOptionSet = new Set(selectedOptions);
-
-    if (isChecked) {
-      selectedOptionSet.add(option);
-    } else {
-      selectedOptionSet.delete(option);
-    }
-
-    const newSelectedOptions = Array.from(selectedOptionSet);
+    const newSelectedOptions = isChecked
+      ? selectedOptions.filter(selectedOption => selectedOption.value !== option.value)
+      : [...selectedOptions, option];
 
     setSelectedOptions(newSelectedOptions);
     onChange(newSelectedOptions);
@@ -39,11 +33,6 @@ export default function MultiSelectDropdown({
   const handleSelectAllClick = (e) => {
     e.preventDefault();
 
-    const optionsInputs = optionsListRef.current.querySelectorAll("input");
-    optionsInputs.forEach((input) => {
-      input.checked = true;
-    });
-
     setSelectedOptions([...options]);
     onChange([...options]);
   };
@@ -53,34 +42,80 @@ export default function MultiSelectDropdown({
   const handleClearSelectionClick = (e) => {
     e.preventDefault();
 
-    const optionsInputs = optionsListRef.current.querySelectorAll("input");
-    optionsInputs.forEach((input) => {
-      input.checked = false;
-    });
-
     setSelectedOptions([]);
     onChange([]);
   };
 
-  return (
-    <label className="relative">
-      <input type="checkbox" className="hidden peer" />
+  const getSelectedOptionLabel = (value) => {
+    const option = options.find(opt => opt.value === value || opt.id === value);
+    return option ? option.label : typeof value === "string" ? value : "Unknown";
+  };
 
-      <div className="cursor-pointer after:content-['▼'] after:text-xs after:ml-1 after:inline-flex after:items-center peer-checked:after:-rotate-180 after:transition-transform inline-flex border border-gray-200 rounded-sm px-5 py-2">
-        {prompt}
-        {isJsEnabled && selectedOptions.length > 0 && (
-          <span className="ml-1 text-blue-500">{`(${selectedOptions.length} selected)`}</span>
-        )}
+  const renderSelectionDisplay = () => {
+    if (selectedOptions.length === 0) {
+      return prompt;
+    }
+
+    if (selectedOptions.length <= 1) {
+      return (
+        <div className="flex gap-2">
+          {selectedOptions.map((selectedOption) => (
+            <span key={selectedOption?.value ?? selectedOption?.id} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm">
+              {getSelectedOptionLabel(selectedOption?.value ?? selectedOption?.id)}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex gap-2">
+        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm">
+          {getSelectedOptionLabel(selectedOptions?.[0]?.value ?? selectedOptions?.[0]?.id)}
+        </span>
+        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm">
+          {`${selectedOptions.length}`}
+        </span>
       </div>
+    );
+  };
 
-      <div className="absolute bg-white border border-gray-200 transition-opacity opacity-0 pointer-events-none peer-checked:opacity-100 peer-checked:pointer-events-auto w-full max-h-60 overflow-y-scroll">
-        {isJsEnabled && (
-          <ul>
+  return (
+    <>
+      <div
+        className={`z-[100] overflow-clip absolute h-screen w-full top-0 left-0 ${isOpen? "block" : "hidden"}`}
+        onClick={() => {
+          setIsOpen(false);
+          closeMultiSelect();
+        }}
+      ></div>
+      <label className="z-[101] relative rounded-md border border-gray-500 bg-slate-50 block w-full">
+        <input
+          type="checkbox"
+          className="hidden peer"
+          checked={isOpen}
+          onChange={() => {
+            setIsOpen(!isOpen);
+            if (isOpen) {
+              closeMultiSelect();
+            } else {
+              openMultiSelect(dropdownId);
+            }
+          }}
+        />
+
+        <div className="w-full cursor-pointer inline-flex justify-between items-center px-2 py-1">
+          {renderSelectionDisplay()}
+          {isOpen ? <FaChevronUp className="text-gray-500" /> : <FaChevronDown className="text-gray-500" />}
+        </div>
+
+        <div className="absolute bg-white border border-gray-200 transition-opacity opacity-0 pointer-events-none peer-checked:opacity-100 peer-checked:pointer-events-auto w-full max-h-60 overflow-y-auto z-10">
+          <ul className="flex gap-2 p-1">
             <li>
               <button
                 onClick={handleSelectAllClick}
                 disabled={!isSelectAllEnabled}
-                className="w-full text-left px-2 py-1 text-blue-600 disabled:opacity-50 cursor-pointer"
+                className="w-full text-left px-2 py-1 text-blue-600 disabled:opacity-50 cursor-pointer hover:bg-blue-200 hover:disabled:bg-transparent disabled:pointer-events-none rounded"
               >
                 {"Select All"}
               </button>
@@ -89,34 +124,36 @@ export default function MultiSelectDropdown({
               <button
                 onClick={handleClearSelectionClick}
                 disabled={!isClearSelectionEnabled}
-                className="w-full text-left px-2 py-1 text-blue-600 disabled:opacity-50 cursor-pointer"
+                className="w-full text-left px-2 py-1 text-blue-600 disabled:opacity-50 cursor-pointer hover:bg-blue-200 hover:disabled:bg-transparent disabled:pointer-events-none rounded"
               >
                 {"Clear selection"}
               </button>
             </li>
           </ul>
-        )}
-        <ul ref={optionsListRef}>
-          {options.map((option, i) => {
-            return (
-              <li key={option.value ?? option.id}>
-                <label
-                  className={`flex whitespace-nowrap cursor-pointer px-2 py-1 transition-colors hover:bg-blue-100 [&:has(input:checked)]:bg-blue-200`}
-                >
-                  <input
-                    type="checkbox"
-                    name={formFieldName}
-                    value={option.value ?? option.id}
-                    className="cursor-pointer"
-                    onChange={handleChange}
-                  />
-                  <span className="ml-1">{option.label}</span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </label>
+          <ul>
+            {options.map((option) => {
+              const checked = selectedOptions?.map(selectedOption => (selectedOption.value ?? selectedOption.id))?.includes(option.value ?? option.id);
+              return (
+                <li key={option.value ?? option.id}>
+                  <label
+                    className={`flex whitespace-nowrap cursor-pointer px-2 py-[0.35rem] border border-transparent hover:border-blue-600 transition-colors [&:has(input:checked)]:bg-blue-200 hover:bg-blue-100`}
+                  >
+                    <input
+                      type="checkbox"
+                      name={formFieldName}
+                      value={option.value ?? option.id}
+                      className="cursor-pointer"
+                      onChange={() => handleChange(option)}
+                      checked={checked}
+                    />
+                    <span className="ml-1">{option.label}</span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </label>
+    </>
   );
 }

@@ -176,7 +176,7 @@ export default function Import() {
                             setPreviewData(updatedData);
                           }}
                         />
-                      ) : transaction.amount}
+                      ) : `₹${transaction.amount}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
                       {

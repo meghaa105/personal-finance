@@ -15,7 +15,9 @@ const STORAGE_KEYS = {
 class StorageService {
   static init() {
     // Force initialize transactions with sample
-    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+    if (!localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) {
+      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+    }
 
     if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
@@ -223,6 +225,10 @@ class StorageService {
       localStorage.removeItem(key);
     });
     this.init(); // Reinitialize with default values
+  }
+
+  static clearTransactions() {
+    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
   }
 }
 

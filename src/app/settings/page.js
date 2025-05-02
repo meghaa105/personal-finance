@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useCategories } from '@/contexts/CategoryContext';
-import { FaPlus, FaTrash, FaEdit, FaCheck } from 'react-icons/fa';
+import { useTransactions } from '@/contexts/TransactionContext';
+import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload } from 'react-icons/fa';
 import PageTransition from '@/components/PageTransition';
 
 export default function Settings() {
   const { categories, addCategory, deleteCategory, updateCategory } = useCategories();
+  const { transactions } = useTransactions();
   const [editingBudget, setEditingBudget] = useState(null);
   const [tempBudget, setTempBudget] = useState('');
   const [newCategory, setNewCategory] = useState({ label: '', icon: '⛓️' });
@@ -56,9 +58,61 @@ export default function Settings() {
     setIconError('');
   };
 
+  const handleExportCSV = () => {
+    const csvContent = transactions.map(t => {
+      const date = new Date(t.date);
+      const formattedDate = date.getDate().toString().padStart(2, '0') + '-' + 
+        (date.getMonth() + 1).toString().padStart(2, '0') + '-' + 
+        date.getFullYear();
+      return [
+        `"${formattedDate}"`,
+        `"${t.description.replace(/"/g, '""')}"`,
+        `"${t.amount}"`,
+        `"${t.type}"`,
+        `"${t.category}"`,
+        `"${t.source || 'manual'}"`
+      ].join(',');
+    });
+    
+    const header = '"Date","Description","Amount","Type","Category","Source"\n';
+    const csv = header + csvContent.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const handleExportJSON = () => {
+    const jsonContent = JSON.stringify(transactions, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `transactions_${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+  };
+
   return (
     <PageTransition>
       <div className="settings-container space-y-8">
+        <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">Export Data</h3>
+          <div className="flex gap-4 mb-8">
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors duration-300"
+            >
+              <FaDownload /> Export as CSV
+            </button>
+            <button
+              onClick={handleExportJSON}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors duration-300"
+            >
+              <FaDownload /> Export as JSON
+            </button>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
           <h3 className="text-xl font-semibold text-gray-800 mb-6">Manage Categories</h3>
 

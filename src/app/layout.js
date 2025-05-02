@@ -13,6 +13,7 @@ export default function RootLayout({ children }) {
           media="all" 
           // onLoad={(e) => { e.target.media='all'; }}
         />
+        <title>Personal Finance Manager (₹)</title>
       </head>
       <body className="bg-white dark:bg-gray-900">
         <ClientLayout>{children}</ClientLayout>

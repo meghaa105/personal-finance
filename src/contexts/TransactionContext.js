@@ -86,6 +86,16 @@ export function TransactionProvider({ children }) {
     }
   };
 
+  const clearTransactions = () => {
+    try {
+      console.log('Clearing all transactions');
+      StorageService.clearTransactions();
+      setTransactions([]);
+    } catch (error) {
+      console.error('Error clearing transactions:', error);
+    }
+  };
+
   return (
     <TransactionContext.Provider
       value={{
@@ -93,6 +103,7 @@ export function TransactionProvider({ children }) {
         addTransactions,
         updateTransaction,
         deleteTransaction,
+        clearTransactions,
         isInitialized
       }}
     >

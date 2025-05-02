@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useCategories } from '@/contexts/CategoryContext';
 import { useTransactions } from '@/contexts/TransactionContext';
-import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload, FaEraser } from 'react-icons/fa';
 import PageTransition from '@/components/PageTransition';
 
 export default function Settings() {
   const { categories, addCategory, deleteCategory, updateCategory } = useCategories();
-  const { transactions } = useTransactions();
+  const { transactions, clearTransactions } = useTransactions();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
   const [tempBudget, setTempBudget] = useState('');
   const [newCategory, setNewCategory] = useState({ label: '', icon: '⛓️' });
@@ -92,11 +93,16 @@ export default function Settings() {
     link.click();
   };
 
+  const handleClearTransactions = () => {
+    clearTransactions();
+    setShowClearConfirm(false);
+  };
+
   return (
     <PageTransition>
       <div className="settings-container space-y-8">
         <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-800 mb-6">Export Data</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">Data Management</h3>
           <div className="flex gap-4 mb-8">
             <button
               onClick={handleExportCSV}
@@ -109,6 +115,12 @@ export default function Settings() {
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors duration-300"
             >
               <FaDownload /> Export as JSON
+            </button>
+            <button
+              onClick={() => setShowClearConfirm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-300 ml-auto"
+            >
+              <FaEraser /> Clear All Transactions
             </button>
           </div>
         </div>
@@ -211,6 +223,28 @@ export default function Settings() {
             ))}
           </div>
         </div>
+        {showClearConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Clear All Transactions?</h3>
+              <p className="text-gray-600 mb-6">This action cannot be undone. Are you sure you want to clear all transactions?</p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={() => setShowClearConfirm(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleClearTransactions}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-300"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageTransition>
   );

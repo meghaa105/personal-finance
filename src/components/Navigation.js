@@ -10,7 +10,6 @@ export default function Navigation() {
     { id: 'transactions', label: 'Transactions', path: '/transactions' },
     { id: 'analytics', label: 'Analytics', path: '/analytics' },
     { id: 'import', label: 'Import', path: '/import' },
-    { id: 'reminders', label: 'Reminders', path: '/reminders' },
     { id: 'settings', label: 'Settings', path: '/settings' },
     { id: 'custom-mappings', label: 'Custom Mappings', path: '/custom-mappings' },
   ];

@@ -8,8 +8,7 @@ import { DEFAULT_CATEGORIES, DEFAULT_MAPPINGS } from '../constants/categories';
 const STORAGE_KEYS = {
   TRANSACTIONS: 'personalFinance_transactions',
   CATEGORIES: 'personalFinance_categories',
-  CUSTOM_MAPPINGS: 'personalFinance_customMappings',
-  REMINDERS: 'personalFinance_reminders'
+  CUSTOM_MAPPINGS: 'personalFinance_customMappings'
 };
 
 class StorageService {
@@ -25,10 +24,6 @@ class StorageService {
 
     if (!localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS)) {
       localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(DEFAULT_MAPPINGS));
-    }
-
-    if (!localStorage.getItem(STORAGE_KEYS.REMINDERS)) {
-      localStorage.setItem(STORAGE_KEYS.REMINDERS, JSON.stringify([]));
     }
   }
 

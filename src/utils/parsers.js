@@ -117,21 +117,27 @@ export async function parseCSV(file, customMappings = []) {
                         const transactions = results.data
                             .filter(row => row && typeof row === 'object')
                             .map(row => {
-                                const date = parseDate(row.Date || row.date);
-                                const description = row.Description || row.description || 'Unknown';
+                                const date = parseDate(row.Date || row.date || row["Tran Date"]);
+                                const description = row.Description || row.description ||row.PARTICULARS || 'Unknown';
                                 const amount = parseFloat((row.Amount || row.amount || '0').replace(/[^0-9.-]+/g, ''));
 
-                                if (!date || isNaN(amount)) return null;
+                                const income = parseFloat(row.CR || row.Income || row.income || 0);
+                                const expense = parseFloat(row.DR || row.Income || row.income || 0);
+                                const bankBalance = parseFloat(row.BAL || row.Balance || row.balance || 0); // Assuming this is the balance after the transaction
 
-                                const type = amount < 0 ? 'expense' : 'income';
-                                return {
+                                if (!date) return null;
+
+                                const type = expense ? 'expense' : 'income';
+                                const transaction = {
                                     date,
                                     description: description.trim(),
-                                    amount: Math.abs(amount),
+                                    amount: type === 'expense'? Math.abs(expense) : Math.abs(income),
                                     type,
-                                    category: type === 'income' ? 'Income' : guessCategory(description, customMappings),
-                                    source: 'csv'
+                                    category: type === 'income' ? INCOME_CATEGORY_ID : guessCategory(description, customMappings),
+                                    source: 'csv',
+                                    bankBalance
                                 };
+                                return transaction;
                             })
                             .filter(t => t !== null);
 

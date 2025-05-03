@@ -3,14 +3,25 @@
 import { useState, Suspense } from 'react';
 import { useCategories } from '@/contexts/CategoryContext';
 import { useTransactions } from '@/contexts/TransactionContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload, FaEraser } from 'react-icons/fa';
 import PageTransition from '@/components/PageTransition';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ThemeToggle from '@/components/ThemeToggle';
 
+const THEME_COLORS = [
+  { label: 'Blue', value: '#6c63ff' },
+  { label: 'Purple', value: '#8B5CF6' },
+  { label: 'Pink', value: '#EC4899' },
+  { label: 'Orange', value: '#F97316' },
+  { label: 'Teal', value: '#14B8A6' },
+  { label: 'Indigo', value: '#6366F1' },
+];
+
 export default function Settings() {
   const { categories, addCategory, deleteCategory, updateCategory } = useCategories();
   const { transactions, clearTransactions } = useTransactions();
+  const { primaryColor, updatePrimaryColor } = useTheme();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
   const [tempBudget, setTempBudget] = useState('');
@@ -103,10 +114,29 @@ export default function Settings() {
   return (
     <PageTransition>
       <Suspense fallback={<LoadingSpinner />}>
+      <h1 className='text-primary-1'>FUCK YEAH</h1>
         <div className="settings-container space-y-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Appearance</h3>
-            <ThemeToggle />
+            <div className="space-y-6">
+              <ThemeToggle />
+              <div>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Primary Color</label>
+                <div className="grid grid-cols-4 gap-3">
+                  {THEME_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => updatePrimaryColor(color.value)}
+                      className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 ${primaryColor === color.value ? 'ring-2 ring-offset-2 ring-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                      style={{ backgroundColor: color.value + '1A' }} // 10% opacity version of the color
+                    >
+                      <span className="text-sm font-medium" style={{ color: color.value }}>{color.label}</span>
+                      <div className="w-6 h-6 rounded-full shadow-inner" style={{ backgroundColor: color.value }} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Data Management</h3>

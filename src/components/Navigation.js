@@ -15,7 +15,7 @@ export default function Navigation() {
   ];
 
   return (
-    <header className="bg-primary dark:bg-gray-800 shadow-md fixed top-0 left-0 right-0 z-50" role="banner">
+    <header className="bg-primary shadow-md fixed top-0 left-0 right-0 z-50" role="banner">
       <nav className="container mx-auto px-6" role="navigation" aria-label="Main navigation">
         <Link href="/dashboard" className="block">
           <h1 className="text-2xl font-bold text-white dark:text-white text-center py-4">Personal Finance Manager (₹)</h1>
@@ -25,7 +25,7 @@ export default function Navigation() {
             <Link
               key={tab.id}
               href={tab.path}
-              className={`tab-btn px-6 py-2 text-white dark:text-white font-medium rounded-lg transition-colors ${pathname === tab.path ? 'bg-white/20 dark:bg-gray-600' : 'hover:bg-white/10 dark:hover:bg-gray-700'}`}
+              className={`tab-btn px-6 py-2 text-white dark:text-white font-medium rounded-lg transition-colors ${pathname === tab.path ? 'bg-white/20' : 'hover:bg-white/10'}`}
               aria-current={pathname === tab.path ? 'page' : undefined}
               role="link"
             >

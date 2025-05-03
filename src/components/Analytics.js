@@ -208,7 +208,7 @@ export default function Analytics() {
   }
 
   return (
-    <div className="analytics-container space-y-6">
+    <div className="analytics-container p-6 space-y-8 bg-gray-50">
       <AnalyticsFilters
         filters={filters}
         setFilters={setFilters}

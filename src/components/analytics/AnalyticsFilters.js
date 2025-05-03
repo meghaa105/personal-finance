@@ -4,7 +4,7 @@ import MultiSelect from '../MultiSelect';
 
 export default function AnalyticsFilters({ filters, setFilters, categories, showCustomDatePicker, setShowCustomDatePicker }) {
   return (
-    <div className="filters-section bg-gray-100 border border-gray-300 rounded-lg p-6 shadow-sm">
+    <div className="filters-container bg-white rounded-lg p-6 shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors duration-300">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">Filters</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

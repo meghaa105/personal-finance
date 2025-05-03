@@ -76,8 +76,8 @@ export default function ChartGrid({ chartData }) {
   }), [chartData.transactionSources.labels, chartData.transactionSources.data]);
 
   return (
-    <div className="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="chart-card bg-white rounded-lg p-6 shadow-sm">
+    <div className="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-8 p-4 bg-gray-100 rounded-lg">
+      <div className="chart-card bg-white rounded-lg p-6 shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors duration-300">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Spending by Category</h3>
         <div className="h-80">
           {chartData.categoryDistribution.data.length > 0 ? (
@@ -88,7 +88,7 @@ export default function ChartGrid({ chartData }) {
         </div>
       </div>
 
-      <div className="chart-card bg-white rounded-lg p-6 shadow-sm">
+      <div className="chart-card bg-white rounded-lg p-6 shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors duration-300">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Spending by Source</h3>
         <div className="h-80">
           {chartData.transactionSources.data.length > 0 ? (

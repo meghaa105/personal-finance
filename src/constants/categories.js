@@ -25,7 +25,7 @@ export const DEFAULT_CATEGORIES = [
 ];
 
 export const DEFAULT_MAPPINGS = {
-  'food_dining': ['restaurant', 'cafe', 'swiggy', 'zomato'],
+  'food_dining': ['restaurant', 'cafe', 'swiggy', 'zomato', 'dinner', 'food', 'dining', 'canteen', 'breakfast', 'lunch', 'cafe', 'coffee', 'tea', 'bakery', 'pastry'],
   'groceries': ['grocery', 'supermarket', 'dmart', 'kirana'],
   'shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'snapdeal', 'lenskart', 'croma', 'reliance digital', 'vijay sales', 'lifestyle', 'pantaloons', 'westside', 'mall', 'bazaar'],
   'transport': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'transit', 'train', 'irctc', 'railway', 'metro', 'bus', 'red bus', 'redbus', 'petrol', 'diesel', 'fuel', 'indian oil', 'hp', 'bharat petroleum', 'bpcl', 'toll', 'fastag'],

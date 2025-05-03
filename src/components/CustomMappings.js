@@ -12,11 +12,22 @@ export default function CustomMappings() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMapping, setEditingMapping] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newMapping, setNewMapping] = useState({
     pattern: '',
     category: '',
     description: ''
   });
+
+  const filteredMappings = Object.entries(customMappings).reduce((acc, [categoryId, patterns]) => {
+    const matchingPatterns = patterns.filter(pattern =>
+      pattern.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    if (matchingPatterns.length > 0) {
+      acc[categoryId] = matchingPatterns;
+    }
+    return acc;
+  }, {});
 
   // Convert customMappings object to array for rendering
   const mappingsList = Object.entries(customMappings).flatMap(([category, patterns]) =>
@@ -140,11 +151,21 @@ export default function CustomMappings() {
         </div>
       )}
 
+      <div className="search-bar mb-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search mappings..."
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
       <div className="mappings-list bg-white rounded-lg shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Object.keys(customMappings).length === 0 ? (
+        {Object.keys(filteredMappings).length === 0 ? (
           <p className="text-gray-500 text-center py-8 col-span-full">No custom mappings found</p>
         ) : (
-          Object.entries(customMappings).map(([categoryId, patterns]) => {
+          Object.entries(filteredMappings).map(([categoryId, patterns]) => {
             const categoryObj = categories.find(c => c.id === categoryId || c.label === categoryId);
             return (
               <div key={categoryId} className="category-section rounded-md border border-gray-200 hover:border-gray-300 hover:bg-gray-100 shadow-sm transition-all duration-200 ease-in-out">

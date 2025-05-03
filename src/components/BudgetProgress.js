@@ -43,16 +43,16 @@ export default function BudgetProgress({
   };
 
   return (
-    <div className="mt-8 rounded-lg shadow-sm bg-gray-100 border border-gray-300 p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Budget Progress</h2>
+    <div className="mt-8 rounded-lg shadow-sm bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-6">
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Budget Progress</h2>
       <div className="flex gap-4 mb-6">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Month End Date:</label>
+          <label className="text-sm text-gray-600 dark:text-gray-400">Month End Date:</label>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="border rounded px-2 py-1"
+            className="border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
         </div>
         <button
@@ -63,7 +63,7 @@ export default function BudgetProgress({
         </button>
         <button
           onClick={onClear}
-          className="bg-gray-500 text-white px-4 py-1 rounded hover:bg-gray-600 transition-colors duration-200 transform hover:scale-105"
+          className="bg-gray-500 dark:bg-gray-600 text-white px-4 py-1 rounded hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors duration-200 transform hover:scale-105"
         >
           Clear
         </button>
@@ -78,17 +78,17 @@ export default function BudgetProgress({
             const progressColor = progress > 100 ? 'bg-red-500' : 'bg-primary';
             
             return (
-              <div key={category.id} className="bg-white rounded-lg p-4 shadow-sm">
+              <div key={category.id} className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span>{category.icon}</span>
-                    <h3 className="font-medium">{category.label}</h3>
+                    <h3 className="font-medium dark:text-gray-200">{category.label}</h3>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
                     {formatCurrency(spent)} / {formatCurrency(category.budget)}
                   </div>
                 </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${progressColor} transition-all duration-300`}
                     style={{ width: `${Math.min(progress, 100)}%` }}

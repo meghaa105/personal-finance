@@ -92,12 +92,12 @@ export default function ImportOption({
 
     return (
         <div
-            className="bg-white rounded-lg p-6 shadow-md transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl h-[320px] flex flex-col"
+            className="bg-white dark:bg-gray-800/95 rounded-lg p-6 shadow-md transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl h-[320px] flex flex-col border dark:border-gray-700"
             data-import-type={type}
         >
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 line-clamp-2 h-14">{title}</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 line-clamp-2 h-14">{title}</h3>
             <div className="flex-grow mb-4">
-                <label className={`flex flex-col items-center justify-center h-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer ${hoverBorderColorClass} ${hoverBgColorClass} transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-md group`}>
+                <label className={`flex flex-col items-center justify-center h-full p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer ${hoverBorderColorClass} ${hoverBgColorClass} transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-md group`}>
                     <input
                         type="file"
                         accept={accept}
@@ -106,7 +106,7 @@ export default function ImportOption({
                         ref={fileInputRef}
                     />
                     <Icon className={`text-4xl mb-2 ${iconColorClass} transition-all duration-300 ease-in-out transform group-hover:scale-110 group-hover:rotate-3`} />
-                    <span className="text-sm font-medium text-gray-600 text-center group-hover:text-gray-800 transition-all duration-300 transform group-hover:scale-105">Select <span className="uppercase">{type}</span> File</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400 text-center group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-all duration-300 transform group-hover:scale-105">Select <span className="uppercase">{type}</span> File</span>
                 </label>
             </div>
             <div className="mt-auto">

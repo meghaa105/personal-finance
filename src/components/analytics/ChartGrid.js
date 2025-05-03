@@ -10,7 +10,10 @@ export default function ChartGrid({ chartData }) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'bottom'
+        position: 'bottom',
+        labels: {
+          color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#374151'
+        }
       }
     }
   }), []);
@@ -21,7 +24,19 @@ export default function ChartGrid({ chartData }) {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value) => formatCurrency(value)
+          callback: (value) => formatCurrency(value),
+          color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#374151'
+        },
+        grid: {
+          color: document.documentElement.classList.contains('dark') ? '#374151' : '#e5e7eb'
+        }
+      },
+      x: {
+        ticks: {
+          color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#374151'
+        },
+        grid: {
+          color: document.documentElement.classList.contains('dark') ? '#374151' : '#e5e7eb'
         }
       }
     }
@@ -76,36 +91,36 @@ export default function ChartGrid({ chartData }) {
   }), [chartData.transactionSources.labels, chartData.transactionSources.data]);
 
   return (
-    <div className="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-8 p-4 bg-gray-100 rounded-lg">
-      <div className="chart-card bg-white rounded-lg p-6 shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors duration-300">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Spending by Category</h3>
+    <div className="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-8 p-4 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
+      <div className="chart-card bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition-colors duration-300 col-span-2 lg:col-span-1">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Spending by Category</h3>
         <div className="h-80">
           {chartData.categoryDistribution.data.length > 0 ? (
             <Pie data={categoryChartData} options={chartOptions} />
           ) : (
-            <p className="text-gray-500 text-center mt-8">No category data available</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center mt-8">No category data available</p>
           )}
         </div>
       </div>
 
-      <div className="chart-card bg-white rounded-lg p-6 shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors duration-300">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Spending by Source</h3>
+      <div className="chart-card bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition-colors duration-300 col-span-2 lg:col-span-1">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Spending by Source</h3>
         <div className="h-80">
           {chartData.transactionSources.data.length > 0 ? (
             <Pie data={transactionSourcesData} options={chartOptions} />
           ) : (
-            <p className="text-gray-500 text-center mt-8">No source data available</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center mt-8">No source data available</p>
           )}
         </div>
       </div>
 
-      <div className="chart-card bg-white rounded-lg p-6 shadow-sm lg:col-span-2">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Monthly Income vs Expenses</h3>
+      <div className="chart-card bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition-colors duration-300 col-span-2">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Monthly Income vs Expenses</h3>
         <div className="h-80">
           {chartData.monthlyTrends.labels.length > 0 ? (
             <Bar data={monthlyTrendsData} options={barChartOptions} />
           ) : (
-            <p className="text-gray-500 text-center mt-8">No monthly trend data available</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center mt-8">No monthly trend data available</p>
           )}
         </div>
       </div>

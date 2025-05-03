@@ -129,30 +129,30 @@ export default function Transactions() {
     <div className="transactions-container relative">
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-[fadeIn_0.2s_ease-in-out]">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg mx-4 relative animate-[slideUp_0.3s_ease-out]">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">{isEditing ? 'Edit Transaction' : 'Add Transaction'}</h3>
+          <div className="bg-white dark:bg-gray-800/95 rounded-lg shadow-lg p-6 w-full max-w-lg mx-4 relative animate-[slideUp_0.3s_ease-out]">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-6">{isEditing ? 'Edit Transaction' : 'Add Transaction'}</h3>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Amount (₹) *</label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Amount (₹) *</label>
                   <input
                     type="number"
                     name="amount"
                     value={newTransaction.amount}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary/70"
                     min="0"
                     step="0.01"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Type *</label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Type *</label>
                   <select
                     name="type"
                     value={newTransaction.type}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary/70"
                     required
                   >
                     <option value="expense">Expense</option>
@@ -160,23 +160,23 @@ export default function Transactions() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Date *</label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Date *</label>
                   <input
                     type="date"
                     name="date"
                     value={newTransaction.date}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary/70"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Category *</label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Category *</label>
                   <select
                     name="category"
                     value={newTransaction.category}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary/70"
                     required
                   >
                     <option value="" disabled>Select a category</option>
@@ -188,22 +188,22 @@ export default function Transactions() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Description *</label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Description *</label>
                   <textarea
                     name="description"
                     value={newTransaction.description}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-y min-h-[80px]"
+                    className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary/70 resize-y min-h-[80px]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Source *</label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Source *</label>
                   <select
                     name="source"
                     value={newTransaction.source}
                     onChange={handleInputChange}
-                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary/70"
                     required
                   >
                     <option value="cash">Cash</option>
@@ -246,13 +246,13 @@ export default function Transactions() {
         </div>
       )}
 
-      <div className="filters bg-white rounded-lg p-4 shadow-sm mb-4">
+      <div className="filters bg-white dark:bg-gray-800/95 rounded-lg p-4 shadow-sm mb-4 transition-colors duration-300">
         <div className="flex gap-4 items-center">
           <div className="flex-1">
             <input
               type="text"
               placeholder="Search transactions..."
-              className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border border-gray-600 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary/70"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -286,7 +286,7 @@ export default function Transactions() {
         }}
         onClose={() => setShowFilters(false)}
       />
-      <div className="transactions-list bg-white rounded-lg shadow-sm p-4 max-h-[calc(100vh-16rem)] overflow-y-auto">
+      <div className="transactions-list bg-white dark:bg-gray-800/95 rounded-lg shadow-sm p-4 max-h-[calc(100vh-16rem)] overflow-y-auto">
         {filteredTransactions.length === 0 ? (
           <p className="text-gray-500 text-center py-8">No transactions found 😢</p>
         ) : (

@@ -52,18 +52,13 @@ body {
   color: rgb(229, 231, 235);
 }
 
+.dark option {
+  background-color: rgb(181, 192, 210);
+  color: rgb(81, 81, 81);
+}
+
 .dark input::placeholder {
   color: rgb(156, 163, 175);
-}
-
-/* Dark mode button styles */
-.dark button {
-  background-color: rgb(79, 70, 229);
-  color: white;
-}
-
-.dark button:hover {
-  background-color: rgb(67, 56, 202);
 }
 
 @layer base {

@@ -799,7 +799,7 @@ const CSVParser = (function() {
     // Guess category based on transaction description
     function guessCategory(description) {
         console.log('Attempting to categorize transaction:', description);
-        
+
         if (!description) {
             console.log('No description provided, defaulting to Other');
             return 'Other';
@@ -807,6 +807,17 @@ const CSVParser = (function() {
 
         const descriptionLower = description.toLowerCase();
         console.log('Normalized description:', descriptionLower);
+
+        // Check for UPI transactions
+        if (descriptionLower.startsWith('upi/')) {
+            console.log('UPI transaction detected');
+            const upiParts = description.split('/');
+            if (upiParts.length >= 5) {
+                const relevantFields = `${upiParts[3]} ${upiParts[4]}`.trim();
+                console.log('Extracted UPI fields for categorization:', relevantFields);
+                return categorizeDescription(relevantFields);
+            }
+        }
 
         // Check for specific income patterns first
         const incomePatterns = [
@@ -825,36 +836,6 @@ const CSVParser = (function() {
             }
         }
 
-        // Check UPI transactions first
-        if (descriptionLower.includes('upi')) {
-            console.log('UPI transaction detected');
-            const upiParts = descriptionLower.split(/(?:upi|\/)-/);
-            if (upiParts.length > 1) {
-                const merchantPart = upiParts[1].trim();
-                console.log('Extracted UPI merchant:', merchantPart);
-                // Check merchant against patterns below
-                const category = categorizeMerchant(merchantPart);
-                console.log('Categorized UPI transaction as:', category);
-                return category;
-            }
-        }
-
-        // Define and check transaction type patterns with enhanced categorization
-        const categoryPatterns = {
-            'Food & Dining': [/(?:swiggy|zomato|uber\s*eats|dominos|pizza|restaurant|cafe|food|dining|eat|kitchen|dhaba|biryani|curry|bakery|sweet|mithai|hotel.*rest|tea|chai|coffee|cafeteria|canteen|bistro|deli|eatery|foodhall|mess)/i],
-            'Groceries': [/(?:bigbasket|grofers|blinkit|dmart|market|grocery|kirana|fresh|provision|fruits|vegetables|super\s*marketsupermart|general\s*store|departmental|mart.*retail|retail.*mart|dairy|organic|nature.*basket|reliance\s*fresh|more\s*retail|nilgiris|spencers)/i],
-            'Shopping': [/(?:amazon|flipkart|myntra|ajio|snapdeal|retail|mart(?!\s*grocery)|store|shop|mall|bazaar|lifestyle|westside|shoppersstop|trends|max|clothing|fashion|apparel|footwear|accessories|electronics|gadget|home.*decor|furnish)/i],
-            'Transportation': [/(?:uber|ola|rapido|metro|bus|train|taxi|auto|petrol|diesel|fuel|fastag|parking|toll|fare|railway|irctc|redbus|ticket|travel.*transport|cab|rickshaw)/i],
-            'Utilities': [/(?:electricity|water|gas|broadband|mobile|bill\s*pay|recharge|dth|utility|wifi|internet|phone|cellular|power|maintenance|society|mtnl|bsnl|airtel|jio|vi|vodafone)/i],
-            'Health': [/(?:hospital|clinic|medical|pharmacy|medicine|doctor|apollo|fortis|diagnostic|lab|test|wellness|dental|health|treatment|consultation|physician|specialist|medplus|netmeds|1mg|pharmeasy)/i],
-            'Education': [/(?:school|college|university|course|tuition|education|coaching|institute|academy|class|training|workshop|seminar|learning|study|tutorial|skill|certification|exam|fee)/i],
-            'Travel': [/(?:hotel(?!.*restaurant)|flight|travel|trip|tour|vacation|holiday|booking|oyo|mmt|makemytrip|goibibo|easemytrip|airbnb|resort|lodge|stay|accommodation|tourism|cleartrip|yatra)/i],
-            'Entertainment': [/(?:movie|cinema|pvr|inox|netflix|prime|hotstar|entertainment|game|gaming|theatr|show|concert|event|ticket.*show|sport|recreation|amusement|fun|leisure|subscription|streaming)/i],
-            'Insurance': [/(?:insurance|policy|premium|lic|term|life.*policy|health.*policy|vehicle.*insurance|mediclaim|coverage|protection|assurance|renewal)/i],
-            'Investments': [/(?:mutual\s*fund|stock|share|demat|investment|zerodha|groww|upstox|sip|nps|ppf|trading|portfolio|wealth|asset|equity|bond|etf|gold|deposit|fd|rd)/i],
-            'Banking & Finance': [/(?:emi|loan|credit\s*card|bank(?!.*grocery)|finance|payment|transfer|neft|rtgs|imps|upi|net\s*banking|mobile\s*banking|account|balance|interest|charge|fee|annual|processing|service|cash|atm|cheque|draft)/i]
-        };
-
         // Check POS transactions
         if (descriptionLower.includes('pos')) {
             const posParts = descriptionLower.split(/pos\s*/);
@@ -865,11 +846,30 @@ const CSVParser = (function() {
             }
         }
 
+        return categorizeDescription(descriptionLower);
+    }
+    function categorizeDescription(description) {
+        // Define and check transaction type patterns with enhanced categorization
+        const categoryPatterns = {
+            'Food & Dining': [/(?:swiggy|zomato|uber\s*eats|dominos|pizza|restaurant|cafe|food|dining|eat|kitchen|dhaba|biryani|curry|bakery|sweet|mithai|hotel.*rest|tea|chai|coffee|cafeteria|canteen|bistro|deli|eatery|foodhall|mess)/i],
+            'Groceries': [/(?:bigbasket|grofers|blinkit|dmart|market|grocery|kirana|fresh|provision|fruits|vegetables|super\s*marketsupermart|general\s*store|departmental|mart.*retail|retail.*mart|dairy|organic|nature.*basket|reliance\s*fresh|more\s*retail|nilgiris|spencers)/i],
+            'Shopping': [/(?:amazon|flipkart|myntra|ajio|snapdeal|retail|mart(?!\s*grocery)|store|shop|mall|bazaar|lifestyle|westside|shoppersstop|trends|max|clothing|fashion|apparel|footwear|accessories|electronics|gadget|home.*decor|furnish)/i],
+            'Transportation': [/(?:uber|ola|rapido|metro|bus|train|taxi|auto|petrol|diesel|fuel|fastag|parking|toll|fare|railway|irctc|redbus|ticket|travel.*transport|cab|rickshaw|auto|TSRTC)/i],
+            'Utilities': [/(?:electricity|water|gas|broadband|mobile|bill\s*pay|recharge|dth|utility|wifi|internet|phone|cellular|power|maintenance|society|mtnl|bsnl|airtel|jio|vi|vodafone)/i],
+            'Health': [/(?:hospital|clinic|medical|pharmacy|medicine|doctor|apollo|fortis|diagnostic|lab|test|wellness|dental|health|treatment|consultation|physician|specialist|medplus|netmeds|1mg|pharmeasy|pullela)/i],
+            'Education': [/(?:school|college|university|course|tuition|education|coaching|institute|academy|class|training|workshop|seminar|learning|study|tutorial|skill|certification|exam|fee)/i],
+            'Travel': [/(?:hotel(?!.*restaurant)|flight|travel|trip|tour|vacation|holiday|booking|oyo|mmt|makemytrip|goibibo|easemytrip|airbnb|resort|lodge|stay|accommodation|tourism|cleartrip|yatra)/i],
+            'Entertainment': [/(?:movie|cinema|pvr|inox|netflix|prime|hotstar|entertainment|game|gaming|theatr|show|concert|event|ticket.*show|sport|recreation|amusement|fun|leisure|subscription|streaming|party)/i],
+            'Insurance': [/(?:insurance|policy|premium|lic|term|life.*policy|health.*policy|vehicle.*insurance|mediclaim|coverage|protection|assurance|renewal)/i],
+            'Investments': [/(?:mutual\s*fund|stock|share|demat|investment|zerodha|indmoney|indianclearingcorpora|sip|nps|ppf|trading|portfolio|wealth|asset|equity|bond|etf|gold|deposit|fd|rd)/i],
+            'Banking & Finance': [/(?:emi|loan|credit\s*card|bank(?!.*grocery)|finance|payment|transfer|neft|rtgs|imps|upi|net\s*banking|mobile\s*banking|account|balance|interest|charge|fee|annual|processing|service|cash|atm|cheque|draft)/i]
+        };
+
         // Check full description against patterns
         for (const [category, patterns] of Object.entries(categoryPatterns)) {
             console.log('Checking patterns for category:', category);
             if (patterns.some(pattern => {
-                const matches = pattern.test(descriptionLower);
+                const matches = pattern.test(description);
                 if (matches) {
                     console.log('Match found for pattern:', pattern, 'in category:', category);
                 }
@@ -878,10 +878,8 @@ const CSVParser = (function() {
                 return category;
             }
         }
-
         return 'Other';
     }
-
     // Helper function to categorize merchants
     function categorizeMerchant(merchant) {
         console.log('Categorizing merchant:', merchant);

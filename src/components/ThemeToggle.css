@@ -1,0 +1,22 @@
+/* .themeToggle svg {
+    transform: scale(.7);
+    z-index: 2;
+    pointer-events: none;
+} */
+
+/* .themeToggle #day,
+.themeToggle #night {
+    width: 240px;
+    height: 110px;
+    background: white;
+    position: absolute;
+    z-index: 1;
+    cursor: pointer;
+    border-radius: 100px;
+    background: #9cd6ef;
+    border: 6px solid #5f676a;
+} */
+
+.themeToggle #night {
+    pointer-events: none;
+}

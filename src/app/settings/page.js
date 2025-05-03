@@ -3,13 +3,12 @@
 import { useState, Suspense } from 'react';
 import { useCategories } from '@/contexts/CategoryContext';
 import { useTransactions } from '@/contexts/TransactionContext';
-import { useTheme } from '@/contexts/ThemeContext';
-import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload, FaEraser, FaSun, FaMoon } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload, FaEraser } from 'react-icons/fa';
 import PageTransition from '@/components/PageTransition';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Settings() {
-  const { theme, toggleTheme } = useTheme();
   const { categories, addCategory, deleteCategory, updateCategory } = useCategories();
   const { transactions, clearTransactions } = useTransactions();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -107,27 +106,7 @@ export default function Settings() {
         <div className="settings-container space-y-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Appearance</h3>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {theme === 'dark' ? (
-                  <FaMoon className="text-xl text-blue-500" />
-                ) : (
-                  <FaSun className="text-xl text-yellow-500" />
-                )}
-                <span className="font-medium text-gray-700 dark:text-gray-300">{theme === 'dark' ? 'Dark' : 'Light'} Mode</span>
-              </div>
-              <button
-                onClick={toggleTheme}
-                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                style={{
-                  backgroundColor: theme === 'dark' ? '#3B82F6' : '#D1D5DB'
-                }}
-              >
-                <span
-                  className={`${theme === 'dark' ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                />
-              </button>
-            </div>
+            <ThemeToggle />
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Data Management</h3>

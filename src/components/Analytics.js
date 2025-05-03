@@ -41,7 +41,6 @@ export default function Analytics() {
     transactionSources: ['manual', 'csv', 'pdf', 'splitwise']
   });
 
-  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [chartData, setChartData] = useState({
     categoryDistribution: { labels: [], data: [] },
     monthlyTrends: { labels: [], income: [], expenses: [] },
@@ -213,8 +212,6 @@ export default function Analytics() {
         filters={filters}
         setFilters={setFilters}
         categories={categories}
-        showCustomDatePicker={showCustomDatePicker}
-        setShowCustomDatePicker={setShowCustomDatePicker}
       />
       <MetricsGrid metrics={metrics} />
       <ChartGrid chartData={chartData} />

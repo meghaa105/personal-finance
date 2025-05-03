@@ -9,12 +9,18 @@ export default function MultiSelectDropdown({
   options,
   onChange,
   prompt = "Select one or more options",
+  defaultValues = []
 }) {
   const { openMultiSelect, closeMultiSelect } = useMultiSelect();
 
   const dropdownId = useId();
 
-  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState(() => {
+    if (defaultValues.length === 0) return [];
+    return options.filter(option => 
+      defaultValues.includes(option.value ?? option.id)
+    );
+  });
   const [isOpen, setIsOpen] = useState(false);
 
   const handleChange = (option) => {

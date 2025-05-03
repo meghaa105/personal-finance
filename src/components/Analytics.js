@@ -311,6 +311,7 @@ export default function Analytics() {
               options={categories.map(cat => ({ value: cat.id, label: `${cat.icon} ${cat.label}` }))}
               onChange={(selected) => setFilters(prev => ({ ...prev, categories: selected.map(s => s.value) }))}
               prompt="Select categories"
+              defaultValues={categories.map(cat => cat.id)}
             />
           </div>
 
@@ -326,6 +327,7 @@ export default function Analytics() {
               ]}
               onChange={(selected) => setFilters(prev => ({ ...prev, transactionSources: selected.map(s => s.id) }))}
               prompt="Select sources"
+              defaultValues={['manual', 'csv', 'pdf', 'splitwise']}
             />
           </div>
         </div>

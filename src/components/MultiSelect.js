@@ -89,7 +89,7 @@ export default function MultiSelectDropdown({
           closeMultiSelect();
         }}
       ></div>
-      <label className="z-[101] relative rounded-md border border-gray-500 bg-slate-50 block w-full">
+      <label className={`relative rounded-md border border-gray-500 bg-slate-50 block w-full ${isOpen ? "z-[101]": ""}`}>
         <input
           type="checkbox"
           className="hidden peer"

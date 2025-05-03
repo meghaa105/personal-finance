@@ -230,7 +230,7 @@ const CSVParser = (function() {
                 }
 
                 // Create transaction object
-                const description = extractField(row, headers, 'description', mappings);
+                const description = extractField(row, headers, 'PARTICULARS', mappings);
                 const amount = parseAmount(extractField(row, headers, 'amount', mappings), row, headers);
 
                 const transaction = {
@@ -241,8 +241,8 @@ const CSVParser = (function() {
                     source: 'csv'
                 };
 
-                // Skip rows without dates
-                if (!transaction.date) {
+                // Skip rows without dates or descriptions
+                if (!transaction.date || !transaction.description) {
                     return null;
                 }
 
@@ -252,7 +252,7 @@ const CSVParser = (function() {
                 }
 
                 // Guess category based on description
-                transaction.category = guessCategory(transaction.description);
+                transaction.category = transaction.description ? guessCategory(transaction.description) : 'Other';
 
                 return transaction;
             } catch (error) {

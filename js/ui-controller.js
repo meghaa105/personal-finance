@@ -523,6 +523,47 @@ const UIController = (function () {
             return percentageB - percentageA;
         });
 
+        // Determine GIF based on budget progress percentage and category
+        function getCategoryBudgetGif(category, percentage) {
+            const gifs = {
+                "Food & Dining": {
+                    happy: "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExazZldmsza2ZrMnYwdHg5aW4xbXoxd3d5cDg4dGhxdHN4MzRwd29obSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/97ZWlB7ENlalq/giphy.gif",
+                    nervous: "https://giphy.com/gifs/Friends-episode-10-friends-tv-the-one-with-monicas-boots-QUL4i6On4IQA2MdxaK/giphy.gif",
+                    panic: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2NsZTB3cmUwejlkYWJ3dzQ4YzJzaHAxYTg0MWl3aGkwMGhza2RsMyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/1EghTrigJJhq8/giphy.gif",
+                },
+                "Groceries": {
+                    happy: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif",
+                    nervous: "https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif",
+                    panic: "https://media.giphy.com/media/jIhEPuRWP6B5eUfmh3/giphy.gif",
+                },
+                "Shopping": {
+                    happy: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaWcxazAza3l4aGg1Zm9ibHp0cXVteGhnZXIzdTd0OHNqNmU3ZXZqcSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/R1CGK2ZGwqbSWrTYT1/giphy.gif",
+                    nervous: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYmk3Znh2eDdxaDQ5YTZoeXI3aWNyYW5zYjgzdGFkZzQyYnVyM3ZybCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/256SJhHfYVJF6/giphy.gif",
+                    panic: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYmk3Znh2eDdxaDQ5YTZoeXI3aWNyYW5zYjgzdGFkZzQyYnVyM3ZybCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/5xtDaruo7lz4OH0rtpS/giphy.gif",
+                },
+                // Add more categories as needed
+                "Other": {
+                    happy: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif",
+                    nervous: "https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif",
+                    panic: "https://media.giphy.com/media/3o6ZsYm5P38NvUWrDi/giphy.gif",
+                },
+                "Utilities": {
+                    happy: "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif",
+                    nervous: "https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif",
+                    panic: "https://media.giphy.com/media/3o6ZsYm5P38NvUWrDi/giphy.gif",
+                },
+            };
+
+            const categoryGifs = gifs[category] || gifs["Other"];
+            if (percentage < 50) {
+                return categoryGifs.happy;
+            } else if (percentage < 100) {
+                return categoryGifs.nervous;
+            } else {
+                return categoryGifs.panic;
+            }
+        }
+
         sortedBudgets.forEach((category) => {
             const budgetAmount = budgets[category];
             const spentAmount = spendingByCategory[category] || 0;
@@ -531,15 +572,8 @@ const UIController = (function () {
             const budgetItem = document.createElement("div");
             budgetItem.className = "budget-progress-item";
 
-            // Determine GIF based on budget progress percentage
-            let gifUrl = "";
-            if (percentage < 50) {
-                gifUrl = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif"; // Happy GIF
-            } else if (percentage < 100) {
-                gifUrl = "https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif"; // Nervous GIF
-            } else {
-                gifUrl = "https://media.giphy.com/media/3o6ZsYm5P38NvUWrDi/giphy.gif"; // Panic GIF
-            }
+            // Get category-specific GIF
+            const gifUrl = getCategoryBudgetGif(category, percentage);
 
             budgetItem.innerHTML = `
                 <div class="budget-progress-header">

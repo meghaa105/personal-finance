@@ -114,7 +114,6 @@ export default function Settings() {
   return (
     <PageTransition>
       <Suspense fallback={<LoadingSpinner />}>
-      <h1 className='text-primary-1'>FUCK YEAH</h1>
         <div className="settings-container space-y-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Appearance</h3>

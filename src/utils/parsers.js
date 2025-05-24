@@ -2,7 +2,12 @@
  * Parser utilities for handling different file formats (CSV, PDF, Splitwise)
  */
 import Papa from 'papaparse';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
+import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker';
 import { OTHER_CATEGORY_ID, INCOME_CATEGORY_ID } from '@/constants/categories';
+
+// Initialize PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 // Regular expression patterns for different types of bank statements
 const PATTERNS = {
@@ -53,8 +58,10 @@ function parseDate(dateStr) {
         // DD-MM-YYYY
         { regex: /^(\d{1,2})-?(\d{1,2})-?(\d{4})$/, fn: (m) => new Date(m[3], m[2] - 1, m[1]) },
         // DD MMM YYYY
-        { regex: /^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})$/i,
-          fn: (m) => new Date(m[3], new Date(Date.parse(m[2] + " 1, 2000")).getMonth(), m[1]) },
+        {
+            regex: /^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})$/i,
+            fn: (m) => new Date(m[3], new Date(Date.parse(m[2] + " 1, 2000")).getMonth(), m[1])
+        },
     ];
 
     for (const format of formats) {
@@ -118,7 +125,7 @@ export async function parseCSV(file, customMappings = []) {
                             .filter(row => row && typeof row === 'object')
                             .map(row => {
                                 const date = parseDate(row.Date || row.date || row["Tran Date"]);
-                                const description = row.Description || row.description ||row.PARTICULARS || 'Unknown';
+                                const description = row.Description || row.description || row.PARTICULARS || 'Unknown';
                                 const amount = parseFloat((row.Amount || row.amount || '0').replace(/[^0-9.-]+/g, ''));
 
                                 const income = parseFloat(row.CR || row.Income || row.income || 0);
@@ -131,7 +138,7 @@ export async function parseCSV(file, customMappings = []) {
                                 const transaction = {
                                     date,
                                     description: description.trim(),
-                                    amount: type === 'expense'? Math.abs(expense) : Math.abs(income),
+                                    amount: type === 'expense' ? Math.abs(expense) : Math.abs(income),
                                     type,
                                     category: type === 'income' ? INCOME_CATEGORY_ID : guessCategory(description, customMappings),
                                     source: 'csv',
@@ -166,16 +173,16 @@ export async function parsePDF(file, customMappings = []) {
 
     try {
         const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const password = ""
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer, password });
+        const pdf = await loadingTask.promise;
         let extractedText = "";
 
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items
-                .map(item => item.str)
-                .join(' ');
-            extractedText += pageText + "\n";
+            const text = textContent.items.map(item => item.str).join('\n');
+            extractedText += `\n\n--- Page ${pageNum} ---\n\n${text}`;
         }
 
         // Extract transactions using patterns

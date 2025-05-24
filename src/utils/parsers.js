@@ -3,8 +3,8 @@
  */
 import Papa from 'papaparse';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
-import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker';
-import { OTHER_CATEGORY_ID, INCOME_CATEGORY_ID } from '@/constants/categories';
+import { INCOME_CATEGORY_ID } from '@/constants/categories';
+import { PATTERNS, parseDate, guessCategory } from "@/utils/parseUtils";
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -36,71 +36,6 @@ const PATTERNS = {
         /([0-9.]+)/g, // Any number with or without decimal places
     ],
 };
-
-/**
- * Parse date string to Date object
- * @param {string} dateStr - Date string in various formats
- * @returns {Date|null} Parsed date or null if invalid
- */
-function parseDate(dateStr) {
-    if (!dateStr) return null;
-
-    // Try parsing with Date.parse first
-    const parsed = Date.parse(dateStr);
-    if (!isNaN(parsed)) {
-        return new Date(parsed);
-    }
-
-    // Try different date formats
-    const formats = [
-        // MM/DD/YYYY
-        { regex: /^(\d{1,2})\/?(\d{1,2})\/?(\d{4})$/, fn: (m) => new Date(m[3], m[1] - 1, m[2]) },
-        // DD-MM-YYYY
-        { regex: /^(\d{1,2})-?(\d{1,2})-?(\d{4})$/, fn: (m) => new Date(m[3], m[2] - 1, m[1]) },
-        // DD MMM YYYY
-        {
-            regex: /^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})$/i,
-            fn: (m) => new Date(m[3], new Date(Date.parse(m[2] + " 1, 2000")).getMonth(), m[1])
-        },
-    ];
-
-    for (const format of formats) {
-        const match = dateStr.match(format.regex);
-        if (match) {
-            const date = format.fn(match);
-            if (date instanceof Date && !isNaN(date)) {
-                return date;
-            }
-        }
-    }
-
-    return null;
-}
-
-/**
- * Guess transaction category based on description
- * @param {string} description - Transaction description
- * @returns {string} Guessed category
- */
-function guessCategory(description, customMappings = {}) {
-    if (!description) return OTHER_CATEGORY_ID;
-
-    const descriptionLower = description.toLowerCase();
-
-    // Check for income indicators
-    if (/salary|income|credit received|deposit|refund|cashback/i.test(descriptionLower)) {
-        return INCOME_CATEGORY_ID;
-    }
-
-    // Check custom mappings first
-    for (const [category, patterns] of Object.entries(customMappings)) {
-        if (patterns.some(pattern => descriptionLower.includes(pattern.toLowerCase()))) {
-            return category;
-        }
-    }
-
-    return OTHER_CATEGORY_ID;
-}
 
 /**
  * Parse CSV file

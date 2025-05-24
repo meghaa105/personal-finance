@@ -8,13 +8,13 @@ import { parseCSV, parsePDF, parseSplitwise } from './parsers';
  * @param {Object} options - Additional import options
  * @returns {Promise<Array>} Array of parsed transactions
  */
-export async function importTransactions(file, type, customMappings = []) {
+export async function importTransactions(file, type, customMappings = [], cardType) {
     try {
         switch (type.toLowerCase()) {
             case 'csv':
                 return await parseCSV(file, customMappings);
             case 'pdf':
-                return await parsePDF(file, customMappings);
+                return await parsePDF(file, customMappings, cardType);
             case 'splitwise':
                 return await parseSplitwise(file, customMappings);
             default:

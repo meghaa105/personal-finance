@@ -15,6 +15,7 @@ export default function ImportOption({
     error,
     uploadStatus,
     setUploadStatus,
+    onPDFImport,
 }) {
     const { customMappings } = useCustomMappings();
     const fileInputRef = useRef();
@@ -67,6 +68,13 @@ export default function ImportOption({
         setFile(selectedFile);
         setError(null);
         let transactions = null;
+
+        if (type === 'pdf' && onPDFImport) {
+            // Defer to parent to handle modal and import
+            onPDFImport(selectedFile, parser, customMappings);
+            event.target.value = '';
+            return;
+        }
 
         try {
             transactions = await parser(selectedFile, customMappings);

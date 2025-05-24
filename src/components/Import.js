@@ -9,6 +9,7 @@ import { importTransactions } from '../utils/import';
 import { formatDate } from '../utils/formatters';
 import { useTransactions } from '../contexts/TransactionContext';
 import { useCategories } from '../contexts/CategoryContext';
+import CreditCardTypeModal from './CreditCardTypeModal';
 
 const IMPORT_OPTIONS = [
   {
@@ -17,7 +18,7 @@ const IMPORT_OPTIONS = [
     icon: MdPictureAsPdf,
     accept: '.pdf',
     color: 'red-600',
-    parser: async (file, customMappings) => importTransactions(file, 'pdf', customMappings)
+    parser: async (file, customMappings, cardType) => importTransactions(file, 'pdf', customMappings, cardType)
   },
   {
     title: 'Import CSV (Bank Statement)',
@@ -59,20 +60,47 @@ export default function Import() {
   const [importStatus, setImportStatus] = useState(null);
   const [error, setError] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [showCreditCardModal, setShowCreditCardModal] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
 
   const { addTransactions } = useTransactions();
   const { categories } = useCategories();
 
+  // Handler for PDF import option
+  const handlePDFImport = (file, parser, customMappings) => {
+    setPendingFile({ file, parser, customMappings });
+    setShowCreditCardModal(true);
+  };
+
+  // Called when user selects a credit card type
+  const handleCreditCardTypeSelect = async (cardType) => {
+    setShowCreditCardModal(false);
+    if (!pendingFile) return;
+    try {
+      const transactions = await pendingFile.parser(pendingFile.file, ...pendingFile.customMappings, cardType );
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No valid transactions found in the file');
+      }
+      setUploadStatus((prev) => ({ ...prev, pdf: 'success' }));
+      setPreviewData(transactions);
+      setError((prev) => ({ ...prev, pdf: null }));
+    } catch (err) {
+      setError((prev) => ({ ...prev, pdf: err.message || 'Error parsing file. Please check the file format and try again.' }));
+      setUploadStatus((prev) => ({ ...prev, pdf: 'error' }));
+      setPreviewData(null);
+    } finally {
+      setPendingFile(null);
+    }
+  };
+
   const onImport = async () => {
     if (!previewData) return;
-
     try {
-      // Add transactions to storage through context
       addTransactions(previewData);
       setImportStatus('success');
       alert('Transactions imported successfully!');
-      setPreviewData(null); // Clear the preview after successful import
-      router.push('/transactions'); // Navigate to transactions page
+      setPreviewData(null);
+      router.push('/transactions');
     } catch (err) {
       console.error('Error importing transactions:', err);
       setImportStatus('error');
@@ -86,6 +114,7 @@ export default function Import() {
 
   return (
     <div className="import-container p-6">
+      <CreditCardTypeModal open={showCreditCardModal} onClose={() => setShowCreditCardModal(false)} onSelect={handleCreditCardTypeSelect} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {IMPORT_OPTIONS.map(option => (
           <ImportOption
@@ -96,6 +125,7 @@ export default function Import() {
             setUploadStatus={setUploadStatus}
             uploadStatus={uploadStatus}
             {...option}
+            onPDFImport={option.type === 'pdf' ? handlePDFImport : undefined}
           />
         ))}
       </div>

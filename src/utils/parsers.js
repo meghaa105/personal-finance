@@ -74,29 +74,50 @@ export async function parseCSV(file, customMappings = []) {
  * @param {File} file - PDF file
  * @returns {Promise<Array>} Array of parsed transactions
  */
-export async function parsePDF(file, customMappings = [], cardType) {
+export async function parsePDF(file, customMappings = [], cardType, password = "") {
     if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
         throw new Error('Invalid file type. Please upload a PDF file.');
     }
 
     try {
-        const arrayBuffer = await file.arrayBuffer();
-        const password = ""
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer, password });
-        const pdf = await loadingTask.promise;
+        let pdfPassword = password;
+        let pdf;
         let extractedText = "";
-
+        while (true) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer, password: pdfPassword });
+                pdf = await loadingTask.promise;
+                break;
+            } catch (error) {
+                if (error && error.name === "PasswordException") {
+                    pdfPassword = window.prompt("This PDF is password-protected. Please enter the statement password:", "");
+                    if (!pdfPassword) throw new Error("Password required to open this PDF.");
+                } else {
+                    throw error;
+                }
+            }
+        }
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
             const text = textContent.items.map(item => item.str).join('\n');
             extractedText += `\n\n--- Page ${pageNum} ---\n\n${text}`;
         }
-
-        // Use the new general PDF parser by card type
         const transactions = parsePDFByCardType(extractedText, customMappings, cardType);
         return transactions;
     } catch (error) {
+        if (error && error.name === "PasswordException") {
+            while (true) {
+                const pdfPassword = window.prompt("This PDF is password-protected. Please enter the statement password:", "");
+                if (!pdfPassword) throw new Error("Password required to open this PDF.");
+                try {
+                    return await parsePDF(file, customMappings, cardType, pdfPassword);
+                } catch (err) {
+                    if (!(err && err.name === "PasswordException")) throw err;
+                }
+            }
+        }
         throw new Error(`Failed to parse PDF: ${error.message}`);
     }
 }

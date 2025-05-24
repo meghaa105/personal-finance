@@ -9,34 +9,6 @@ import { PATTERNS, parseDate, guessCategory } from "@/utils/parseUtils";
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-// Regular expression patterns for different types of bank statements
-const PATTERNS = {
-    // Date patterns (various formats)
-    DATE: [
-        /(\d{1,2}\/\d{1,2}\/\d{2,4})/g, // MM/DD/YYYY or M/D/YY
-        /(\d{1,2}-\d{1,2}-\d{2,4})/g, // MM-DD-YYYY or M-D-YY
-        /(\d{2}\.\d{2}\.\d{2,4})/g, // DD.MM.YYYY or MM.DD.YYYY
-        /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\s\.]\d{1,2},?\s\d{2,4}/gi, // Month DD, YYYY
-        /(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})/gi, // DD MMM YY/YYYY (Indian format)
-        /(\d{2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{2,4})/gi, // DD Month YYYY
-        /(\d{2}-\d{2}-\d{4})/g, // DD-MM-YYYY (common in Indian bank statements)
-        /(\d{2}\/\d{2}\/\d{4})/g, // DD/MM/YYYY (another common Indian format)
-    ],
-
-    // Amount patterns
-    AMOUNT: [
-        /₹\s?(\d+,?\d*\.\d{2})/g, // ₹123.45 or ₹ 1,234.56
-        /Rs\.\s?(\d+,?\d*\.\d{2})/g, // Rs. 123.45 or Rs. 1,234.56
-        /INR\s?(\d+,?\d*\.\d{2})/g, // INR 123.45 or INR 1,234.56
-        /(\d+,?\d*\.\d{2})\s?INR/g, // 123.45 INR or 1,234.56 INR
-        /(\d+,?\d*\.\d{2})\s?[CD]$/g, // 1,234.56 C or 1,234.56 D (Credit/Debit indicator)
-        /(\d+,?\d*\.\d{2})/g, // 123.45 or 1,234.56 (decimal amount)
-        /(\d+,\d+\.\d{2})/g, // 1,234.56 (with comma thousand separator)
-        /(\d{1,3}(?:,\d{3})+(?:\.\d{2})?)/g, // 1,234 or 1,234.56 (comma-separated thousands)
-        /([0-9.]+)/g, // Any number with or without decimal places
-    ],
-};
-
 /**
  * Parse CSV file
  * @param {File} file - CSV file
@@ -101,7 +73,7 @@ export async function parseCSV(file, customMappings = []) {
  * @param {File} file - PDF file
  * @returns {Promise<Array>} Array of parsed transactions
  */
-export async function parsePDF(file, customMappings = []) {
+export async function parsePDF(file, customMappings = [], cardType) {
     if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
         throw new Error('Invalid file type. Please upload a PDF file.');
     }

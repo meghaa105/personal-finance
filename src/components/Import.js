@@ -77,7 +77,7 @@ export default function Import() {
     setShowCreditCardModal(false);
     if (!pendingFile) return;
     try {
-      const transactions = await pendingFile.parser(pendingFile.file, ...pendingFile.customMappings, cardType );
+      const transactions = await pendingFile.parser(pendingFile.file, pendingFile.customMappings, cardType );
       if (!transactions || transactions.length === 0) {
         throw new Error('No valid transactions found in the file');
       }

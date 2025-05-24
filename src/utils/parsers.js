@@ -5,6 +5,7 @@ import Papa from 'papaparse';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 import { INCOME_CATEGORY_ID } from '@/constants/categories';
 import { PATTERNS, parseDate, guessCategory } from "@/utils/parseUtils";
+import { parsePDFByCardType } from "./parsePDFUtils";
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -92,62 +93,8 @@ export async function parsePDF(file, customMappings = [], cardType) {
             extractedText += `\n\n--- Page ${pageNum} ---\n\n${text}`;
         }
 
-        // Extract transactions using patterns
-        const transactions = [];
-        const lines = extractedText.split('\n');
-
-        for (const line of lines) {
-            // Skip empty lines
-            if (!line.trim()) continue;
-
-            // Try to match date
-            let dateMatch = null;
-            for (const pattern of PATTERNS.DATE) {
-                const match = pattern.exec(line);
-                if (match) {
-                    dateMatch = match[0];
-                    break;
-                }
-            }
-
-            if (!dateMatch) continue;
-
-            // Try to match amount
-            let amountMatch = null;
-            for (const pattern of PATTERNS.AMOUNT) {
-                const match = pattern.exec(line);
-                if (match) {
-                    amountMatch = match[0].replace(/[^0-9.-]+/g, '');
-                    break;
-                }
-            }
-
-            if (!amountMatch) continue;
-
-            // Extract description (text between date and amount)
-            const description = line
-                .replace(dateMatch, '')
-                .replace(amountMatch, '')
-                .trim();
-
-            if (!description) continue;
-
-            const date = parseDate(dateMatch);
-            const amount = parseFloat(amountMatch);
-
-            if (date && !isNaN(amount)) {
-                const type = amount < 0 ? 'expense' : 'income';
-                transactions.push({
-                    date,
-                    description,
-                    amount: Math.abs(amount),
-                    type,
-                    category: type === 'income' ? 'Income' : guessCategory(description, customMappings),
-                    source: 'pdf'
-                });
-            }
-        }
-
+        // Use the new general PDF parser by card type
+        const transactions = parsePDFByCardType(extractedText, customMappings, cardType);
         return transactions;
     } catch (error) {
         throw new Error(`Failed to parse PDF: ${error.message}`);

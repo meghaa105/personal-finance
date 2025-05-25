@@ -28,9 +28,9 @@ export default function ChartGrid({ chartData }) {
   }), [chartOptions]);
 
   const categoryChartData = useMemo(() => ({
-    labels: chartData.categoryDistribution.labels,
+    labels: chartData?.categoryDistribution?.labels,
     datasets: [{
-      data: chartData.categoryDistribution.data,
+      data: chartData?.categoryDistribution?.data,
       backgroundColor: [
         '#FF6384',
         '#36A2EB',
@@ -40,10 +40,10 @@ export default function ChartGrid({ chartData }) {
         '#FF9F40'
       ]
     }]
-  }), [chartData.categoryDistribution.labels, chartData.categoryDistribution.data]);
+  }), [chartData?.categoryDistribution?.labels, chartData?.categoryDistribution?.data]);
 
   const monthlyTrendsData = useMemo(() => ({
-    labels: chartData.monthlyTrends.labels,
+    labels: chartData?.monthlyTrends?.labels,
     datasets: [
       {
         label: 'Income',
@@ -60,12 +60,12 @@ export default function ChartGrid({ chartData }) {
         borderWidth: 1
       }
     ]
-  }), [chartData.monthlyTrends.labels, chartData.monthlyTrends.income, chartData.monthlyTrends.expenses]);
+  }), [chartData?.monthlyTrends?.labels, chartData.monthlyTrends.income, chartData.monthlyTrends.expenses]);
 
   const transactionSourcesData = useMemo(() => ({
-    labels: chartData.transactionSources.labels,
+    labels: chartData?.transactionSources?.labels,
     datasets: [{
-      data: chartData.transactionSources.data,
+      data: chartData?.transactionSources?.data,
       backgroundColor: [
         '#FF6384',
         '#36A2EB',
@@ -73,14 +73,14 @@ export default function ChartGrid({ chartData }) {
         '#4BC0C0'
       ]
     }]
-  }), [chartData.transactionSources.labels, chartData.transactionSources.data]);
+  }), [chartData?.transactionSources?.labels, chartData?.transactionSources?.data]);
 
   return (
     <div className="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-8 p-4 bg-gray-100 rounded-lg">
       <div className="chart-card bg-white rounded-lg p-6 shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors duration-300">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Spending by Category</h3>
         <div className="h-80">
-          {chartData.categoryDistribution.data.length > 0 ? (
+          {chartData?.categoryDistribution?.data?.length > 0 ? (
             <Pie data={categoryChartData} options={chartOptions} />
           ) : (
             <p className="text-gray-500 text-center mt-8">No category data available</p>
@@ -91,7 +91,7 @@ export default function ChartGrid({ chartData }) {
       <div className="chart-card bg-white rounded-lg p-6 shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors duration-300">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Spending by Source</h3>
         <div className="h-80">
-          {chartData.transactionSources.data.length > 0 ? (
+          {chartData?.transactionSources?.data?.length > 0 ? (
             <Pie data={transactionSourcesData} options={chartOptions} />
           ) : (
             <p className="text-gray-500 text-center mt-8">No source data available</p>
@@ -102,7 +102,7 @@ export default function ChartGrid({ chartData }) {
       <div className="chart-card bg-white rounded-lg p-6 shadow-sm lg:col-span-2">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Monthly Income vs Expenses</h3>
         <div className="h-80">
-          {chartData.monthlyTrends.labels.length > 0 ? (
+          {chartData?.monthlyTrends?.labels?.length > 0 ? (
             <Bar data={monthlyTrendsData} options={barChartOptions} />
           ) : (
             <p className="text-gray-500 text-center mt-8">No monthly trend data available</p>

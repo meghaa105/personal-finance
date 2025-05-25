@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../utils/formatters';
 
-export default function BudgetProgress({ 
+export default function BudgetProgress({
   transactions,
   categories,
 }) {
@@ -75,8 +75,30 @@ export default function BudgetProgress({
               .filter(t => t.category === category.id)
               .reduce((sum, t) => sum + parseFloat(t.amount), 0);
             const progress = (spent / category.budget) * 100;
-            const progressColor = progress > 100 ? 'bg-red-500' : 'bg-primary';
-            
+            let progressColor;
+            if (progress >= 75) {
+              progressColor = 'bg-red-500';
+            } else if (progress >= 50) {
+              progressColor = 'bg-amber-600';
+            } else if (progress >= 25) {
+              progressColor = 'bg-yellow-500';
+            } else {
+              progressColor = 'bg-green-500';
+            }
+
+            // Section to get the appropriate GIF based on progress percentage
+            let progressGif = 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZW1udm5zbGc1NmV4NDRxOTY4dGpnbnp1ajZycnJ1NXpkZjZtbGI3cSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7abKhOpu0NwenH3O/giphy.gif';
+            if (progress >= 75) {
+              // Danger/Overspending GIF
+              progressGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3djaDNkaWZhbzd4aWplMDQyd3hwNWx1OHYweGtoaDh3ZnY3cG42NCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/kcaDGr9vkTcN6JHw8d/giphy.gif";
+            } else if (progress >= 50) {
+              // Warning/Caution GIF
+              progressGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTVxcjhsb25maGU5Y285ZXFla3VuN29uemR0NGU3azB3NmJjbDc5ZSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/55itGuoAJiZEEen9gg/giphy.gif";
+            } else if (progress >= 25) {
+              // Moderate spending GIF
+              progressGif = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzJiMjZkNzRlZTRkNDNmMDZiMzA3ZDRiNzA0YzA1YTJlMDRiMDZlZiZlcD12MV9pbnRlcm5hbF9naWZzX2dpZklkJmN0PWc/3o6gDWzmAzrpi5DQU8/giphy.gif";
+            }
+
             return (
               <div key={category.id} className="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
@@ -88,11 +110,25 @@ export default function BudgetProgress({
                     {formatCurrency(spent)} / {formatCurrency(category.budget)}
                   </div>
                 </div>
-                <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${progressColor} transition-all duration-300`}
-                    style={{ width: `${Math.min(progress, 100)}%` }}
-                  />
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {progress?.toFixed(2)}% of the Budget reached!
+                </div>
+                <div className="flex items-center gap-3 mb-2">
+
+                  <div className="w-24 h-24 flex-shrink-0">
+                    <img
+                      src={progressGif}
+                      alt="Budget status"
+                      className="w-full h-full object-center rounded"
+                    />
+                  </div>
+                  <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden flex-grow">
+                    <div
+                      className={`h-full ${progressColor} transition-all duration-300`}
+                      style={{ width: `${Math.min(progress, 100)}%` }}
+                    />
+                  </div>
+
                 </div>
               </div>
             );

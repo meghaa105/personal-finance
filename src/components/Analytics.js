@@ -199,15 +199,15 @@ export default function Analytics() {
   }, [transactions, filters, categories]);
 
   if (error) {
-    return <div className="text-center p-4 text-red-600">{error}</div>;
+    return <div className="text-center p-4 text-red-600 dark:text-red-400">{error}</div>;
   }
 
   if (isLoading) {
-    return <div className="text-center p-4"><LoadingSpinner /></div>;
+    return <div className="text-center p-4 dark:text-gray-100"><LoadingSpinner /></div>;
   }
 
   return (
-    <div className="analytics-container p-6 space-y-8 bg-gray-50">
+    <div className="analytics-container p-6 space-y-8 bg-gray-50 dark:bg-gray-900">
       <AnalyticsFilters
         filters={filters}
         setFilters={setFilters}

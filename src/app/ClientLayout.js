@@ -1,6 +1,6 @@
 'use client';
 
-import ThemeProvider from './ThemeProvider';
+
 import { TransactionProvider } from '../contexts/TransactionContext';
 import { CategoryProvider } from '../contexts/CategoryContext';
 import { CustomMappingsProvider } from '../contexts/CustomMappingsContext';
@@ -12,9 +12,9 @@ function AppContent({ children }) {
   const { dropdownOpen } = useMultiSelect();
 
   return (
-    <div className="app-container">
+    <div className="app-container bg-gray-50 dark:bg-gray-900 dark:text-white">
       <Navigation />
-      <main className="p-6 pt-0 mt-32">
+      <main className="p-6 pt-2 mt-32 bg-gray-50 dark:bg-gray-900">
         {children}
       </main>
       {dropdownOpen && (
@@ -31,17 +31,15 @@ function AppContent({ children }) {
 export default function ClientLayout({ children }) {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <CustomMappingsProvider>
-          <CategoryProvider>
-            <TransactionProvider>
-              <MultiSelectProvider>
-                <AppContent>{children}</AppContent>
-              </MultiSelectProvider>
-            </TransactionProvider>
-          </CategoryProvider>
-        </CustomMappingsProvider>
-      </ThemeProvider>
+      <CustomMappingsProvider>
+        <CategoryProvider>
+          <TransactionProvider>
+            <MultiSelectProvider>
+              <AppContent>{children}</AppContent>
+            </MultiSelectProvider>
+          </TransactionProvider>
+        </CategoryProvider>
+      </CustomMappingsProvider>
     </ErrorBoundary>
   );
 }

@@ -66,7 +66,7 @@ export default function MultiSelectDropdown({
       return (
         <div className="flex gap-2">
           {selectedOptions.map((selectedOption) => (
-            <span key={selectedOption?.value ?? selectedOption?.id} className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm">
+            <span key={selectedOption?.value ?? selectedOption?.id} className="bg-blue-100 dark:bg-blue-600/20 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded-full text-sm">
               {getSelectedOptionLabel(selectedOption?.value ?? selectedOption?.id)}
             </span>
           ))}
@@ -76,10 +76,10 @@ export default function MultiSelectDropdown({
 
     return (
       <div className="flex gap-2">
-        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm">
+        <span className="bg-blue-100 dark:bg-blue-600/20 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded-full text-sm">
           {getSelectedOptionLabel(selectedOptions?.[0]?.value ?? selectedOptions?.[0]?.id)}
         </span>
-        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm">
+        <span className="bg-blue-100 dark:bg-blue-600/20 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded-full text-sm">
           {`${selectedOptions.length}`}
         </span>
       </div>
@@ -95,7 +95,7 @@ export default function MultiSelectDropdown({
           closeMultiSelect();
         }}
       ></div>
-      <label className={`relative rounded-md border border-gray-500 bg-slate-50 block w-full ${isOpen ? "z-[101]": ""}`}>
+      <label className={`relative rounded-md border border-gray-500 bg-slate-50 dark:bg-gray-800 dark:border-gray-600 block w-full ${isOpen ? "z-[101]": ""}`}>
         <input
           type="checkbox"
           className="hidden peer"
@@ -110,18 +110,18 @@ export default function MultiSelectDropdown({
           }}
         />
 
-        <div className="w-full cursor-pointer inline-flex justify-between items-center px-2 py-1">
+        <div className="w-full cursor-pointer inline-flex justify-between items-center px-2 py-1 dark:text-gray-300">
           {renderSelectionDisplay()}
-          {isOpen ? <FaChevronUp className="text-gray-500" /> : <FaChevronDown className="text-gray-500" />}
+          {isOpen ? <FaChevronUp className="text-gray-500 dark:text-gray-400" /> : <FaChevronDown className="text-gray-500 dark:text-gray-400" />}
         </div>
 
-        <div className="absolute bg-white border border-gray-200 transition-opacity opacity-0 pointer-events-none peer-checked:opacity-100 peer-checked:pointer-events-auto w-full max-h-60 overflow-y-auto z-10">
-          <ul className="flex gap-2 p-1">
+        <div className="absolute bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-opacity opacity-0 pointer-events-none peer-checked:opacity-100 peer-checked:pointer-events-auto w-full max-h-60 overflow-y-auto z-10">
+          <ul className="flex gap-2 p-1 border-b border-gray-200 dark:border-gray-700">
             <li>
               <button
                 onClick={handleSelectAllClick}
                 disabled={!isSelectAllEnabled}
-                className="w-full text-left px-2 py-1 text-blue-600 disabled:opacity-50 cursor-pointer hover:bg-blue-200 hover:disabled:bg-transparent disabled:pointer-events-none rounded"
+                className="w-full text-left px-2 py-1 text-blue-600 dark:text-blue-400 disabled:opacity-50 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-600/20 hover:disabled:bg-transparent disabled:pointer-events-none rounded"
               >
                 {"Select All"}
               </button>
@@ -130,19 +130,19 @@ export default function MultiSelectDropdown({
               <button
                 onClick={handleClearSelectionClick}
                 disabled={!isClearSelectionEnabled}
-                className="w-full text-left px-2 py-1 text-blue-600 disabled:opacity-50 cursor-pointer hover:bg-blue-200 hover:disabled:bg-transparent disabled:pointer-events-none rounded"
+                className="w-full text-left px-2 py-1 text-blue-600 dark:text-blue-400 disabled:opacity-50 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-600/20 hover:disabled:bg-transparent disabled:pointer-events-none rounded"
               >
                 {"Clear selection"}
               </button>
             </li>
           </ul>
-          <ul>
+          <ul className="dark:text-gray-300">
             {options.map((option) => {
               const checked = selectedOptions?.map(selectedOption => (selectedOption.value ?? selectedOption.id))?.includes(option.value ?? option.id);
               return (
                 <li key={option.value ?? option.id}>
                   <label
-                    className={`flex whitespace-nowrap cursor-pointer px-2 py-[0.35rem] border border-transparent hover:border-blue-600 transition-colors [&:has(input:checked)]:bg-blue-200 hover:bg-blue-100`}
+                    className={`flex whitespace-nowrap cursor-pointer px-2 py-[0.35rem] border border-transparent hover:border-blue-600 dark:hover:border-blue-500 transition-colors [&:has(input:checked)]:bg-blue-200 dark:[&:has(input:checked)]:bg-blue-600/20 hover:bg-blue-100 dark:hover:bg-blue-600/10`}
                   >
                     <input
                       type="checkbox"

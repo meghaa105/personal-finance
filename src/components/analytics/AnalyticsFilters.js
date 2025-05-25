@@ -50,17 +50,17 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
     };
 
     return (
-        <div className="filters-container bg-white rounded-lg p-6 shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors duration-300">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Filters</h3>
+        <div className="filters-container bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition-colors duration-300">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Filters</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Time Period Filter */}
-                <div className="filter-group bg-white border border-gray-200 rounded-md p-4 shadow-sm">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
+                <div className="filter-group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-4 shadow-sm">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Period</label>
                     <div className="space-y-3">
                         <div className="flex flex-wrap gap-2">
                             <button
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer duration-200 transform hover:scale-105 hover:shadow-md ${filters.timePeriod === 'current_month' ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-100 text-gray-700 hover:bg-blue-200'}`}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer duration-200 transform hover:scale-105 hover:shadow-md ${filters.timePeriod === 'current_month' ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-blue-200 dark:hover:bg-blue-600/50'}`}
                                 onClick={() => {
                                     setFilters(prev => ({ ...prev, timePeriod: 'current_month' }));
                                 }}
@@ -68,7 +68,7 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
                                 Current Month
                             </button>
                             <button
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer duration-200 transform hover:scale-105 hover:shadow-md ${filters.timePeriod === 'current_quarter' ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-100 text-gray-700 hover:bg-green-200'}`}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer duration-200 transform hover:scale-105 hover:shadow-md ${filters.timePeriod === 'current_quarter' ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-green-200 dark:hover:bg-green-600/50'}`}
                                 onClick={() => {
                                     setFilters(prev => ({ ...prev, timePeriod: 'current_quarter' }));
                                 }}
@@ -76,7 +76,7 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
                                 Current Quarter
                             </button>
                             <button
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer duration-200 transform hover:scale-105 hover:shadow-md ${filters.timePeriod === 'current_year' ? 'bg-purple-500 text-white hover:bg-purple-600' : 'bg-gray-100 text-gray-700 hover:bg-purple-200'}`}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer duration-200 transform hover:scale-105 hover:shadow-md ${filters.timePeriod === 'current_year' ? 'bg-purple-500 text-white hover:bg-purple-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-purple-200 dark:hover:bg-purple-600/50'}`}
                                 onClick={() => {
                                     setFilters(prev => ({ ...prev, timePeriod: 'current_year' }));
                                 }}
@@ -84,7 +84,7 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
                                 Current Year
                             </button>
                             <button
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer duration-200 transform hover:scale-105 hover:shadow-md ${filters.timePeriod === 'custom' ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-gray-100 text-gray-700 hover:bg-orange-200'}`}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer duration-200 transform hover:scale-105 hover:shadow-md ${filters.timePeriod === 'custom' ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-orange-200 dark:hover:bg-orange-600/50'}`}
                                 onClick={() => {
                                     setFilters(prev => ({ ...prev, timePeriod: 'custom' }));
                                 }}
@@ -92,12 +92,12 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
                                 Custom
                             </button>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                             <input
                                 type="date"
                                 value={dateRange.start}
                                 onChange={(e) => handleDateChange('start', e.target.value)}
-                                className={`border rounded px-2 py-1 ${filters.timePeriod !== 'custom' ? 'bg-gray-50' : 'bg-white'}`}
+                                className={`border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 ${filters.timePeriod !== 'custom' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-700'}`}
                                 disabled={filters.timePeriod !== 'custom'}
                             />
                             <span>to</span>
@@ -105,7 +105,7 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
                                 type="date"
                                 value={dateRange.end}
                                 onChange={(e) => handleDateChange('end', e.target.value)}
-                                className={`border rounded px-2 py-1 ${filters.timePeriod !== 'custom' ? 'bg-gray-50' : 'bg-white'}`}
+                                className={`border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 ${filters.timePeriod !== 'custom' ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-700'}`}
                                 disabled={filters.timePeriod !== 'custom'}
                             />
                         </div>
@@ -113,8 +113,8 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
                 </div>
 
                 {/* Rest of the filters */}
-                <div className="filter-group bg-white border border-gray-200 rounded-md p-4 shadow-sm">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Categories</label>
+                <div className="filter-group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-4 shadow-sm">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categories</label>
                     <MultiSelect
                         options={categories.map(cat => ({ value: cat.id, label: `${cat.icon} ${cat.label}` }))}
                         onChange={(selected) => setFilters(prev => ({ ...prev, categories: selected.map(s => s.value) }))}
@@ -124,8 +124,8 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
                 </div>
 
                 {/* Transaction Source Filter */}
-                <div className="filter-group bg-white border border-gray-200 rounded-md p-4 shadow-sm">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Source</label>
+                <div className="filter-group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-4 shadow-sm">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Transaction Source</label>
                     <MultiSelect
                         options={[
                             { id: 'manual', label: 'Manual' },

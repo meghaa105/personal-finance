@@ -113,7 +113,7 @@ export default function Import() {
   const displayData = isCompactView ? previewData?.slice(0, 10) : previewData;
 
   return (
-    <div className="import-container p-6">
+    <div className="import-container p-6 dark:bg-gray-900">
       <CreditCardTypeModal open={showCreditCardModal} onClose={() => setShowCreditCardModal(false)} onSelect={handleCreditCardTypeSelect} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {IMPORT_OPTIONS.map(option => (
@@ -132,21 +132,21 @@ export default function Import() {
       </div>
 
       {previewData && (
-        <div className="bg-white rounded-lg p-6 shadow-md">
+        <div className="bg-white dark:bg-gray-800/95 rounded-lg p-6 shadow-md border dark:border-gray-700">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-gray-800">Import Preview</h3>
-            <p className="text-gray-600">{previewData.length} transactions found</p>
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Import Preview</h3>
+            <p className="text-gray-600 dark:text-gray-400">{previewData.length} transactions found</p>
           </div>
 
           <div className="flex gap-2 mb-4">
             <button
-              className={`px-4 py-2 rounded-md transform transition-all duration-300 ease-in-out hover:scale-105 ${isCompactView ? 'bg-primary text-white hover:bg-primary-hover shadow-md hover:shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-primary hover:text-white shadow hover:shadow-md'}`}
+              className={`px-4 py-2 rounded-md transform transition-all duration-300 ease-in-out hover:scale-105 ${isCompactView ? 'bg-primary text-white hover:bg-primary-hover shadow-md hover:shadow-lg' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white shadow hover:shadow-md'}`}
               onClick={() => setIsCompactView(true)}
             >
               Compact View
             </button>
             <button
-              className={`px-4 py-2 rounded-md transform transition-all duration-300 ease-in-out hover:scale-105 ${!isCompactView ? 'bg-primary text-white hover:bg-primary-hover shadow-md hover:shadow-lg' : 'bg-gray-200 text-gray-700 hover:bg-primary hover:text-white shadow hover:shadow-md'}`}
+              className={`px-4 py-2 rounded-md transform transition-all duration-300 ease-in-out hover:scale-105 ${!isCompactView ? 'bg-primary text-white hover:bg-primary-hover shadow-md hover:shadow-lg' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white shadow hover:shadow-md'}`}
               onClick={() => setIsCompactView(false)}
             >
               View All Transactions
@@ -155,19 +155,20 @@ export default function Import() {
 
           <div className="overflow-auto max-h-[60vh]">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-700/50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                  {!isCompactView && (<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>)}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {displayData.map((transaction, index) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <tr key={index} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50'}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {editingId === index ? (
                         <input
                           type="date"
@@ -181,7 +182,7 @@ export default function Import() {
                         />
                       ) : formatDate(transaction.date)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {editingId === index ? (
                         <input
                           type="text"
@@ -195,7 +196,7 @@ export default function Import() {
                         />
                       ) : transaction.description}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {editingId === index ? (
                         <input
                           type="number"
@@ -209,12 +210,12 @@ export default function Import() {
                         />
                       ) : `₹${transaction.amount}`}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 capitalize">
                       {
                         editingId === index ? (
                           <select
                             defaultValue={transaction.type || 'expense'}
-                            className="border rounded px-2 py-1"
+                            className="border rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                             onChange={(e) => {
                               const updatedData = [...previewData];
                               updatedData[index] = { ...updatedData[index], type: e.target.value };
@@ -227,7 +228,7 @@ export default function Import() {
                         ) : (transaction.type)
                       }
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {editingId === index ? (
                         <select
                           defaultValue={transaction.category || 'other'}
@@ -252,7 +253,7 @@ export default function Import() {
                       )}
                     </td>
                     {!isCompactView && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                         <div className="flex gap-2">
                           {editingId === index ? (
                             <button
@@ -300,7 +301,7 @@ export default function Import() {
                 setError({});
                 setUploadStatus({});
               }}
-              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md transform transition-all duration-300 ease-in-out hover:scale-105 hover:bg-gray-300 shadow hover:shadow-md"
+              className="bg-red-600 text-gray-200 px-6 py-2 rounded-md transform transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-800 shadow hover:shadow-md"
             >
               Cancel
             </button>

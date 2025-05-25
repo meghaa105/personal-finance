@@ -37,22 +37,22 @@ function parseSwiggyHDFCCreditCard(text, customMappings = []) {
                         cardType: 'Swiggy HDFC'
                     };
                 } catch {
-                    i ++;
+                    i++;
                     continue;
                 }
                 if (!currentTransaction.date) {
-                    i ++;
+                    i++;
                     continue;
                 }
             }
-            
-            i ++;
+
+            i++;
             let description = lines[i];
             if (description) {
                 try {
                     // Append to description
                     currentTransaction.description = (description || 'Unknown Swiggy HDFC Credit Card Exprense.');
-                    
+
                     currentTransaction.category = currentTransaction.type === 'income' ? 'Income' : guessCategory(currentTransaction.description, customMappings);
                 } catch {
                     continue;
@@ -60,10 +60,10 @@ function parseSwiggyHDFCCreditCard(text, customMappings = []) {
             }
 
             // If in transaction and currentTransaction exists
-            i ++;
+            i++;
             let amount = lines[i];
             if (["BANGALORE", "BENGALURU", "GURUGRAM", "GURGAON", "HYDERABAD", "MUMBAI", "PUNE", "CHENNAI", "DELHI", "DELHI (NCR)"].includes(amount)) {
-                i ++;
+                i++;
                 amount = lines[i];
             }
             if (amount) {
@@ -84,7 +84,7 @@ function parseSwiggyHDFCCreditCard(text, customMappings = []) {
             currentTransaction = null;
         }
 
-        i ++;
+        i++;
     }
     // Push the last transaction if pending
     // if (currentTransaction) {
@@ -100,7 +100,59 @@ function parseSwiggyHDFCCreditCard(text, customMappings = []) {
 
 // Example parser for ICICI credit card
 function parseAmazonICICICreditCard(text, customMappings = []) {
-    return [];
+    const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+    const amountRegex = /^([\d,]+\.\d{2})(\s*CR)?$/;
+
+    const transactions = [];
+    let i = 0;
+
+    while (i < lines.length) {
+        const dateLine = lines[i];
+        const date = parseDate(dateLine, false);
+        if (date) {
+            let j = i + 1;
+            let description = '';
+            let amount = null;
+            let type = 'expense';
+
+            // Collect description until we find a line that looks like an amount
+            while (j < lines.length) {
+                const line = lines[j];
+                const amtMatch = line.match(amountRegex);
+
+                if (amtMatch) {
+                    amount = parseFloat(amtMatch[1].replace(/,/g, ''));
+                    type = amtMatch[2] ? 'income' : 'expense';
+                    break;
+                } else {
+                    if (description.length > 0) description += '==';
+                    description += line;
+                }
+                j++;
+            }
+
+            if (amount !== null) {
+                const descriptionArr = description.split('==');
+                description = `(${descriptionArr[0]}) ${descriptionArr[1]}`;
+                transactions.push({
+                    source: 'pdf',
+                    cardType: 'Amazon ICICI',
+                    date,
+                    description: description.trim(),
+                    amount,
+                    type,
+                    category: type === 'income' ? 'Income' : guessCategory(description.trim(), customMappings)
+                });
+                i = j + 1; // Move to next transaction start
+            } else {
+                i++; // Skip if amount not found
+            }
+        } else {
+            i++;
+        }
+    }
+
+    return transactions;
 }
 
 // Generic parser for unknown credit card types

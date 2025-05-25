@@ -32,7 +32,7 @@ function parseSwiggyHDFCCreditCard(text, customMappings = []) {
                 // Start a new transaction
                 try {
                     currentTransaction = {
-                        date: parseDate(date),
+                        date: parseDate(date, false),
                         source: 'pdf',
                         cardType: 'Swiggy HDFC'
                     };

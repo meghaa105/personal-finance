@@ -31,14 +31,16 @@ export const PATTERNS = {
  * @param {string} dateStr - Date string in various formats
  * @returns {Date|null} Parsed date or null if invalid
  */
-export function parseDate(dateStr) {
+export function parseDate(dateStr, useJSParser = true) {
     if (!dateStr) return null;
-    const parsed = Date.parse(dateStr);
-    if (!isNaN(parsed)) {
-        return new Date(parsed);
+    if (useJSParser) {
+        const parsed = Date.parse(dateStr);
+        if (!isNaN(parsed)) {
+            return new Date(parsed);
+        }
     }
     const formats = [
-        { regex: /^(\d{1,2})\/?(\d{1,2})\/?(\d{4})$/, fn: (m) => new Date(m[3], m[1] - 1, m[2]) },
+        { regex: /^(\d{1,2})\/?(\d{1,2})\/?(\d{4})$/, fn: (m) => new Date(m[3], m[2] - 1, m[1]) },
         { regex: /^(\d{1,2})-?(\d{1,2})-?(\d{4})$/, fn: (m) => new Date(m[3], m[2] - 1, m[1]) },
         {
             regex: /^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})$/i,

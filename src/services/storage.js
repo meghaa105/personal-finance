@@ -30,7 +30,7 @@ class StorageService {
   static getAllTransactions() {
     const transactions = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
     const parsedTransactions = JSON.parse(transactions || '[]');
-    console.log('Retrieved transactions from storage:', parsedTransactions);
+    // console.log('Retrieved transactions from storage:', parsedTransactions);
     return parsedTransactions;
   }
 

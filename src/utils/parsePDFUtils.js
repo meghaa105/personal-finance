@@ -204,7 +204,6 @@ function parseSbiCashbackCreditCard(text, customMappings = []) {
 
 // General function to select parser based on cardType
 export function parsePDFByCardType(text, customMappings = [], cardType) {
-    console.log({ text });
     const allowedTypes = CREDIT_CARD_OPTIONS.map(opt => opt.value.toLowerCase());
     if (!cardType || !allowedTypes.includes((cardType || '').toLowerCase())) {
         return [];

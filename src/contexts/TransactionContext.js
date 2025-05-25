@@ -12,10 +12,10 @@ export function TransactionProvider({ children }) {
   useEffect(() => {
     const initializeTransactions = async () => {
       try {
-        console.log('Initializing TransactionContext...');
+        // console.log('Initializing TransactionContext...');
         StorageService.init(); // This will force initialize with sample transaction
         const storedTransactions = StorageService.getAllTransactions();
-        console.log('Loaded transactions:', storedTransactions);
+        // console.log('Loaded transactions:', storedTransactions);
         
         if (!Array.isArray(storedTransactions)) {
           console.error('Stored transactions is not an array:', storedTransactions);
@@ -36,7 +36,7 @@ export function TransactionProvider({ children }) {
 
   const addTransactions = (newTransactions) => {
     try {
-      console.log('Adding new transactions:', newTransactions);
+      // console.log('Adding new transactions:', newTransactions);
       
       // Add IDs to transactions if they don't have one
       const transactionsWithIds = newTransactions.map(transaction => ({
@@ -52,7 +52,7 @@ export function TransactionProvider({ children }) {
       // Update state by appending new transactions
       setTransactions(prevTransactions => {
         const updatedTransactions = [...prevTransactions, ...transactionsWithIds];
-        console.log('Updated transactions state:', updatedTransactions);
+        // console.log('Updated transactions state:', updatedTransactions);
         return updatedTransactions;
       });
     } catch (error) {
@@ -62,7 +62,7 @@ export function TransactionProvider({ children }) {
 
   const updateTransaction = (id, updatedTransaction) => {
     try {
-      console.log('Updating transaction:', id, updatedTransaction);
+      // console.log('Updating transaction:', id, updatedTransaction);
       StorageService.updateTransaction(id, updatedTransaction);
       setTransactions(prevTransactions =>
         prevTransactions.map(transaction =>
@@ -76,7 +76,7 @@ export function TransactionProvider({ children }) {
 
   const deleteTransaction = (id) => {
     try {
-      console.log('Deleting transaction:', id);
+      // console.log('Deleting transaction:', id);
       StorageService.deleteTransaction(id);
       setTransactions(prevTransactions =>
         prevTransactions.filter(transaction => transaction.id !== id)
@@ -88,7 +88,7 @@ export function TransactionProvider({ children }) {
 
   const clearTransactions = () => {
     try {
-      console.log('Clearing all transactions');
+      // console.log('Clearing all transactions');
       StorageService.clearTransactions();
       setTransactions([]);
     } catch (error) {

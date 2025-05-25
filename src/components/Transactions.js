@@ -24,7 +24,6 @@ export default function Transactions() {
   });
 
   const { transactions: contextTransactions, addTransactions, deleteTransaction, updateTransaction } = useTransactions();
-  console.log({contextTransactions})
 
   useEffect(() => {
     setTransactions(contextTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)));

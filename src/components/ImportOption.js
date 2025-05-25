@@ -16,11 +16,12 @@ export default function ImportOption({
     uploadStatus,
     setUploadStatus,
     onPDFImport,
+    transactionCount
 }) {
     const { customMappings } = useCustomMappings();
     const fileInputRef = useRef();
     const [file, setFile] = useState(null);
-    const [transactionCount, setTransactionCount] = useState(0);
+    // const [transactionCount, setTransactionCount] = useState(0);
 
     // Set color based on import type
     const importColor = {
@@ -71,7 +72,7 @@ export default function ImportOption({
 
         if (type === 'pdf' && onPDFImport) {
             // Defer to parent to handle modal and import
-            onPDFImport(selectedFile, parser, customMappings);
+            onPDFImport(selectedFile, customMappings, parser);
             event.target.value = '';
             return;
         }
@@ -82,7 +83,7 @@ export default function ImportOption({
                 throw new Error('No valid transactions found in the file');
             }
             setUploadStatus((prev) => ({ ...prev, [type]: 'success' }));
-            setTransactionCount(transactions.length);
+            // setTransactionCount(transactions.length);
             setPreviewData(transactions);
         } catch (err) {
             console.error('Error parsing file:', err);

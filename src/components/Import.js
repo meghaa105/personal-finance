@@ -67,7 +67,7 @@ export default function Import() {
   const { categories } = useCategories();
 
   // Handler for PDF import option
-  const handlePDFImport = (file, parser, customMappings) => {
+  const handlePDFImport = (file, customMappings, parser) => {
     setPendingFile({ file, parser, customMappings });
     setShowCreditCardModal(true);
   };
@@ -126,6 +126,7 @@ export default function Import() {
             uploadStatus={uploadStatus}
             {...option}
             onPDFImport={option.type === 'pdf' ? handlePDFImport : undefined}
+            transactionCount={previewData?.length}
           />
         ))}
       </div>

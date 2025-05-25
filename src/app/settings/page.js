@@ -126,7 +126,7 @@ export default function Settings() {
                     <button
                       key={color.value}
                       onClick={() => updatePrimaryColor(color.value)}
-                      className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 ${primaryColor === color.value ? 'ring-2 ring-offset-2 ring-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                      className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 hover:scale-[1.025] ${primaryColor === color.value ? 'border-2 border-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                       style={{ backgroundColor: color.value + '1A' }} // 10% opacity version of the color
                     >
                       <span className="text-sm font-medium" style={{ color: color.value }}>{color.label}</span>

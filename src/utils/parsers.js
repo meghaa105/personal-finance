@@ -4,7 +4,7 @@
 import Papa from 'papaparse';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 import { INCOME_CATEGORY_ID } from '@/constants/categories';
-import { PATTERNS, parseDate, guessCategory } from "@/utils/parseUtils";
+import { parseDate, guessCategory } from "@/utils/parseUtils";
 import { parsePDFByCardType } from "./parsePDFUtils";
 
 // Initialize PDF.js worker

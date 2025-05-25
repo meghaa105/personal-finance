@@ -7,9 +7,9 @@ export const CREDIT_CARD_OPTIONS = [
 ];
 
 export const CREDIT_CARD_OPTIONS_MAP = {
-  swiggy_hdfc: "Swiggy HDFC",
-  sbi_cashback: "SBI Cashback",
-  amazon_icici: "Amazon ICICI",
-  icici_rubyx_visa: "ICICI Rubyx VISA",
-  icici_rubyx_amex: "ICICI Rubyx Amex"
+  swiggy_hdfc: "swiggy_hdfc",
+  sbi_cashback: "sbi_cashback",
+  amazon_icici: "amazon_icici",
+  icici_rubyx_visa: "icici_rubyx_visa",
+  icici_rubyx_amex: "icici_rubyx_amex"
 };

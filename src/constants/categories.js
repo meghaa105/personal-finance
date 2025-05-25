@@ -6,6 +6,7 @@ export const OTHER_CATEGORY_ID = 'other';
 export const INCOME_CATEGORY_ID = 'income';
 
 export const DEFAULT_CATEGORIES = [
+  { id: 'clubbing', label: 'Clubbing & Party', icon: '🎉', budget: 5000 },
   { id: 'food_dining', label: 'Food & Dining', icon: '🍽️', budget: 5000 },
   { id: 'groceries', label: 'Groceries', icon: '🛒', budget: 5000 },
   { id: 'shopping', label: 'Shopping', icon: '🛍️', budget: 5000 },
@@ -25,8 +26,9 @@ export const DEFAULT_CATEGORIES = [
 ];
 
 export const DEFAULT_MAPPINGS = {
-  'food_dining': ['restaurant', 'cafe', 'swiggy', 'zomato', 'dinner', 'food', 'dining', 'canteen', 'breakfast', 'lunch', 'cafe', 'coffee', 'tea', 'bakery', 'pastry'],
-  'groceries': ['grocery', 'supermarket', 'dmart', 'kirana'],
+  'clubbing': ['prism', 'social', 'air live', 'club'],
+  'food_dining': ['restaurant', 'cafe', 'swiggy', 'zomato', 'dinner', 'food', 'dining', 'canteen', 'breakfast', 'lunch', 'cafe', 'coffee', 'tea', 'bakery', 'pastry', 'bikanervala'],
+  'groceries': ['grocery', 'supermarket', 'dmart', 'kirana', 'instamart', 'blink commerce', 'blinkit', 'zepto'],
   'shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'nykaa', 'meesho', 'tatacliq', 'shop', 'store', 'retail', 'clothing', 'apparel', 'snapdeal', 'lenskart', 'croma', 'reliance digital', 'vijay sales', 'lifestyle', 'pantaloons', 'westside', 'mall', 'bazaar'],
   'transport': ['uber', 'ola', 'rapido', 'taxi', 'auto', 'transit', 'train', 'irctc', 'railway', 'metro', 'bus', 'red bus', 'redbus', 'petrol', 'diesel', 'fuel', 'indian oil', 'hp', 'bharat petroleum', 'bpcl', 'toll', 'fastag'],
   'entertainment': ['movie', 'cinema', 'pvr', 'inox', 'bookmyshow', 'theater', 'netflix', 'hotstar', 'disney+', 'amazon prime', 'sony liv', 'zee5', 'jio cinema', 'game', 'gaming', 'concert', 'event'],

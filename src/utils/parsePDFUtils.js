@@ -53,7 +53,7 @@ function parseSwiggyHDFCCreditCard(text, customMappings = []) {
                     // Append to description
                     currentTransaction.description = (description || 'Unknown Swiggy HDFC Credit Card Exprense.');
 
-                    currentTransaction.category = currentTransaction.type === 'income' ? 'Income' : guessCategory(currentTransaction.description, customMappings);
+                    currentTransaction.category = currentTransaction.type === 'income' ? 'income' : guessCategory(currentTransaction.description, customMappings);
                 } catch {
                     continue;
                 }
@@ -132,7 +132,7 @@ function parseAmazonICICICreditCard(text, customMappings = []) {
                     description: description.trim(),
                     amount,
                     type,
-                    category: type === 'income' ? 'Income' : guessCategory(description.trim(), customMappings)
+                    category: type === 'income' ? 'income' : guessCategory(description.trim(), customMappings)
                 });
                 i = j + 1; // Move to next transaction start
             } else {
@@ -189,7 +189,7 @@ function parseSbiCashbackCreditCard(text, customMappings = []) {
                 type,
                 source: 'pdf',
                 cardType: "SBI Cashback",
-                category: type === 'income'? "Income" : guessCategory(description.trim(), customMappings) // Guess category based on description or custom mappings if availabl
+                category: type === 'income'? "income" : guessCategory(description.trim(), customMappings) // Guess category based on description or custom mappings if availabl
             });
             i++;
           }

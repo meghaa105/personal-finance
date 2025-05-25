@@ -110,9 +110,7 @@ export default function BudgetProgress({
                     {formatCurrency(spent)} / {formatCurrency(category.budget)}
                   </div>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {progress?.toFixed(2)}% of the Budget reached!
-                </div>
+
                 <div className="flex items-center gap-3 mb-2">
 
                   <div className="w-24 h-24 flex-shrink-0">
@@ -122,11 +120,16 @@ export default function BudgetProgress({
                       className="w-full h-full object-center rounded"
                     />
                   </div>
-                  <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden flex-grow">
-                    <div
-                      className={`h-full ${progressColor} transition-all duration-300`}
-                      style={{ width: `${Math.min(progress, 100)}%` }}
-                    />
+                  <div class="flex flex-col gap-2 w-full">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {progress?.toFixed(2)}% of the Budget reached!
+                    </div>
+                    <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden flex-grow">
+                      <div
+                        className={`h-full ${progressColor} transition-all duration-300`}
+                        style={{ width: `${Math.min(progress, 100)}%` }}
+                      />
+                    </div>
                   </div>
 
                 </div>

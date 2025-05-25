@@ -1,5 +1,5 @@
 // Utility functions for parsing PDF statements for different credit card types
-import { PATTERNS, parseDate, guessCategory } from "./parseUtils";
+import { parseDate, guessCategory } from "./parseUtils";
 import { CREDIT_CARD_OPTIONS, CREDIT_CARD_OPTIONS_MAP } from "../constants/creditCardOptions";
 
 // Example parser for HDFC credit card
@@ -86,15 +86,6 @@ function parseSwiggyHDFCCreditCard(text, customMappings = []) {
 
         i++;
     }
-    // Push the last transaction if pending
-    // if (currentTransaction) {
-    //     currentTransaction.category = currentTransaction.type === 'income' ? 'Income' : guessCategory(currentTransaction.description, customMappings);
-    //     currentTransaction.amount = Math.abs(currentTransaction.amount);
-    //     currentTransaction.source = 'pdf';
-    //     currentTransaction.cardType = 'HDFC';
-    //     transactions.push(currentTransaction);
-    // }
-    console.log({ transactions });
     return transactions;
 }
 
@@ -156,45 +147,58 @@ function parseAmazonICICICreditCard(text, customMappings = []) {
 }
 
 // Generic parser for unknown credit card types
-function parseSbiCashbackCreditCard(text, customMappings = [], cardType = 'Generic') {
+function parseSbiCashbackCreditCard(text, customMappings = []) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
     const transactions = [];
-    const lines = text.split('\n');
-    for (const line of lines) {
-        let dateMatch = null;
-        for (const pattern of PATTERNS.DATE) {
-            const match = pattern.exec(line);
-            if (match) {
-                dateMatch = match[0];
-                break;
-            }
+    let i = 0;
+  
+    // Find start of transaction section
+    while (i < lines.length && !lines[i].startsWith("TRANSACTIONS FOR")) i++;
+    if (i === lines.length) return transactions; // no transaction section found
+    i++; // move past the header
+  
+    while (i < lines.length) {
+      // Check if a line matches a date in DD MMM YY format
+      const dateLine = lines[i];
+      const date = parseDate(dateLine);
+      if (date) {
+        let description = "";
+  
+        // Gather description (1–3 lines until we hit amount)
+        let descLines = [];
+        i++;
+        while (i < lines.length && !lines[i].match(/^\d{1,3}(,\d{3})*(\.\d{2})?$/)) {
+          descLines.push(lines[i]);
+          i++;
         }
-        if (!dateMatch) continue;
-        let amountMatch = null;
-        for (const pattern of PATTERNS.AMOUNT) {
-            const match = pattern.exec(line);
-            if (match) {
-                amountMatch = match[0].replace(/[^0-9.-]+/g, '');
-                break;
-            }
-        }
-        if (!amountMatch) continue;
-        const description = line.replace(dateMatch, '').replace(amountMatch, '').trim();
-        if (!description) continue;
-        const date = parseDate(dateMatch);
-        const amount = parseFloat(amountMatch);
-        if (date && !isNaN(amount)) {
-            const type = amount < 0 ? 'expense' : 'income';
+  
+        description = descLines.join(' ');
+  
+        // Amount
+        if (i < lines.length) {
+          const amountStr = lines[i].replace(/,/g, '');
+          const amount = parseFloat(amountStr);
+          i++;
+          if (i < lines.length && (lines[i] === 'C' || lines[i] === 'D')) {
+            const type = lines[i] === 'C' ? 'income' : 'expense';
             transactions.push({
                 date,
                 description,
-                amount: Math.abs(amount),
+                amount,
                 type,
-                category: type === 'income' ? 'Income' : guessCategory(description, customMappings),
                 source: 'pdf',
-                cardType
+                cardType: "SBI Cashback",
+                category: type === 'income'? "Income" : guessCategory(description.trim(), customMappings) // Guess category based on description or custom mappings if availabl
             });
+            i++;
+          }
         }
+      } else {
+        i++;
+      }
     }
+  
     return transactions;
 }
 

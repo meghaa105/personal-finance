@@ -166,7 +166,7 @@ export default function Dashboard() {
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3 sm:mb-4 text-center">Top Expense Categories</h2>
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg">
           {categoryData.labels.length > 0 ? (
-            <div className="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 h-auto sm:h-[25rem] mx-auto py-2 sm:py-4 flex justify-center">
+            <div className="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 h-[15rem] sm:h-[25rem] mx-auto py-2 sm:py-4 flex justify-center">
               <Doughnut
                 data={categoryData}
                 options={{

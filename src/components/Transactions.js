@@ -267,6 +267,7 @@ export default function Transactions() {
       </div>
 
       <FilterModal
+        categories={categories}
         show={showFilters}
         filters={tempFilters}
         onFilterChange={handleFilterChange}

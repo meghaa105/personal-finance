@@ -2,13 +2,9 @@
  * Parser utilities for handling different file formats (CSV, PDF, Splitwise)
  */
 import Papa from 'papaparse';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 import { INCOME_CATEGORY_ID } from '@/constants/categories';
 import { parseDate, guessCategory } from "@/utils/parseUtils";
 import { parsePDFByCardType } from "./parsePDFUtils";
-
-// Initialize PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 /**
  * Parse CSV file
@@ -69,6 +65,29 @@ export async function parseCSV(file, customMappings = []) {
     });
 }
 
+const PDF_JS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDF_WORKER_JS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// Ensure pdf.js and its worker are loaded
+const loadPdfJs = () => {
+    return new Promise((resolve, reject) => {
+        if (typeof window.pdfjsLib !== 'undefined') {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = PDF_JS_CDN;
+        script.onload = () => {
+            // Set the worker source for pdf.js
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_JS_CDN;
+            resolve();
+        };
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+};
+
 /**
  * Parse PDF file
  * @param {File} file - PDF file
@@ -80,6 +99,8 @@ export async function parsePDF(file, customMappings = [], cardType, password = "
     }
 
     try {
+        await loadPdfJs();
+        const pdfjsLib = window.pdfjsLib;
         let pdfPassword = password;
         let pdf;
         let extractedText = "";

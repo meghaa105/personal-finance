@@ -12,15 +12,4 @@ const nextConfig = {
   poweredByHeader: false
 }
 
-nextConfig.webpack = (config, { isServer }) => {
-  // Add a rule to handle .node files
-  config.module.rules.push({
-    test: /\.node$/,
-    use: 'node-loader',
-  });
-
-  // Return the modified config
-  return config;
-};
-
 module.exports = nextConfig;

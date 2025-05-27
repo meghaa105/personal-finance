@@ -6,7 +6,7 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('light');
-  const [primaryColor, setPrimaryColor] = useState('#3B82F6'); // Default blue color
+  const [primaryColor, setPrimaryColor] = useState('#6c63ff'); // Default blue color
 
   useEffect(() => {
     // Load theme and primary color from localStorage on mount

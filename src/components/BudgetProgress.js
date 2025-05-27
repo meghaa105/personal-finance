@@ -120,7 +120,7 @@ export default function BudgetProgress({
                       className="w-full h-full object-center rounded"
                     />
                   </div>
-                  <div class="flex flex-col gap-2 w-full">
+                  <div className="flex flex-col gap-2 w-full">
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       {progress?.toFixed(2)}% of the Budget reached!
                     </div>

@@ -12,6 +12,7 @@ export function ThemeProvider({ children }) {
     // Load theme and primary color from localStorage on mount
     const savedTheme = localStorage.getItem('personalFinance_theme');
     const savedPrimaryColor = localStorage.getItem('personalFinance_primaryColor');
+    const savedHoverColor = localStorage.getItem('personalFinance_hoverColor');
 
     if (savedTheme) {
       setTheme(savedTheme);
@@ -24,6 +25,12 @@ export function ThemeProvider({ children }) {
     } else {
       document.documentElement.style.setProperty('--color-primary', primaryColor);
     }
+
+    if (savedHoverColor) {
+      document.documentElement.style.setProperty('--color-primary-hover', savedHoverColor);
+    } else {
+      document.documentElement.style.setProperty('--color-primary-hover', '#150f8b');
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -33,10 +40,12 @@ export function ThemeProvider({ children }) {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
-  const updatePrimaryColor = (color) => {
+  const updatePrimaryColor = (color, hoverColor) => {
     setPrimaryColor(color);
     localStorage.setItem('personalFinance_primaryColor', color);
+    localStorage.setItem('personalFinance_hoverColor', hoverColor);
     document.documentElement.style.setProperty('--color-primary', color);
+    document.documentElement.style.setProperty('--color-primary-hover', hoverColor);
   };
 
   return (

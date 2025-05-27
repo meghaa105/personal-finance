@@ -10,12 +10,12 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import ThemeToggle from '@/components/ThemeToggle';
 
 const THEME_COLORS = [
-  { label: 'Blue', value: '#6c63ff' },
-  { label: 'Purple', value: '#8B5CF6' },
-  { label: 'Pink', value: '#EC4899' },
-  { label: 'Orange', value: '#F97316' },
-  { label: 'Teal', value: '#14B8A6' },
-  { label: 'Indigo', value: '#6366F1' },
+  { label: 'Blue', value: '#6c63ff', hover: '#150f8b' },
+  { label: 'Purple', value: '#8B5CF6', hover: '#331a6d' },
+  { label: 'Pink', value: '#EC4899', hover: '#6e1140' },
+  { label: 'Orange', value: '#F97316', hover: '#68330c' },
+  { label: 'Teal', value: '#14B8A6', hover: '#235c55' },
+  { label: 'Indigo', value: '#6366F1', hover: '#202153' },
 ];
 
 export default function Settings() {
@@ -126,7 +126,7 @@ export default function Settings() {
                   {THEME_COLORS.map((color) => (
                     <button
                       key={color.value}
-                      onClick={() => updatePrimaryColor(color.value)}
+                      onClick={() => updatePrimaryColor(color.value, color.hover)}
                       className={`flex items-center justify-between p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-[1.025] ${primaryColor === color.value ? 'border-2 border-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                       style={{ backgroundColor: color.value + '1A' }} // 10% opacity version of the color
                     >

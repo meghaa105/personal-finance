@@ -47,7 +47,7 @@ export default function Navigation() {
 
   return (
     <>
-      <header className="bg-primary shadow-md fixed top-0 left-0 right-0 z-50" role="banner">
+      <header className="bg-primary shadow-md fixed top-4 sm:top-0 left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 right-0 z-50 w-11/12 sm:w-full rounded-lg sm:rounded-none border-2 sm:border-0 sm:border-b-4 border-primary-hover" role="banner">
         <nav className="container mx-auto px-4 sm:px-6" role="navigation" aria-label="Main navigation">
           <Link href="/dashboard" className="block" onClick={closeMobileMenu}>
             <h1 className="text-xl sm:text-2xl font-bold text-white dark:text-white text-center py-3 sm:py-4">Personal Finance Manager (₹)</h1>

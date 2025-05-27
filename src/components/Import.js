@@ -113,7 +113,7 @@ export default function Import() {
   const displayData = isCompactView ? previewData?.slice(0, 10) : previewData;
 
   return (
-    <div className="import-container p-6 dark:bg-gray-900">
+    <div className="import-container dark:bg-gray-900">
       <CreditCardTypeModal open={showCreditCardModal} onClose={() => setShowCreditCardModal(false)} onSelect={handleCreditCardTypeSelect} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {IMPORT_OPTIONS.map(option => (

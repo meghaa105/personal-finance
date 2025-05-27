@@ -45,7 +45,7 @@ export default function BudgetProgress({
   return (
     <div className="mt-8 rounded-lg shadow-sm bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-6">
       <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Budget Progress</h2>
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-600 dark:text-gray-400">Month End Date:</label>
           <input

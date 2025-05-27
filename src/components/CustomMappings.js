@@ -89,7 +89,7 @@ export default function CustomMappings() {
       </button>
 
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/80 flex items-center justify-center z-50">
+        <div className="fixed p-6 inset-0 bg-black/50 dark:bg-black/80 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800/95 rounded-lg w-full max-w-2xl p-6 shadow-lg relative">
             <div className="flex justify-between items-center mb-6 border-b dark:border-gray-700 pb-4">
               <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{editingMapping ? 'Edit' : 'Add New'} Mapping</h3>
@@ -186,7 +186,7 @@ export default function CustomMappings() {
       </div>
 
       {selectedCategory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed p-6 inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800/95 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
             <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 p-4 flex items-center justify-between border-b dark:border-gray-700">
               <div className="flex items-center gap-2">

@@ -101,7 +101,7 @@ export default function ImportOption({
 
     return (
         <div
-            className="bg-white dark:bg-gray-800/95 rounded-lg p-6 shadow-md transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl h-[320px] flex flex-col border dark:border-gray-700"
+            className="bg-white dark:bg-gray-800/95 rounded-lg p-6 shadow-md transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-xl hi[160px] sm:h-[320px] flex flex-col border dark:border-gray-700"
             data-import-type={type}
         >
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 line-clamp-2 h-14">{title}</h3>

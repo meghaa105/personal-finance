@@ -7,7 +7,7 @@ export default function CreditCardTypeModal({ open, onClose, onSelect }) {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 dark:bg-black dark:bg-opacity-60">
+        <div className="p-6 fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 dark:bg-black dark:bg-opacity-60">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md transition-colors duration-200">
                 <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">Select Credit Card Type</h2>
                 <div className="flex flex-col gap-3 mb-6">

@@ -12,9 +12,9 @@ function AppContent({ children }) {
   const { dropdownOpen } = useMultiSelect();
 
   return (
-    <div className="app-container bg-gray-50 dark:bg-gray-900 dark:text-white">
+    <div className="app-container bg-gray-50 dark:bg-gray-900 dark:text-white min-h-screen flex flex-col">
       <Navigation />
-      <main className="p-6 pt-2 mt-32 bg-gray-50 dark:bg-gray-900">
+      <main className="p-4 sm:p-6 pt-10 sm:pt-16 mt-16 sm:mt-20 flex-grow">
         {children}
       </main>
       {dropdownOpen && (

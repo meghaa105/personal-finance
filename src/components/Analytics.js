@@ -44,7 +44,7 @@ export default function Analytics() {
   const [chartData, setChartData] = useState({
     categoryDistribution: { labels: [], data: [] },
     monthlyTrends: { labels: [], income: [], expenses: [] },
-    paymentMethods: { labels: [], data: [] }
+    paymentMethods: { labels: [], data: [] } // Renamed from transactionSources for clarity
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -56,10 +56,11 @@ export default function Analytics() {
         throw new Error('Transactions data is not properly initialized');
       }
 
-      if (transactions.length === 0) {
-        console.log('No transactions available');
-        return;
-      }
+      // No need to return if transactions are empty, let it process and show empty states
+      // if (transactions.length === 0) {
+      //   console.log('No transactions available');
+      //   return;
+      // }
 
       const now = new Date();
       let startDate, endDate;
@@ -80,8 +81,8 @@ export default function Analytics() {
           endDate = new Date(now.getFullYear(), 11, 31);
           break;
         case 'custom':
-          startDate = filters.customStartDate ? new Date(filters.customStartDate) : new Date(now.getFullYear(), now.getMonth(), 1);
-          endDate = filters.customEndDate ? new Date(filters.customEndDate) : new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          startDate = filters.customStartDate ? new Date(filters.customStartDate) : new Date(now.getFullYear(), 0, 1); // Default to start of year if not set
+          endDate = filters.customEndDate ? new Date(filters.customEndDate) : new Date(now.getFullYear(), 11, 31); // Default to end of year if not set
           break;
         default:
           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -91,11 +92,13 @@ export default function Analytics() {
       // Filter transactions based on selected criteria
       const filteredTransactions = transactions.filter(transaction => {
         const transactionDate = new Date(transaction.date);
+        const categoryMatch = filters.categories.length === categories.length || filters.categories.includes(transaction.category);
+        const sourceMatch = filters.transactionSources.length === 4 || filters.transactionSources.includes(["csv", "pdf", "splitwise"].includes(transaction.source) ? transaction.source : 'manual');
         return (
           transactionDate >= startDate &&
           transactionDate <= endDate &&
-          filters.categories.includes(transaction.category) &&
-          filters.transactionSources.includes(["csv", "pdf", "splitwise"].includes(transaction.source) ? transaction.source : 'manual')
+          categoryMatch &&
+          sourceMatch
         );
       });
 
@@ -113,11 +116,11 @@ export default function Analytics() {
         return acc;
       }, { totalSpending: 0, totalIncome: 0, maxExpenseAmount: 0, maxExpenseDay: 'None' });
 
-      const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-      const avgDailyExpense = monthlyMetrics.totalSpending / daysDiff;
+      const daysInPeriod = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))); // Ensure at least 1 day
+      const avgDailyExpense = monthlyMetrics.totalSpending / daysInPeriod;
       const monthlySavingsRate = monthlyMetrics.totalIncome > 0
         ? ((monthlyMetrics.totalIncome - monthlyMetrics.totalSpending) / monthlyMetrics.totalIncome) * 100
-        : 0;
+        : (monthlyMetrics.totalSpending > 0 ? -100 : 0); // Handle cases with no income
 
       setMetrics({
         ...monthlyMetrics,
@@ -152,17 +155,20 @@ export default function Analytics() {
         return acc;
       }, {});
 
-      const sourceData = filteredTransactions.reduce((acc, transaction) => {
+      const paymentMethodData = filteredTransactions.reduce((acc, transaction) => {
         if (transaction.type === 'expense') {
-          const source = ["csv", "pdf", "splitwise"].includes(transaction.source) ? transaction.source : 'manual';
+          const source = ["csv", "pdf", "splitwise"].includes(transaction.source) ? transaction.source : (transaction.source || 'manual'); // Ensure source is defined
           acc[source] = (acc[source] || 0) + parseFloat(transaction.amount);
         }
         return acc;
       }, {});
 
       const sortedMonthlyLabels = Object.keys(monthlyData).sort((a, b) => {
-        const dateA = new Date(a);
-        const dateB = new Date(b);
+        // Custom sort for 'MMM YY' format
+        const [monthA, yearA] = a.split(' ');
+        const [monthB, yearB] = b.split(' ');
+        const dateA = new Date(`01 ${monthA} 20${yearA}`);
+        const dateB = new Date(`01 ${monthB} 20${yearB}`);
         return dateA - dateB;
       });
 
@@ -176,9 +182,9 @@ export default function Analytics() {
           income: sortedMonthlyLabels.map(month => monthlyData[month].income),
           expenses: sortedMonthlyLabels.map(month => monthlyData[month].expenses)
         },
-        transactionSources: {
-          labels: Object.keys(sourceData),
-          data: Object.values(sourceData)
+        paymentMethods: { // Renamed from transactionSources
+          labels: Object.keys(paymentMethodData),
+          data: Object.values(paymentMethodData)
         }
       });
     } catch (error) {
@@ -188,6 +194,8 @@ export default function Analytics() {
   };
 
   useEffect(() => {
+    setIsLoading(true); // Set loading true at the start of effect
+    setError(null); // Clear previous errors
     try {
       loadAnalyticsData();
     } catch (err) {
@@ -207,7 +215,7 @@ export default function Analytics() {
   }
 
   return (
-    <div className="analytics-container p-6 space-y-8 bg-gray-50 dark:bg-gray-900">
+    <div className="analytics-container space-y-8 bg-gray-50 dark:bg-gray-900">
       <AnalyticsFilters
         filters={filters}
         setFilters={setFilters}

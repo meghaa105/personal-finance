@@ -135,46 +135,53 @@ export default function Dashboard() {
         borderWidth: theme === 'dark' ? 2 : 1
       }]
     });
-  }, [transactions, categories]);
+  }, [transactions, categories, theme]); // Added theme to dependency array
 
   return (
     <div className="dashboard">
-      <div className="summary-cards grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div className="card bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Balance</h3>
-          <p className="total-balance text-3xl font-bold text-primary mt-2">
+      <div className="summary-cards grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+        <div className="card bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-4 sm:p-6 shadow-sm">
+          <h3 className="text-md sm:text-lg font-semibold text-gray-700 dark:text-gray-300">Total Balance</h3>
+          <p className="total-balance text-2xl sm:text-3xl font-bold text-primary mt-1 sm:mt-2">
             {formatCurrency(summary.balance)}
           </p>
         </div>
 
-        <div className="card bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Income</h3>
-          <p className="text-3xl font-bold text-green-600 mt-2">
+        <div className="card bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-4 sm:p-6 shadow-sm">
+          <h3 className="text-md sm:text-lg font-semibold text-gray-700 dark:text-gray-300">Income</h3>
+          <p className="text-2xl sm:text-3xl font-bold text-green-600 mt-1 sm:mt-2">
             {formatCurrency(summary.income)}
           </p>
         </div>
 
-        <div className="card bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Expenses</h3>
-          <p className="text-3xl font-bold text-red-600 mt-2">
+        <div className="card bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-4 sm:p-6 shadow-sm">
+          <h3 className="text-md sm:text-lg font-semibold text-gray-700 dark:text-gray-300">Expenses</h3>
+          <p className="text-2xl sm:text-3xl font-bold text-red-600 mt-1 sm:mt-2">
             {formatCurrency(summary.expenses)}
           </p>
         </div>
       </div>
 
-      <div className="mt-8 rounded-lg shadow-sm bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Top Expense Categories</h2>
+      <div className="mt-6 sm:mt-8 rounded-lg shadow-sm bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 sm:p-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3 sm:mb-4 text-center">Top Expense Categories</h2>
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg">
           {categoryData.labels.length > 0 ? (
-            <div className="w-1/3 h-[25rem] mx-auto py-4 flex justify-center">
+            <div className="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 h-auto sm:h-[25rem] mx-auto py-2 sm:py-4 flex justify-center">
               <Doughnut
                 data={categoryData}
                 options={{
                   responsive: true,
-                  maintainAspectRatio: true,
+                  maintainAspectRatio: false, // Allow chart to resize
                   plugins: {
                     legend: {
                       position: 'bottom',
+                      labels: {
+                        padding: 10, // Add padding to legend items
+                        boxWidth: 12, // Adjust legend box width
+                        font: {
+                          size: 10 // Adjust legend font size for smaller screens
+                        }
+                      }
                     }
                   },
                 }}
@@ -191,11 +198,11 @@ export default function Dashboard() {
         categories={categories}
       />
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Recent Transactions</h2>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+      <div className="mt-6 sm:mt-8">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3 sm:mb-4">Recent Transactions</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm">
           {recentTransactions.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {recentTransactions.map((transaction) => (
                 <Transaction key={transaction.id} transaction={transaction} />
               ))}

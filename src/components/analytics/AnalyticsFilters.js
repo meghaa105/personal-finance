@@ -27,7 +27,7 @@ export default function AnalyticsFilters({ filters, setFilters, categories }) {
             case 'custom':
             default: // Default to current month data
                 start = new Date(today.getFullYear(), today.getMonth(), 1);
-                end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
                 break;
         }
         // Update internal dateRange state only if it's not a custom period or if custom dates are not yet set

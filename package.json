@@ -27,7 +27,15 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "babel-jest": "^30.2.0",
     "eslint": "^8.51.0",
-    "eslint-config-next": "13.5.4"
+    "eslint-config-next": "13.5.4",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0"
   }
 }

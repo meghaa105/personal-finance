@@ -13,25 +13,37 @@ const STORAGE_KEYS = {
 
 class StorageService {
   static init() {
-    // Force initialize transactions with sample
-    if (!localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) {
-      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
-    }
+    if (typeof window === 'undefined') return;
 
-    if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
-      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
-    }
+    try {
+      // Force initialize transactions with sample
+      if (!localStorage.getItem(STORAGE_KEYS.TRANSACTIONS)) {
+        localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+      }
 
-    if (!localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS)) {
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(DEFAULT_MAPPINGS));
+      if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
+      }
+
+      if (!localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS)) {
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(DEFAULT_MAPPINGS));
+      }
+    } catch (error) {
+      console.error('Error initializing storage:', error);
     }
   }
 
   static getAllTransactions() {
-    const transactions = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
-    const parsedTransactions = JSON.parse(transactions || '[]');
-    // console.log('Retrieved transactions from storage:', parsedTransactions);
-    return parsedTransactions;
+    if (typeof window === 'undefined') return [];
+
+    try {
+      const transactions = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
+      const parsedTransactions = JSON.parse(transactions || '[]');
+      return Array.isArray(parsedTransactions) ? parsedTransactions : [];
+    } catch (error) {
+      console.error('Error getting transactions:', error);
+      return [];
+    }
   }
 
   /**
@@ -83,9 +95,19 @@ class StorageService {
    * @param {Object} transaction - Transaction object
    */
   static addTransaction(transaction) {
-    const transactions = this.getAllTransactions();
-    transactions.push(transaction);
-    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+    if (typeof window === 'undefined') return;
+    if (!transaction || typeof transaction !== 'object') {
+        console.error('Invalid transaction object');
+        return;
+    }
+
+    try {
+      const transactions = this.getAllTransactions();
+      transactions.push(transaction);
+      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+    }
   }
 
   /**
@@ -94,11 +116,17 @@ class StorageService {
    * @param {Object} updatedTransaction - Updated transaction object
    */
   static updateTransaction(id, updatedTransaction) {
-    const transactions = this.getAllTransactions();
-    const index = transactions.findIndex(t => t.id === id);
-    if (index !== -1) {
-      transactions[index] = { ...transactions[index], ...updatedTransaction };
-      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+    if (typeof window === 'undefined') return;
+
+    try {
+      const transactions = this.getAllTransactions();
+      const index = transactions.findIndex(t => t.id === id);
+      if (index !== -1) {
+        transactions[index] = { ...transactions[index], ...updatedTransaction };
+        localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+      }
+    } catch (error) {
+      console.error('Error updating transaction:', error);
     }
   }
 
@@ -107,9 +135,15 @@ class StorageService {
    * @param {string} id - Transaction ID
    */
   static deleteTransaction(id) {
-    const transactions = this.getAllTransactions();
-    const filteredTransactions = transactions.filter(t => t.id !== id);
-    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(filteredTransactions));
+    if (typeof window === 'undefined') return;
+
+    try {
+      const transactions = this.getAllTransactions();
+      const filteredTransactions = transactions.filter(t => t.id !== id);
+      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(filteredTransactions));
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+    }
   }
 
   /**
@@ -117,8 +151,16 @@ class StorageService {
    * @returns {Array} Array of categories
    */
   static getCategories() {
-    const categories = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
-    return JSON.parse(categories || '[]');
+    if (typeof window === 'undefined') return [];
+
+    try {
+      const categories = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
+      const parsedCategories = JSON.parse(categories || '[]');
+      return Array.isArray(parsedCategories) ? parsedCategories : [];
+    } catch (error) {
+      console.error('Error getting categories:', error);
+      return [];
+    }
   }
 
   /**
@@ -126,15 +168,21 @@ class StorageService {
    * @param {string} category - Category name
    */
   static addCategory(category) {
-    const categories = this.getCategories();
-    if (!categories.map(cat => cat.id).includes(category.id)) {
-      categories.push(category);
-      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+    if (typeof window === 'undefined') return;
 
-      // Initialize empty custom mappings for new category
-      const customMappings = JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS) || '{}');
-      customMappings[category.id] = [];
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(customMappings));
+    try {
+      const categories = this.getCategories();
+      if (!categories.map(cat => cat.id).includes(category.id)) {
+        categories.push(category);
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+
+        // Initialize empty custom mappings for new category
+        const customMappings = JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS) || '{}');
+        customMappings[category.id] = [];
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(customMappings));
+      }
+    } catch (error) {
+      console.error('Error adding category:', error);
     }
   }
 
@@ -144,19 +192,25 @@ class StorageService {
    * @param {Object} updatedCategory - Updated category object
    */
   static updateCategory(categoryId, updatedCategory) {
-    const categories = this.getCategories();
-    const index = categories.findIndex(c => c.id === categoryId);
-    if (index !== -1) {
-      categories[index] = { ...categories[index], ...updatedCategory };
-      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+    if (typeof window === 'undefined') return;
 
-      // Update custom mappings if category ID changed
-      if (categoryId !== updatedCategory.id) {
-        const customMappings = JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS) || '{}');
-        customMappings[updatedCategory.id] = customMappings[categoryId] || [];
-        delete customMappings[categoryId];
-        localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(customMappings));
+    try {
+      const categories = this.getCategories();
+      const index = categories.findIndex(c => c.id === categoryId);
+      if (index !== -1) {
+        categories[index] = { ...categories[index], ...updatedCategory };
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+
+        // Update custom mappings if category ID changed
+        if (categoryId !== updatedCategory.id) {
+          const customMappings = JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS) || '{}');
+          customMappings[updatedCategory.id] = customMappings[categoryId] || [];
+          delete customMappings[categoryId];
+          localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(customMappings));
+        }
       }
+    } catch (error) {
+      console.error('Error updating category:', error);
     }
   }
 
@@ -165,24 +219,30 @@ class StorageService {
    * @param {string} categoryId - Category ID to delete
    */
   static deleteCategory(categoryId) {
-    const categories = this.getCategories();
-    const filteredCategories = categories.filter(c => c.id !== categoryId);
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(filteredCategories));
+    if (typeof window === 'undefined') return;
 
-    // Remove custom mappings for deleted category
-    const customMappings = JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS) || '{}');
-    delete customMappings[categoryId];
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(customMappings));
+    try {
+      const categories = this.getCategories();
+      const filteredCategories = categories.filter(c => c.id !== categoryId);
+      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(filteredCategories));
 
-    // Update transactions with deleted category to 'other'
-    const transactions = this.getAllTransactions();
-    const updatedTransactions = transactions.map(t => {
-      if (t.category === categoryId) {
-        return { ...t, category: 'other' };
-      }
-      return t;
-    });
-    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updatedTransactions));
+      // Remove custom mappings for deleted category
+      const customMappings = JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS) || '{}');
+      delete customMappings[categoryId];
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(customMappings));
+
+      // Update transactions with deleted category to 'other'
+      const transactions = this.getAllTransactions();
+      const updatedTransactions = transactions.map(t => {
+        if (t.category === categoryId) {
+          return { ...t, category: 'other' };
+        }
+        return t;
+      });
+      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updatedTransactions));
+    } catch (error) {
+      console.error('Error deleting category:', error);
+    }
   }
 
   /**
@@ -190,8 +250,15 @@ class StorageService {
    * @returns {Object} Object of custom mappings by category
    */
   static getCustomMappings() {
-    const mappings = localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS);
-    return JSON.parse(mappings || '[]');
+    if (typeof window === 'undefined') return {};
+
+    try {
+      const mappings = localStorage.getItem(STORAGE_KEYS.CUSTOM_MAPPINGS);
+      return JSON.parse(mappings || '{}');
+    } catch (error) {
+      console.error('Error getting custom mappings:', error);
+      return {};
+    }
   }
 
   /**
@@ -199,31 +266,54 @@ class StorageService {
    * @param {Object} mapping - Custom mapping object
    */
   static addCustomMapping(mapping) {
-    const mappings = this.getCustomMappings();
-    mappings.push(mapping);
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(mappings));
+    if (typeof window === 'undefined') return;
+
+    // Based on CustomMappingsContext.js, mapping is added via updateCustomMappings with the full object.
+    // This method (addCustomMapping) seems unused or legacy in the context of the current app usage
+    // where CustomMappingsContext manages the state and just calls updateCustomMappings.
+    // However, if it were used, it would need to handle the object structure correctly.
+    // Since getCustomMappings returns an object, and mapping here seems to imply a single mapping entry?
+    // It is safer to deprecate this or align it with the object structure.
+    // Given I don't see it used in the context, I will log a warning and return.
+
+    console.warn('addCustomMapping is deprecated or incorrectly implemented for the current data structure. Use updateCustomMappings instead.');
   }
 
   /**
    * Update custom mappings
-   * @param {Array} mappings - Array of custom mappings
+   * @param {Object} mappings - Object of custom mappings
    */
   static updateCustomMappings(mappings) {
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(mappings));
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_MAPPINGS, JSON.stringify(mappings));
+    } catch (error) {
+        console.error('Error updating custom mappings:', error);
+    }
   }
 
   /**
    * Clear all data from storage
    */
   static clearAllData() {
-    Object.values(STORAGE_KEYS).forEach(key => {
-      localStorage.removeItem(key);
-    });
-    this.init(); // Reinitialize with default values
+    if (typeof window === 'undefined') return;
+    try {
+      Object.values(STORAGE_KEYS).forEach(key => {
+        localStorage.removeItem(key);
+      });
+      this.init(); // Reinitialize with default values
+    } catch (error) {
+      console.error('Error clearing data:', error);
+    }
   }
 
   static clearTransactions() {
-    localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+    } catch (error) {
+        console.error('Error clearing transactions:', error);
+    }
   }
 }
 

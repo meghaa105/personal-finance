@@ -7,6 +7,7 @@ import { CustomMappingsProvider } from '../contexts/CustomMappingsContext';
 import { MultiSelectProvider, useMultiSelect } from '../contexts/MultiSelectContext';
 import Navigation from '@/components/Navigation';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import AIAssistant from '@/components/AIAssistant';
 
 function AppContent({ children }) {
   const { dropdownOpen } = useMultiSelect();
@@ -17,6 +18,7 @@ function AppContent({ children }) {
       <main className="p-4 sm:p-6 pt-10 sm:pt-16 mt-16 sm:mt-20 flex-grow">
         {children}
       </main>
+      <AIAssistant />
       {dropdownOpen && (
         <style jsx global>{`
           body {

@@ -34,23 +34,27 @@ export function CustomMappingsProvider({ children }) {
     });
   };
 
-  const updateCustomMapping = (oldCategory, newCategory, pattern) => {
+  const updateCustomMapping = (oldCategory, newCategory, pattern, oldPattern) => {
     const patternLower = pattern.toLowerCase();
+    const oldPatternLower = (oldPattern || pattern).toLowerCase();
     
     setCustomMappings(prev => {
       const newMappings = { ...prev };
-      // Remove from old category
+      // Remove old pattern from old category
       if (newMappings[oldCategory]) {
-        newMappings[oldCategory] = newMappings[oldCategory].filter(p => p !== patternLower);
+        newMappings[oldCategory] = newMappings[oldCategory].filter(p => p !== oldPatternLower);
         if (newMappings[oldCategory].length === 0) {
           delete newMappings[oldCategory];
         }
       }
-      // Add to new category
+      // Add new pattern to new category
       if (!newMappings[newCategory]) {
         newMappings[newCategory] = [];
       }
-      newMappings[newCategory] = [...newMappings[newCategory], patternLower];
+      // Avoid duplicates
+      if (!newMappings[newCategory].includes(patternLower)) {
+        newMappings[newCategory] = [...newMappings[newCategory], patternLower];
+      }
       
       StorageService.updateCustomMappings(newMappings);
       return newMappings;

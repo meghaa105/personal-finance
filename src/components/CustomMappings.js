@@ -52,7 +52,7 @@ export default function CustomMappings() {
     }
 
     if (editingMapping) {
-      updateCustomMapping(editingMapping.category, newMapping.category, editingMapping.pattern);
+      updateCustomMapping(editingMapping.category, newMapping.category, newMapping.pattern.toLowerCase(), editingMapping.pattern);
       setEditingMapping(null);
     } else {
       addCustomMapping(newMapping.category, newMapping.pattern.toLowerCase());

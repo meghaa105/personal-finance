@@ -271,7 +271,7 @@ export default function Transactions() {
         show={showFilters}
         filters={tempFilters}
         onFilterChange={handleFilterChange}
-        onApply={applyFilters}
+        onApplyFilters={applyFilters}
         onReset={() => {
           const defaultFilters = {
             type: 'all',

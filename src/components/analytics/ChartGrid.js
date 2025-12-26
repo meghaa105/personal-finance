@@ -23,7 +23,13 @@ export default function ChartGrid({ chartData, filters: analyticsFilters }) {
     onClick: (event, elements) => {
       if (elements && elements.length > 0) {
         const index = elements[0].index;
-        const label = categoryChartData.labels[index];
+        // Access the chart instance from the element
+        const chart = elements[0].element.$context.chart;
+        if (!chart || !chart.data || !chart.data.labels) return;
+        
+        const label = chart.data.labels[index];
+        if (!label) return;
+
         // Extract just the category ID/slug if it's formatted as "Icon Label"
         const categoryId = label.includes(' ') ? label.split(' ').slice(1).join(' ').toLowerCase() : label.toLowerCase();
         

@@ -15,11 +15,10 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/icon?family=Material+Icons"
           rel="stylesheet"
           media="all"
-        // onLoad={(e) => { e.target.media='all'; }}
         />
         <title>Personal Finance Manager (₹)</title>
       </head>
-      <body className="bg-white dark:bg-gray-900">
+      <body className="bg-white dark:bg-gray-900" suppressHydrationWarning>
         <ThemeProvider>
           <CustomMappingsProvider>
             <CategoryProvider>

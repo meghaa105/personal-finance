@@ -8,8 +8,28 @@ import { FaArrowTrendDown, FaArrowTrendUp } from 'react-icons/fa6';
 export default function Transaction({ transaction, onEdit, onDelete, isSelected, onSelect }) {
   const { categories } = useCategories();
   const category = categories.find(cat => cat.id === transaction.category) || categories.find(cat => cat.id === 'other');
+  
+  const categoryColors = {
+    food_dining: 'border-orange-200 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-900/10',
+    groceries: 'border-lime-200 dark:border-lime-800 bg-lime-50/30 dark:bg-lime-900/10',
+    shopping: 'border-pink-200 dark:border-pink-800 bg-pink-50/30 dark:bg-pink-900/10',
+    transport: 'border-blue-200 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-900/10',
+    entertainment: 'border-purple-200 dark:border-purple-800 bg-purple-50/30 dark:bg-purple-900/10',
+    health: 'border-red-200 dark:border-red-800 bg-red-50/30 dark:bg-red-900/10',
+    utilities: 'border-yellow-200 dark:border-yellow-800 bg-yellow-50/30 dark:bg-yellow-900/10',
+    housing: 'border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-900/10',
+    travel: 'border-cyan-200 dark:border-cyan-800 bg-cyan-50/30 dark:bg-cyan-900/10',
+    income: 'border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-900/10',
+    other: 'border-gray-200 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/10'
+  };
+
+  const getCategoryStyle = (catId) => {
+    if (transaction.type === 'income') return categoryColors.income;
+    return categoryColors[catId] || categoryColors.other;
+  };
+
   return (
-    <div className={`flex flex-col-reverse sm:flex-row gap-4 justify-between items-start sm:items-center p-3 pt-1 sm:p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border ${isSelected ? 'border-primary ring-1 ring-primary' : 'border-gray-300 dark:border-gray-700'} hover:border-gray-400 dark:hover:border-gray-600 group transition-all duration-200`}>
+    <div className={`flex flex-col-reverse sm:flex-row gap-4 justify-between items-start sm:items-center p-3 pt-1 sm:p-4 rounded-lg shadow-md border ${isSelected ? 'border-primary ring-1 ring-primary' : getCategoryStyle(transaction.category)} hover:border-gray-400 dark:hover:border-gray-600 group transition-all duration-200`}>
       <div className="flex-grow flex items-center gap-3 sm:gap-4 w-full">
         <div className="flex items-center">
           <input

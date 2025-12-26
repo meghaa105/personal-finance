@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { formatCurrency } from '../utils/formatters';
 import { useTransactions } from '../contexts/TransactionContext';
 import { useCategories } from '../contexts/CategoryContext';
@@ -9,6 +10,7 @@ import FilterModal from './FilterModal';
 import Transaction from './Transaction';
 
 export default function Transactions() {
+  const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -89,6 +91,21 @@ export default function Transactions() {
     endDate: '',
     paymentMethod: 'all'
   });
+
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      const matchedCategory = categories.find(cat => 
+        cat.id.toLowerCase() === categoryParam.toLowerCase() || 
+        cat.label.toLowerCase() === categoryParam.toLowerCase()
+      );
+      
+      if (matchedCategory) {
+        setFilters(prev => ({ ...prev, category: matchedCategory.id }));
+        setTempFilters(prev => ({ ...prev, category: matchedCategory.id }));
+      }
+    }
+  }, [searchParams, categories]);
 
   const [tempFilters, setTempFilters] = useState({
     type: 'all',

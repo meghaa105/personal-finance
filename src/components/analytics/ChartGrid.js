@@ -1,10 +1,12 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { Pie, Bar } from 'react-chartjs-2';
 import { formatCurrency } from '../../utils/formatters';
 
 export default function ChartGrid({ chartData }) {
+  const router = useRouter();
   const isDarkMode = useMemo(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark');
@@ -18,6 +20,15 @@ export default function ChartGrid({ chartData }) {
   const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    onClick: (event, elements) => {
+      if (elements && elements.length > 0) {
+        const index = elements[0].index;
+        const label = categoryChartData.labels[index];
+        // Extract just the category ID/slug if it's formatted as "Icon Label"
+        const categoryId = label.includes(' ') ? label.split(' ').slice(1).join(' ').toLowerCase() : label.toLowerCase();
+        router.push(`/transactions?category=${encodeURIComponent(categoryId)}`);
+      }
+    },
     plugins: {
       legend: {
         position: 'bottom',

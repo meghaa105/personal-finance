@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { Pie, Bar } from 'react-chartjs-2';
 import { formatCurrency } from '../../utils/formatters';
 
-export default function ChartGrid({ chartData }) {
+export default function ChartGrid({ chartData, filters: analyticsFilters }) {
   const router = useRouter();
   const isDarkMode = useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -26,7 +26,39 @@ export default function ChartGrid({ chartData }) {
         const label = categoryChartData.labels[index];
         // Extract just the category ID/slug if it's formatted as "Icon Label"
         const categoryId = label.includes(' ') ? label.split(' ').slice(1).join(' ').toLowerCase() : label.toLowerCase();
-        router.push(`/transactions?category=${encodeURIComponent(categoryId)}`);
+        
+        // Calculate dates based on analytics filters
+        const now = new Date();
+        let startDate = '';
+        let endDate = '';
+
+        switch (analyticsFilters?.timePeriod) {
+          case 'current_month':
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+            break;
+          case 'current_quarter':
+            const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
+            startDate = new Date(now.getFullYear(), quarterMonth, 1).toISOString().split('T')[0];
+            endDate = new Date(now.getFullYear(), quarterMonth + 3, 0).toISOString().split('T')[0];
+            break;
+          case 'current_year':
+            startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+            endDate = new Date(now.getFullYear(), 11, 31).toISOString().split('T')[0];
+            break;
+          case 'custom':
+            startDate = analyticsFilters.customStartDate ? new Date(analyticsFilters.customStartDate).toISOString().split('T')[0] : '';
+            endDate = analyticsFilters.customEndDate ? new Date(analyticsFilters.customEndDate).toISOString().split('T')[0] : '';
+            break;
+        }
+
+        const queryParams = new URLSearchParams({
+          category: categoryId,
+          ...(startDate && { startDate }),
+          ...(endDate && { endDate })
+        });
+
+        router.push(`/transactions?${queryParams.toString()}`);
       }
     },
     plugins: {

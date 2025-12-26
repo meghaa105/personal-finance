@@ -94,6 +94,12 @@ export default function Transactions() {
 
   useEffect(() => {
     const categoryParam = searchParams.get('category');
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+
+    const newFilters = { ...filters };
+    let hasChanges = false;
+
     if (categoryParam) {
       const matchedCategory = categories.find(cat => 
         cat.id.toLowerCase() === categoryParam.toLowerCase() || 
@@ -101,9 +107,24 @@ export default function Transactions() {
       );
       
       if (matchedCategory) {
-        setFilters(prev => ({ ...prev, category: matchedCategory.id }));
-        setTempFilters(prev => ({ ...prev, category: matchedCategory.id }));
+        newFilters.category = matchedCategory.id;
+        hasChanges = true;
       }
+    }
+
+    if (startDateParam) {
+      newFilters.startDate = startDateParam;
+      hasChanges = true;
+    }
+
+    if (endDateParam) {
+      newFilters.endDate = endDateParam;
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+      setFilters(newFilters);
+      setTempFilters(newFilters);
     }
   }, [searchParams, categories]);
 

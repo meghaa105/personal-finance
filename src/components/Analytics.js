@@ -222,7 +222,7 @@ export default function Analytics() {
         categories={categories}
       />
       <MetricsGrid metrics={metrics} />
-      <ChartGrid chartData={chartData} />
+      <ChartGrid chartData={chartData} filters={filters} />
     </div>
   );
 }

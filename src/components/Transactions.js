@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { formatCurrency } from '../utils/formatters';
 import { useTransactions } from '../contexts/TransactionContext';
 import { useCategories } from '../contexts/CategoryContext';
-import { AiOutlinePlus, AiOutlineClose, AiOutlineFilter } from 'react-icons/ai';
+import { AiOutlinePlus, AiOutlineClose, AiOutlineFilter, AiOutlineCheckSquare, AiOutlineBorder, AiOutlineDelete, AiOutlineTag } from 'react-icons/ai';
 import FilterModal from './FilterModal';
 import Transaction from './Transaction';
 
@@ -15,6 +15,8 @@ export default function Transactions() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [showBulkCategoryMenu, setShowBulkCategoryMenu] = useState(false);
   const { categories } = useCategories();
   const [newTransaction, setNewTransaction] = useState({
     description: '',
@@ -25,11 +27,45 @@ export default function Transactions() {
     date: new Date().toISOString().split('T')[0],
   });
 
-  const { transactions: contextTransactions, addTransactions, deleteTransaction, updateTransaction } = useTransactions();
+  const { 
+    transactions: contextTransactions, 
+    addTransactions, 
+    deleteTransaction, 
+    updateTransaction,
+    updateTransactionsBulk,
+    deleteTransactionsBulk
+  } = useTransactions();
 
   useEffect(() => {
     setTransactions(contextTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)));
   }, [contextTransactions]);
+
+  const handleSelect = (id, isChecked) => {
+    setSelectedIds(prev => 
+      isChecked ? [...prev, id] : prev.filter(selectedId => selectedId !== id)
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === filteredTransactions.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredTransactions.map(t => t.id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} transactions?`)) {
+      deleteTransactionsBulk(selectedIds);
+      setSelectedIds([]);
+    }
+  };
+
+  const handleBulkCategorize = (categoryId) => {
+    updateTransactionsBulk(selectedIds, { category: categoryId });
+    setSelectedIds([]);
+    setShowBulkCategoryMenu(false);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -164,6 +200,54 @@ export default function Transactions() {
 
   return (
     <div className="transactions-container relative">
+      {/* Bulk Actions Bar */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 shadow-2xl border border-primary/20 rounded-full px-4 py-2 flex items-center gap-4 z-40 animate-bounce-in">
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+            {selectedIds.length} selected
+          </span>
+          <div className="h-4 w-[1px] bg-gray-300 dark:bg-gray-600" />
+          <div className="relative">
+            <button
+              onClick={() => setShowBulkCategoryMenu(!showBulkCategoryMenu)}
+              className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"
+              title="Bulk Categorize"
+            >
+              <AiOutlineTag size={20} />
+            </button>
+            {showBulkCategoryMenu && (
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-xl p-2 min-w-[200px] max-h-64 overflow-y-auto z-50">
+                <p className="text-xs font-bold text-gray-500 p-2 uppercase tracking-wider">Select Category</p>
+                {categories.map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleBulkCategorize(cat.id)}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded flex items-center gap-2"
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleBulkDelete}
+            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+            title="Bulk Delete"
+          >
+            <AiOutlineDelete size={20} />
+          </button>
+          <button
+            onClick={() => setSelectedIds([])}
+            className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
+            title="Clear Selection"
+          >
+            <AiOutlineClose size={20} />
+          </button>
+        </div>
+      )}
+
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-[fadeIn_0.2s_ease-in-out] p-4">
           <div className="bg-white dark:bg-gray-800/95 rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-md sm:max-w-lg mx-auto relative animate-[slideUp_0.3s_ease-out]">
@@ -285,6 +369,17 @@ export default function Transactions() {
 
       <div className="filters bg-white dark:bg-gray-800/95 rounded-lg p-4 shadow-sm mb-4 transition-colors duration-300">
         <div className="flex gap-4 items-center">
+          <button
+            onClick={handleSelectAll}
+            className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            title={selectedIds.length === filteredTransactions.length ? "Deselect All" : "Select All"}
+          >
+            {selectedIds.length === filteredTransactions.length ? (
+              <AiOutlineCheckSquare size={24} className="text-primary" />
+            ) : (
+              <AiOutlineBorder size={24} />
+            )}
+          </button>
           <div className="flex-1">
             <input
               type="text"
@@ -335,6 +430,8 @@ export default function Transactions() {
                 transaction={transaction}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                isSelected={selectedIds.includes(transaction.id)}
+                onSelect={handleSelect}
               />
             ))}
           </div>

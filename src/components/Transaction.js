@@ -5,12 +5,20 @@ import { useCategories } from '../contexts/CategoryContext';
 import { AiOutlineCalendar, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { FaArrowTrendDown, FaArrowTrendUp } from 'react-icons/fa6';
 
-export default function Transaction({ transaction, onEdit, onDelete }) {
+export default function Transaction({ transaction, onEdit, onDelete, isSelected, onSelect }) {
   const { categories } = useCategories();
   const category = categories.find(cat => cat.id === transaction.category) || categories.find(cat => cat.id === 'other');
   return (
-    <div className="flex flex-col-reverse sm:flex-row gap-4 justify-between items-start sm:items-center p-3 pt-1 sm:p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 group">
+    <div className={`flex flex-col-reverse sm:flex-row gap-4 justify-between items-start sm:items-center p-3 pt-1 sm:p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md border ${isSelected ? 'border-primary ring-1 ring-primary' : 'border-gray-300 dark:border-gray-700'} hover:border-gray-400 dark:hover:border-gray-600 group transition-all duration-200`}>
       <div className="flex-grow flex items-center gap-3 sm:gap-4 w-full">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => onSelect(transaction.id, e.target.checked)}
+            className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+          />
+        </div>
         <div className='hidden sm:block'>
           {transaction.type === 'income' ?
             <FaArrowTrendUp size={20} className="text-green-500 flex-shrink-0" /> :

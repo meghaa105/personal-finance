@@ -86,6 +86,34 @@ export function TransactionProvider({ children }) {
     }
   };
 
+  const updateTransactionsBulk = (ids, updates) => {
+    try {
+      ids.forEach(id => {
+        StorageService.updateTransaction(id, updates);
+      });
+      setTransactions(prevTransactions =>
+        prevTransactions.map(transaction =>
+          ids.includes(transaction.id) ? { ...transaction, ...updates } : transaction
+        )
+      );
+    } catch (error) {
+      console.error('Error bulk updating transactions:', error);
+    }
+  };
+
+  const deleteTransactionsBulk = (ids) => {
+    try {
+      ids.forEach(id => {
+        StorageService.deleteTransaction(id);
+      });
+      setTransactions(prevTransactions =>
+        prevTransactions.filter(transaction => !ids.includes(transaction.id))
+      );
+    } catch (error) {
+      console.error('Error bulk deleting transactions:', error);
+    }
+  };
+
   const clearTransactions = () => {
     try {
       // console.log('Clearing all transactions');
@@ -131,6 +159,8 @@ export function TransactionProvider({ children }) {
         addTransactions,
         updateTransaction,
         deleteTransaction,
+        updateTransactionsBulk,
+        deleteTransactionsBulk,
         clearTransactions,
         importTransactions,
         isInitialized

@@ -6,9 +6,6 @@ import { formatCurrency } from '../utils/formatters';
 import { useTransactions } from '../contexts/TransactionContext';
 import { useCategories } from '../contexts/CategoryContext';
 import { useTheme } from '../contexts/ThemeContext';
-import Transaction from './Transaction';
-import BudgetProgress from './BudgetProgress';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -193,12 +190,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <BudgetProgress
-        transactions={transactions}
-        categories={categories}
-      />
-
-      <div className="mt-6 sm:mt-8">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3 sm:mb-4">Recent Transactions</h2>
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm">
           {recentTransactions.length > 0 ? (

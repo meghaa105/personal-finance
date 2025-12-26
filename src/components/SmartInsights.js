@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { formatCurrency } from '../utils/formatters';
-import { HiLightningBolt, HiExclamationTriangle, HiTrendingUp, HiTrendingDown } from 'react-icons/hi2';
+import { HiBolt, HiExclamationTriangle, HiArrowTrendingUp, HiArrowTrendingDown } from 'react-icons/hi2';
 
 export default function SmartInsights({ transactions, categories }) {
   const insights = useMemo(() => {
@@ -30,7 +30,7 @@ export default function SmartInsights({ transactions, categories }) {
         list.push({
           id: 'trend-up',
           type: 'warning',
-          icon: <HiTrendingUp className="text-red-500" />,
+          icon: <HiArrowTrendingUp className="text-red-500" />,
           title: 'Spending Spike',
           message: `You've spent ${percent}% more this week compared to last week (${formatCurrency(thisWeekExpenses)} vs ${formatCurrency(lastWeekExpenses)}).`
         });
@@ -38,7 +38,7 @@ export default function SmartInsights({ transactions, categories }) {
         list.push({
           id: 'trend-down',
           type: 'success',
-          icon: <HiTrendingDown className="text-green-500" />,
+          icon: <HiArrowTrendingDown className="text-green-500" />,
           title: 'Great Progress!',
           message: `Your spending is down ${percent}% compared to last week. Keep it up!`
         });
@@ -88,7 +88,7 @@ export default function SmartInsights({ transactions, categories }) {
         list.push({
           id: `prediction-${cat.id}`,
           type: 'info',
-          icon: <HiLightningBolt className="text-blue-500" />,
+          icon: <HiBolt className="text-blue-500" />,
           title: 'Smart Prediction',
           message: `At your current spending rate, you're likely to exceed your ${cat.label} budget by the end of the month.`
         });
@@ -103,7 +103,7 @@ export default function SmartInsights({ transactions, categories }) {
   return (
     <div className="mt-8">
       <div className="flex items-center gap-2 mb-4">
-        <HiLightningBolt className="text-primary text-xl" />
+        <HiBolt className="text-primary text-xl" />
         <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Smart Insights</h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

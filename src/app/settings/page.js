@@ -1,10 +1,23 @@
 'use client';
 
+import { useState, Suspense } from 'react';
+import { useCategories } from '@/contexts/CategoryContext';
+import { useTransactions } from '@/contexts/TransactionContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload, FaEraser, FaUpload } from 'react-icons/fa';
 import PageTransition from '@/components/PageTransition';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ThemeToggle from '@/components/ThemeToggle';
 import Papa from 'papaparse';
+
+const THEME_COLORS = [
+  { label: 'Blue', value: '#6c63ff', hover: '#150f8b' },
+  { label: 'Purple', value: '#8B5CF6', hover: '#331a6d' },
+  { label: 'Pink', value: '#EC4899', hover: '#6e1140' },
+  { label: 'Orange', value: '#F97316', hover: '#68330c' },
+  { label: 'Teal', value: '#14B8A6', hover: '#235c55' },
+  { label: 'Indigo', value: '#6366F1', hover: '#202153' },
+];
 
 export default function Settings() {
   const { categories, addCategory, deleteCategory, updateCategory } = useCategories();

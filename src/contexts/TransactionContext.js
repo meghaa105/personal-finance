@@ -96,6 +96,34 @@ export function TransactionProvider({ children }) {
     }
   };
 
+  const importTransactions = (newTransactions) => {
+    if (!Array.isArray(newTransactions)) return;
+    
+    const existingTransactions = StorageService.getAllTransactions();
+    // Simple deduplication based on description, amount, date and type
+    const combined = [...existingTransactions];
+    
+    newTransactions.forEach(newT => {
+      const isDuplicate = existingTransactions.some(t => 
+        t.description === newT.description && 
+        t.amount === parseFloat(newT.amount) && 
+        t.date === newT.date && 
+        t.type === newT.type
+      );
+      
+      if (!isDuplicate) {
+        combined.push({
+          ...newT,
+          amount: parseFloat(newT.amount),
+          id: newT.id || Date.now().toString() + Math.random().toString(36).substr(2, 9)
+        });
+      }
+    });
+
+    localStorage.setItem('personalFinance_transactions', JSON.stringify(combined));
+    setTransactions(combined);
+  };
+
   return (
     <TransactionContext.Provider
       value={{
@@ -104,6 +132,7 @@ export function TransactionProvider({ children }) {
         updateTransaction,
         deleteTransaction,
         clearTransactions,
+        importTransactions,
         isInitialized
       }}
     >

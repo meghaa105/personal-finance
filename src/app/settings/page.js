@@ -1,32 +1,68 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useCategories } from '@/contexts/CategoryContext';
-import { useTransactions } from '@/contexts/TransactionContext';
-import { useTheme } from '@/contexts/ThemeContext';
-import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload, FaEraser } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit, FaCheck, FaDownload, FaEraser, FaUpload } from 'react-icons/fa';
 import PageTransition from '@/components/PageTransition';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ThemeToggle from '@/components/ThemeToggle';
-
-const THEME_COLORS = [
-  { label: 'Blue', value: '#6c63ff', hover: '#150f8b' },
-  { label: 'Purple', value: '#8B5CF6', hover: '#331a6d' },
-  { label: 'Pink', value: '#EC4899', hover: '#6e1140' },
-  { label: 'Orange', value: '#F97316', hover: '#68330c' },
-  { label: 'Teal', value: '#14B8A6', hover: '#235c55' },
-  { label: 'Indigo', value: '#6366F1', hover: '#202153' },
-];
+import Papa from 'papaparse';
 
 export default function Settings() {
   const { categories, addCategory, deleteCategory, updateCategory } = useCategories();
-  const { transactions, clearTransactions } = useTransactions();
+  const { transactions, clearTransactions, importTransactions } = useTransactions();
   const { primaryColor, updatePrimaryColor } = useTheme();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
   const [tempBudget, setTempBudget] = useState('');
   const [newCategory, setNewCategory] = useState({ label: '', icon: '⛓️' });
   const [iconError, setIconError] = useState('');
+
+  const handleImportFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target.result;
+      if (file.name.endsWith('.json')) {
+        try {
+          const data = JSON.parse(content);
+          importTransactions(data);
+          alert('Transactions imported successfully!');
+        } catch (err) {
+          alert('Invalid JSON file');
+        }
+      } else if (file.name.endsWith('.csv')) {
+        Papa.parse(content, {
+          header: true,
+          dynamicTyping: true,
+          complete: (results) => {
+            const mapped = results.data
+              .filter(row => row.Date && row.Description && row.Amount)
+              .map(row => {
+                // Handle DD-MM-YYYY format from export
+                let dateStr = row.Date;
+                if (typeof dateStr === 'string' && dateStr.includes('-')) {
+                  const [d, m, y] = dateStr.split('-');
+                  dateStr = `${y}-${m}-${d}`;
+                }
+                return {
+                  date: new Date(dateStr).toISOString().split('T')[0],
+                  description: row.Description,
+                  amount: parseFloat(row.Amount),
+                  type: row.Type?.toLowerCase() || 'expense',
+                  category: row.Category || 'other',
+                  source: row.Source || 'manual'
+                };
+              });
+            importTransactions(mapped);
+            alert('Transactions imported successfully!');
+          },
+          error: () => alert('Error parsing CSV file')
+        });
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const generateUniqueId = (label) => {
     const baseId = label.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -155,6 +191,20 @@ export default function Settings() {
               >
                 <FaDownload /> Export as JSON
               </button>
+              <div className="relative w-full sm:w-auto">
+                <input
+                  type="file"
+                  accept=".json,.csv"
+                  onChange={handleImportFile}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  title="Import backup file"
+                />
+                <button
+                  className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-300 w-full sm:w-auto"
+                >
+                  <FaUpload /> Import Backup (JSON/CSV)
+                </button>
+              </div>
               <button
                 onClick={() => setShowClearConfirm(true)}
                 className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-300 w-full sm:w-auto sm:ml-auto"

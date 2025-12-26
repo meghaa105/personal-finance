@@ -69,7 +69,7 @@ export default function Analytics() {
       switch (filters.timePeriod) {
         case 'current_month':
           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
           break;
         case 'current_quarter':
           const quarterMonth = Math.floor(now.getMonth() / 3) * 3;

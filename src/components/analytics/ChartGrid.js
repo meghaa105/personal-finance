@@ -35,7 +35,7 @@ export default function ChartGrid({ chartData, filters: analyticsFilters }) {
         switch (analyticsFilters?.timePeriod) {
           case 'current_month':
             startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-            endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().split('T')[0];
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
             break;
           case 'current_quarter':
             const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
